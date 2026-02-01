@@ -1,112 +1,108 @@
-# MotoYA - Plataforma de Gestión de Talleres Mecánicos
+# MotoYA
 
-Plataforma web para conectar motociclistas con talleres mecánicos, repuestos y servicios relacionados con transparencia y confianza.
+Plataforma web full-stack para conectar motociclistas con talleres mecánicos certificados. Sistema de reseñas, reputación y búsqueda de servicios.
 
-## 📁 Estructura del Proyecto
+## Stack Técnico
 
-```
-MOTOYA/
-├── client/                 # Frontend (React.js)
-│   ├── public/            # Archivos estáticos y HTML actuales
-│   │   ├── assets/        # CSS, imágenes, iconos
-│   │   │   ├── css/       # Estilos CSS
-│   │   │   └── images/    # Imágenes y recursos visuales
-│   │   ├── index.html
-│   │   ├── registromecanico.html
-│   │   └── resena.html
-│   └── src/               # Código fuente React (futuro)
-│       ├── components/    # Componentes reutilizables
-│       ├── pages/         # Páginas/vistas principales
-│       ├── services/      # Servicios API y lógica de negocio
-│       └── utils/         # Utilidades y helpers
-│
-├── server/                # Backend (Node.js/Express)
-│   └── src/
-│       ├── config/        # Configuración (DB, env, etc.)
-│       ├── controllers/   # Controladores de rutas
-│       ├── middlewares/   # Middlewares (auth, validación, etc.)
-│       ├── models/        # Modelos de datos (Mongoose/Sequelize)
-│       └── routes/        # Definición de rutas API
-│
-├── database/              # Scripts de base de datos
-│   ├── migrations/        # Migraciones de esquema
-│   └── seeds/             # Datos de prueba
-│
-├── docs/                  # Documentación del proyecto
-│
-└── src/                   # [DEPRECADO] Archivos originales
-```
-
-## 🚀 Estado Actual
-
-**Fase:** Prototipo HTML estático
-- ✅ 3 páginas HTML funcionales con Tailwind CSS
-- ✅ Navegación entre páginas
-- ✅ CSS modularizado
-
-## 🎯 Roadmap
-
-### Fase 1: Fundación (✅ Completada)
-- [x] Estructura de carpetas profesional
-- [x] Separación de frontend/backend/database
-- [x] Páginas HTML estáticas con diseño
-
-### Fase 2: Frontend React (✅ Completada)
-- [x] Migrar a React con Vite
-- [x] Componetizar UI (Navbar, Footer)
-- [x] Routing con React Router
-- [x] 3 páginas funcionales (TallerProfile, RegistroTaller, ResenaForm)
-- [ ] Estado global (Context API o Redux)
-- [ ] Formularios con validación
-
-### Fase 3: Backend API
-- [ ] Setup Node.js + Express
-- [ ] Autenticación JWT
-- [ ] CRUD de talleres, reseñas, usuarios
-- [ ] Upload de imágenes
-- [ ] API RESTful documentada
-
-### Fase 4: Base de Datos
-- [ ] Diseño del esquema (MongoDB/PostgreSQL)
-- [ ] Modelos: Taller, Usuario, Reseña, Servicio
-- [ ] Migraciones y seeders
-
-### Fase 5: Integración
-- [ ] Conexión frontend-backend
-- [ ] Testing (Jest, Cypress)
-- [ ] Deploy (Vercel/Netlify + Railway/Heroku)
-
-## 🛠️ Tecnologías Previstas
-
-### Frontend
-- React.js 18+
+**Frontend:**
+- React 18 + TypeScript
 - React Router 6
 - Tailwind CSS
+- Vite
 - Axios
-- Formik/React Hook Form
 
-### Backend
-- Node.js 18+
-- Express.js
+**Backend:**
+- Node.js + Express
+- MySQL + Sequelize ORM
 - JWT (autenticación)
-- Multer (uploads)
-- Mongoose/Sequelize
+- bcryptjs
+- express-validator
 
-### Base de Datos
-- MongoDB o PostgreSQL
-- Redis (caché opcional)
+## Estructura del Proyecto
 
-### DevOps
-- Git + GitHub
-- ESLint + Prettier
-- Docker (opcional)
-- CI/CD con GitHub Actions
+```
+motoya/
+├── client/                 # Frontend React
+│   ├── src/
+│   │   ├── components/    # Navbar, Footer, Icon, Logo
+│   │   ├── pages/         # Home, TallerProfile, RegistroTaller, ResenaForm
+│   │   └── services/      # API services
+│   └── package.json
+│
+├── server/                 # Backend Express
+│   ├── src/
+│   │   ├── config/        # database.js
+│   │   ├── models/        # User, Taller, Resena (Sequelize)
+│   │   ├── controllers/   # Lógica de negocio
+│   │   ├── routes/        # Endpoints API
+│   │   └── middlewares/   # auth, validators
+│   └── package.json
+│
+└── database/              # SQL scripts y migrations
+```
 
-## 📝 Páginas Actuales
+## Instalación
 
-1. **index.html** - Perfil de taller con reseñas y métricas
-2. **registromecanico.html** - Formulario de registro de talleres
-3. **resena.html** - Formulario para dejar reseñas
+```bash
+# Instalar dependencias
+npm install
+cd client && npm install
+cd ../server && npm install
+```
+
+## Desarrollo
+
+```bash
+# Iniciar cliente (puerto 3000)
+cd client
+npm run dev
+
+# Iniciar servidor (puerto 5001)
+cd server
+npm run dev
+
+# Ejecutar ambos con concurrently
+npm run dev
+```
+
+## Funcionalidades Principales
+
+- 🔐 Autenticación de usuarios (JWT)
+- 🏪 Registro y gestión de talleres
+- ⭐ Sistema de reseñas y ratings
+- 🔍 Búsqueda y filtrado de talleres
+- 📸 Upload de imágenes
+- 📊 Dashboard para propietarios de talleres
+
+## API Endpoints (Planificados)
+
+```
+POST   /api/auth/register      - Registro de usuario
+POST   /api/auth/login         - Login
+GET    /api/talleres           - Listar talleres
+GET    /api/talleres/:id       - Detalle de taller
+POST   /api/talleres           - Crear taller (auth)
+PUT    /api/talleres/:id       - Actualizar taller (auth)
+DELETE /api/talleres/:id       - Eliminar taller (auth)
+POST   /api/resenas            - Crear reseña (auth)
+GET    /api/resenas/:tallerId  - Reseñas de un taller
+```
+
+## Estado del Proyecto
+
+- ✅ Estructura de proyecto configurada
+- ✅ Frontend React con TypeScript funcionando
+- ✅ Backend Express configurado
+- ✅ Sequelize + MySQL configurado
+- ✅ 4 páginas principales creadas
+- ⏳ Modelos de base de datos (en progreso)
+- ⏳ Autenticación JWT (pendiente)
+- ⏳ API REST (pendiente)
+- ⏳ Integración frontend-backend (pendiente)
+
+## Licencia
+
+UNLICENSED - Proyecto privado
 
 ## 🤝 Contribución
 
