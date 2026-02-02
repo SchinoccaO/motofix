@@ -4,7 +4,7 @@ import sequelize from '../config/db.js';
 /**
  * Modelo Taller - Talleres mecánicos
  */
-class Taller extends Model {}
+class Taller extends Model { }
 
 Taller.init(
   {
@@ -13,11 +13,11 @@ Taller.init(
       autoIncrement: true,
       primaryKey: true
     },
-    user_id: {
+    usuario_id: {
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
       references: {
-        model: 'users',
+        model: 'usuarios',
         key: 'id'
       },
       onDelete: 'CASCADE'
@@ -65,7 +65,7 @@ Taller.init(
     underscored: true,
     indexes: [
       { fields: ['ciudad'] },
-      { fields: ['user_id'] }
+      { fields: ['usuario_id'] } // Cambiado de user_id a usuario_id
     ]
   }
 );

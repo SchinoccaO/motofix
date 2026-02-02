@@ -1,5 +1,6 @@
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/db.js';
+import bcrypt from 'bcryptjs';
 
 /**
  * Modelo User - Usuario del sistema
@@ -11,6 +12,11 @@ class User extends Model {
     const values = { ...this.get() };
     delete values.password;
     return values;
+  }
+
+  // Método para comparar contraseñas
+  async compararPassword(passwordIngresada) {
+    return await bcrypt.compare(passwordIngresada, this.password);
   }
 }
 
@@ -45,9 +51,23 @@ User.init(
   {
     sequelize,
     modelName: 'User',
-    tableName: 'users',
+    tableName: 'usuarios',
     timestamps: true,
     underscored: true,
+    hooks: {
+      beforeCreate: async (user) => {
+        if (user.password) {
+          const salt = bcrypt.genSaltSync(10);
+          user.password = bcrypt.hashSync(user.password, salt);
+        }
+      },
+      beforeUpdate: async (user) => {
+        if (user.changed('password')) {
+          const salt = bcrypt.genSaltSync(10);
+          user.password = bcrypt.hashSync(user.password, salt);
+        }
+      }
+    },
     indexes: [
       { fields: ['email'] },
       { fields: ['rol'] }

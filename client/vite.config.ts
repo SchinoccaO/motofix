@@ -15,7 +15,14 @@ export default defineConfig({
 
   // Configuración del servidor de desarrollo
   server: {
-    port: 3000, // Abre la app en http://localhost:3000
+    port: 5173, // Abre la app en http://localhost:5173
     open: true, // Abre el navegador automáticamente al ejecutar "npm run dev"
+    proxy: {
+      // Redirige peticiones /api al backend
+      "/api": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
+    },
   },
 });
