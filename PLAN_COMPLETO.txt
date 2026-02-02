@@ -1,0 +1,2001 @@
+═══════════════════════════════════════════════════════════════════════════════
+  PLAN COMPLETO DE IMPLEMENTACIÓN - MOTOYA
+  De Estado Actual a Aplicación Funcional Optimizada
+═══════════════════════════════════════════════════════════════════════════════
+
+ESTADO ACTUAL DEL PROYECTO:
+✓ Frontend React + TypeScript funcionando
+✓ Backend Express con Sequelize configurado
+✓ Modelos básicos creados (User, Taller, Resena)
+✓ Relaciones entre modelos definidas
+✓ 4 páginas React creadas (Home, TallerProfile, RegistroTaller, ResenaForm)
+✓ Componentes básicos (Navbar, Footer, Logo, Icon)
+✗ Sin controllers
+✗ Sin routes
+✗ Sin middlewares de autenticación
+✗ Sin conexión frontend-backend
+✗ Sin validaciones
+✗ Sin SEO optimizado
+✗ Sin imágenes locales
+✗ Sin manejo de errores robusto
+
+═══════════════════════════════════════════════════════════════════════════════
+FASE 1: BASE DE DATOS Y MODELOS (30 min)
+═══════════════════════════════════════════════════════════════════════════════
+
+PASO 1.1: Inicializar base de datos MySQL
+───────────────────────────────────────────────────────────────────────────────
+POR QUÉ: Sin base de datos, el servidor no puede arrancar correctamente
+
+ACCIONES:
+1. Asegurarse que MySQL está corriendo
+   - Verificar: mysql --version
+   - Iniciar servicio si es necesario: net start MySQL84
+
+2. Crear la base de datos:
+   mysql -u root -p
+   CREATE DATABASE IF NOT EXISTS motoya CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   EXIT;
+
+3. Actualizar server/.env con credenciales correctas:
+   DB_HOST=localhost
+   DB_USER=root
+   DB_PASSWORD=tu_password
+   DB_NAME=motoya
+   DB_PORT=3306
+
+
+PASO 1.2: Sincronizar modelos con Sequelize
+───────────────────────────────────────────────────────────────────────────────
+POR QUÉ: Sequelize necesita crear las tablas en la base de datos automáticamente
+
+⚠️ WARNING IMPORTANTE:
+   alter: true es SOLO para desarrollo inicial.
+   Puede modificar/eliminar columnas sin avisar.
+   Antes de producción, MIGRAR a sequelize migrations.
+
+ACCIONES:
+1. El código ya existe en server/src/index.js con:
+   await sequelize.sync({ alter: true, force: false });
+   
+2. Iniciar el servidor para crear tablas:
+   cd server
+   npm run dev
+
+3. Verificar que las tablas se crearon:
+   mysql -u root -p motoya
+   SHOW TABLES;
+   DESCRIBE users;
+   DESCRIBE talleres;
+   DESCRIBE resenas;
+
+
+PASO 1.3: Crear datos de prueba (seeds)
+───────────────────────────────────────────────────────────────────────────────
+POR QUÉ: Necesitamos datos de prueba para desarrollar y testear
+NOTA: Usamos script manual (no sequelize-cli) para compatibilidad con ES Modules
+
+ACCIONES:
+1. Crear archivo: server/src/scripts/seed.js
+
+import bcrypt from 'bcryptjs';
+import { User, Taller, Resena } from '../models/index.js';
+import sequelize from '../config/db.js';
+
+async function seed() {
+  try {
+    console.log('🌱 Iniciando seed...');
+    
+    // Limpiar datos existentes (opcional)
+    await Resena.destroy({ where: {} });
+    await Taller.destroy({ where: {} });
+    await User.destroy({ where: {} });
+    
+    const password = await bcrypt.hash('123456', 10);
+    
+    // Usuarios
+    const admin = await User.create({
+      email: 'admin@motoya.com',
+      password,
+      nombre: 'Admin MotoYA',
+      rol: 'admin'
+    });
+    
+    const usuario = await User.create({
+      email: 'juan@mail.com',
+      password,
+      nombre: 'Juan Pérez',
+      rol: 'usuario'
+    });
+    
+    const tallerOwner = await User.create({
+      email: 'taller1@mail.com',
+      password,
+      nombre: 'Carlos Rodríguez',
+      rol: 'taller'
+    });
+    
+    console.log('✅ Usuarios creados');
+    
+    // Talleres
+    const taller = await Taller.create({
+      user_id: tallerOwner.id,
+      nombre: 'MotoTaller El Rápido',
+      descripcion: 'Especialistas en mantenimiento de motos',
+      direccion: 'Av. Principal 123',
+      ciudad: 'Buenos Aires',
+      telefono: '+54 11 4567-8901',
+      email: 'contacto@elrapido.com',
+      servicios: 'mantenimiento,reparacion,repuestos',
+      horario: 'Lun-Vie: 8:00-18:00'
+    });
+    
+    console.log('✅ Talleres creados');
+    
+    // Reseñas
+    await Resena.create({
+      user_id: usuario.id,
+      taller_id: taller.id,
+      rating: 5,
+      comentario: 'Excelente servicio!',
+      servicio_usado: 'Cambio de aceite',
+      votos_utiles: 5
+    });
+    
+    console.log('✅ Reseñas creadas');
+    console.log('🎉 Seed completado exitosamente');
+    process.exit(0);
+    
+  } catch (error) {
+    console.error('❌ Error en seed:', error);
+    process.exit(1);
+  }
+}
+
+seed();
+
+2. Agregar script a server/package.json:
+   "seed": "node src/scripts/seed.js"
+
+3. Ejecutar seed:
+   cd server
+   npm run seed
+
+
+═══════════════════════════════════════════════════════════════════════════════
+FASE 2: MIDDLEWARES Y UTILIDADES (45 min)
+═══════════════════════════════════════════════════════════════════════════════
+
+PASO 2.1: Middleware de autenticación JWT
+───────────────────────────────────────────────────────────────────────────────
+POR QUÉ: Necesitamos proteger rutas que requieren usuario autenticado
+
+CREAR: server/src/middlewares/auth.js
+
+import jwt from 'jsonwebtoken';
+import { User } from '../models/index.js';
+
+export const authenticateToken = async (req, res, next) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({ error: 'Token no proporcionado' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findByPk(decoded.id);
+
+    if (!user) {
+      return res.status(401).json({ error: 'Usuario no encontrado' });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    return res.status(403).json({ error: 'Token inválido' });
+  }
+};
+
+export const requireRole = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'No autenticado' });
+    }
+
+    if (!roles.includes(req.user.rol)) {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+
+    next();
+  };
+};
+
+
+PASO 2.2: Middleware de validación
+───────────────────────────────────────────────────────────────────────────────
+POR QUÉ: Validar datos de entrada previene errores y ataques
+
+CREAR: server/src/middlewares/validator.js
+
+import { validationResult } from 'express-validator';
+
+export const validate = (req, res, next) => {
+  const errors = validationResult(req);
+  
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ 
+      error: 'Datos inválidos',
+      details: errors.array() 
+    });
+  }
+  
+  next();
+};
+
+
+PASO 2.3: Middleware de manejo de errores
+───────────────────────────────────────────────────────────────────────────────
+POR QUÉ: Centralizar el manejo de errores mejora el debugging y UX
+
+CREAR: server/src/middlewares/errorHandler.js
+
+export const errorHandler = (err, req, res, next) => {
+  console.error('Error:', err);
+
+  // Error de Sequelize (validación, unique, etc)
+  if (err.name === 'SequelizeValidationError') {
+    return res.status(400).json({
+      error: 'Error de validación',
+      details: err.errors.map(e => ({ field: e.path, message: e.message }))
+    });
+  }
+
+  if (err.name === 'SequelizeUniqueConstraintError') {
+    return res.status(400).json({
+      error: 'Registro duplicado',
+      details: err.errors.map(e => ({ field: e.path, message: 'Ya existe' }))
+    });
+  }
+
+  // Error de JWT
+  if (err.name === 'JsonWebTokenError') {
+    return res.status(401).json({ error: 'Token inválido' });
+  }
+
+  // Error genérico
+  res.status(err.status || 500).json({
+    error: process.env.NODE_ENV === 'production' 
+      ? 'Error interno del servidor' 
+      : err.message
+  });
+};
+
+export const notFound = (req, res) => {
+  res.status(404).json({
+    error: 'Endpoint no encontrado',
+    path: req.originalUrl
+  });
+};
+
+
+PASO 2.4: Utilidad para generar JWT
+───────────────────────────────────────────────────────────────────────────────
+POR QUÉ: Reutilizable en login y registro
+
+CREAR: server/src/utils/jwt.js
+
+import jwt from 'jsonwebtoken';
+
+export const generateToken = (userId) => {
+  return jwt.sign(
+    { id: userId },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+  );
+};
+
+export const verifyToken = (token) => {
+  try {
+    return jwt.verify(token, process.env.JWT_SECRET);
+  } catch (error) {
+    return null;
+  }
+};
+
+
+PASO 2.5: Utilidad para respuestas consistentes
+───────────────────────────────────────────────────────────────────────────────
+POR QUÉ: APIs consistentes son más fáciles de consumir
+
+CREAR: server/src/utils/response.js
+
+export const success = (res, data, message = 'Éxito', status = 200) => {
+  return res.status(status).json({
+    success: true,
+    message,
+    data
+  });
+};
+
+export const error = (res, message = 'Error', status = 500, errors = null) => {
+  return res.status(status).json({
+    success: false,
+    message,
+    errors
+  });
+};
+
+
+═══════════════════════════════════════════════════════════════════════════════
+FASE 3: CONTROLLERS (1 hora)
+═══════════════════════════════════════════════════════════════════════════════
+
+PASO 3.1: Controller de autenticación
+───────────────────────────────────────────────────────────────────────────────
+POR QUÉ: Manejar registro, login y perfil de usuario
+
+CREAR: server/src/controllers/authController.js
+
+import bcrypt from 'bcryptjs';
+import { User } from '../models/index.js';
+import { generateToken } from '../utils/jwt.js';
+import { success, error } from '../utils/response.js';
+
+export const register = async (req, res, next) => {
+  try {
+    const { email, password, nombre, rol } = req.body;
+
+    // Verificar si el usuario ya existe
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return error(res, 'El email ya está registrado', 400);
+    }
+
+    // Hash de la contraseña
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Crear usuario
+    const user = await User.create({
+      email,
+      password: hashedPassword,
+      nombre,
+      rol: rol || 'usuario'
+    });
+
+    // Generar token
+    const token = generateToken(user.id);
+
+    return success(res, {
+      user: {
+        id: user.id,
+        email: user.email,
+        nombre: user.nombre,
+        rol: user.rol
+      },
+      token
+    }, 'Usuario registrado exitosamente', 201);
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    // Buscar usuario
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return error(res, 'Credenciales inválidas', 401);
+    }
+
+    // Verificar contraseña
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return error(res, 'Credenciales inválidas', 401);
+    }
+
+    // Generar token
+    const token = generateToken(user.id);
+
+    return success(res, {
+      user: {
+        id: user.id,
+        email: user.email,
+        nombre: user.nombre,
+        rol: user.rol
+      },
+      token
+    }, 'Login exitoso');
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getProfile = async (req, res, next) => {
+  try {
+    const user = await User.findByPk(req.user.id, {
+      attributes: { exclude: ['password'] }
+    });
+
+    return success(res, user);
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+PASO 3.2: Controller de talleres
+───────────────────────────────────────────────────────────────────────────────
+POR QUÉ: CRUD completo de talleres con filtros y búsqueda
+
+CREAR: server/src/controllers/tallerController.js
+
+import { Taller, User, Resena } from '../models/index.js';
+import { success, error } from '../utils/response.js';
+import { Op } from 'sequelize';
+
+export const getAllTalleres = async (req, res, next) => {
+  try {
+    const { 
+      ciudad, 
+      servicio, 
+      page = 1, 
+      limit = 20,
+      search 
+    } = req.query;
+
+    const offset = (page - 1) * limit;
+    const where = {};
+
+    // Filtros
+    if (ciudad) where.ciudad = ciudad;
+    if (servicio) where.servicios = { [Op.like]: `%${servicio}%` };
+    if (search) {
+      where[Op.or] = [
+        { nombre: { [Op.like]: `%${search}%` } },
+        { descripcion: { [Op.like]: `%${search}%` } }
+      ];
+    }
+
+    const { count, rows } = await Taller.findAndCountAll({
+      where,
+      include: [
+        {
+          model: User,
+          as: 'propietario',
+          attributes: ['id', 'nombre', 'email']
+        },
+        {
+          model: Resena,
+          as: 'resenas',
+          attributes: ['rating']
+        }
+      ],
+      limit: parseInt(limit),
+      offset,
+      order: [['created_at', 'DESC']]
+    });
+
+    // Calcular rating promedio para cada taller
+    // ⚠️ NOTA: Válido para MVP. Optimizar después con columna rating_promedio
+    // o query agregada para mejor performance con muchas reseñas.
+    const talleresConRating = rows.map(taller => {
+      const totalResenas = taller.resenas.length;
+      const sumaRatings = taller.resenas.reduce((sum, r) => sum + r.rating, 0);
+      const ratingPromedio = totalResenas > 0 ? sumaRatings / totalResenas : 0;
+
+      return {
+        ...taller.toJSON(),
+        rating_promedio: ratingPromedio.toFixed(1),
+        total_resenas: totalResenas
+      };
+    });
+
+    return success(res, {
+      talleres: talleresConRating,
+      pagination: {
+        total: count,
+        page: parseInt(page),
+        pages: Math.ceil(count / limit)
+      }
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getTallerById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const taller = await Taller.findByPk(id, {
+      include: [
+        {
+          model: User,
+          as: 'propietario',
+          attributes: ['id', 'nombre', 'email']
+        },
+        {
+          model: Resena,
+          as: 'resenas',
+          include: [
+            {
+              model: User,
+              as: 'usuario',
+              attributes: ['id', 'nombre']
+            }
+          ],
+          order: [['created_at', 'DESC']]
+        }
+      ]
+    });
+
+    if (!taller) {
+      return error(res, 'Taller no encontrado', 404);
+    }
+
+    // Calcular estadísticas
+    const totalResenas = taller.resenas.length;
+    const sumaRatings = taller.resenas.reduce((sum, r) => sum + r.rating, 0);
+    const ratingPromedio = totalResenas > 0 ? sumaRatings / totalResenas : 0;
+
+    return success(res, {
+      ...taller.toJSON(),
+      rating_promedio: ratingPromedio.toFixed(1),
+      total_resenas: totalResenas
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const createTaller = async (req, res, next) => {
+  try {
+    const { 
+      nombre, 
+      descripcion, 
+      direccion, 
+      ciudad, 
+      telefono, 
+      email, 
+      servicios, 
+      horario 
+    } = req.body;
+
+    const taller = await Taller.create({
+      user_id: req.user.id,
+      nombre,
+      descripcion,
+      direccion,
+      ciudad,
+      telefono,
+      email,
+      servicios,
+      horario
+    });
+
+    return success(res, taller, 'Taller creado exitosamente', 201);
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updateTaller = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const taller = await Taller.findByPk(id);
+
+    if (!taller) {
+      return error(res, 'Taller no encontrado', 404);
+    }
+
+    // Verificar que el usuario es el propietario
+    if (taller.user_id !== req.user.id && req.user.rol !== 'admin') {
+      return error(res, 'No autorizado', 403);
+    }
+
+    await taller.update(req.body);
+
+    return success(res, taller, 'Taller actualizado exitosamente');
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const deleteTaller = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const taller = await Taller.findByPk(id);
+
+    if (!taller) {
+      return error(res, 'Taller no encontrado', 404);
+    }
+
+    // Verificar que el usuario es el propietario
+    if (taller.user_id !== req.user.id && req.user.rol !== 'admin') {
+      return error(res, 'No autorizado', 403);
+    }
+
+    await taller.destroy();
+
+    return success(res, null, 'Taller eliminado exitosamente');
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+PASO 3.3: Controller de reseñas
+───────────────────────────────────────────────────────────────────────────────
+POR QUÉ: Gestionar reseñas de usuarios sobre talleres
+
+CREAR: server/src/controllers/resenaController.js
+
+import { Resena, User, Taller } from '../models/index.js';
+import { success, error } from '../utils/response.js';
+
+export const getResenasByTaller = async (req, res, next) => {
+  try {
+    const { tallerId } = req.params;
+    const { page = 1, limit = 20 } = req.query;
+    const offset = (page - 1) * limit;
+
+    const { count, rows } = await Resena.findAndCountAll({
+      where: { taller_id: tallerId },
+      include: [
+        {
+          model: User,
+          as: 'usuario',
+          attributes: ['id', 'nombre']
+        }
+      ],
+      limit: parseInt(limit),
+      offset,
+      order: [['created_at', 'DESC']]
+    });
+
+    return success(res, {
+      resenas: rows,
+      pagination: {
+        total: count,
+        page: parseInt(page),
+        pages: Math.ceil(count / limit)
+      }
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const createResena = async (req, res, next) => {
+  try {
+    const { taller_id, rating, comentario, servicio_usado } = req.body;
+
+    // Verificar que el taller existe
+    const taller = await Taller.findByPk(taller_id);
+    if (!taller) {
+      return error(res, 'Taller no encontrado', 404);
+    }
+
+    // Verificar que el usuario no ha reseñado antes
+    const existingResena = await Resena.findOne({
+      where: {
+        user_id: req.user.id,
+        taller_id
+      }
+    });
+
+    if (existingResena) {
+      return error(res, 'Ya has reseñado este taller', 400);
+    }
+
+    const resena = await Resena.create({
+      user_id: req.user.id,
+      taller_id,
+      rating,
+      comentario,
+      servicio_usado
+    });
+
+    return success(res, resena, 'Reseña creada exitosamente', 201);
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updateResena = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { rating, comentario } = req.body;
+
+    const resena = await Resena.findByPk(id);
+
+    if (!resena) {
+      return error(res, 'Reseña no encontrada', 404);
+    }
+
+    // Verificar que el usuario es el autor
+    if (resena.user_id !== req.user.id) {
+      return error(res, 'No autorizado', 403);
+    }
+
+    await resena.update({ rating, comentario });
+
+    return success(res, resena, 'Reseña actualizada exitosamente');
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const deleteResena = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const resena = await Resena.findByPk(id);
+
+    if (!resena) {
+      return error(res, 'Reseña no encontrada', 404);
+    }
+
+    // Verificar que el usuario es el autor o admin
+    if (resena.user_id !== req.user.id && req.user.rol !== 'admin') {
+      return error(res, 'No autorizado', 403);
+    }
+
+    await resena.destroy();
+
+    return success(res, null, 'Reseña eliminada exitosamente');
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const markAsUseful = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const resena = await Resena.findByPk(id);
+
+    if (!resena) {
+      return error(res, 'Reseña no encontrada', 404);
+    }
+
+    await resena.increment('votos_utiles');
+
+    return success(res, resena, 'Reseña marcada como útil');
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+═══════════════════════════════════════════════════════════════════════════════
+FASE 4: ROUTES (30 min)
+═══════════════════════════════════════════════════════════════════════════════
+
+PASO 4.1: Rutas de autenticación
+───────────────────────────────────────────────────────────────────────────────
+CREAR: server/src/routes/authRoutes.js
+
+import express from 'express';
+import { body } from 'express-validator';
+import * as authController from '../controllers/authController.js';
+import { validate } from '../middlewares/validator.js';
+import { authenticateToken } from '../middlewares/auth.js';
+
+const router = express.Router();
+
+// Registro
+router.post('/register',
+  [
+    body('email').isEmail().withMessage('Email inválido'),
+    body('password').isLength({ min: 6 }).withMessage('Contraseña mínimo 6 caracteres'),
+    body('nombre').notEmpty().withMessage('Nombre requerido'),
+    validate
+  ],
+  authController.register
+);
+
+// Login
+router.post('/login',
+  [
+    body('email').isEmail().withMessage('Email inválido'),
+    body('password').notEmpty().withMessage('Contraseña requerida'),
+    validate
+  ],
+  authController.login
+);
+
+// Perfil (requiere autenticación)
+router.get('/profile', authenticateToken, authController.getProfile);
+
+export default router;
+
+
+PASO 4.2: Rutas de talleres
+───────────────────────────────────────────────────────────────────────────────
+CREAR: server/src/routes/tallerRoutes.js
+
+import express from 'express';
+import { body } from 'express-validator';
+import * as tallerController from '../controllers/tallerController.js';
+import { validate } from '../middlewares/validator.js';
+import { authenticateToken, requireRole } from '../middlewares/auth.js';
+
+const router = express.Router();
+
+// Públicas
+router.get('/', tallerController.getAllTalleres);
+router.get('/:id', tallerController.getTallerById);
+
+// Protegidas
+router.post('/',
+  authenticateToken,
+  requireRole('taller', 'admin'),
+  [
+    body('nombre').notEmpty().withMessage('Nombre requerido'),
+    body('direccion').notEmpty().withMessage('Dirección requerida'),
+    body('ciudad').notEmpty().withMessage('Ciudad requerida'),
+    validate
+  ],
+  tallerController.createTaller
+);
+
+router.put('/:id',
+  authenticateToken,
+  tallerController.updateTaller
+);
+
+router.delete('/:id',
+  authenticateToken,
+  tallerController.deleteTaller
+);
+
+export default router;
+
+
+PASO 4.3: Rutas de reseñas
+───────────────────────────────────────────────────────────────────────────────
+CREAR: server/src/routes/resenaRoutes.js
+
+import express from 'express';
+import { body } from 'express-validator';
+import * as resenaController from '../controllers/resenaController.js';
+import { validate } from '../middlewares/validator.js';
+import { authenticateToken } from '../middlewares/auth.js';
+
+const router = express.Router();
+
+// Públicas
+router.get('/taller/:tallerId', resenaController.getResenasByTaller);
+
+// Protegidas
+router.post('/',
+  authenticateToken,
+  [
+    body('taller_id').isInt().withMessage('Taller ID inválido'),
+    body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating debe ser 1-5'),
+    body('comentario').notEmpty().withMessage('Comentario requerido'),
+    validate
+  ],
+  resenaController.createResena
+);
+
+router.put('/:id',
+  authenticateToken,
+  resenaController.updateResena
+);
+
+router.delete('/:id',
+  authenticateToken,
+  resenaController.deleteResena
+);
+
+router.post('/:id/useful',
+  authenticateToken,
+  resenaController.markAsUseful
+);
+
+export default router;
+
+
+PASO 4.4: Health Check
+───────────────────────────────────────────────────────────────────────────────
+POR QUÉ: Endpoint para verificar estado del servidor (deploy, uptime, debugging)
+
+CREAR: server/src/routes/healthRoutes.js
+
+import express from 'express';
+import sequelize from '../config/db.js';
+
+const router = express.Router();
+
+router.get('/', async (req, res) => {
+  try {
+    await sequelize.authenticate();
+    res.status(200).json({
+      status: 'OK',
+      timestamp: new Date().toISOString(),
+      database: 'Connected'
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'ERROR',
+      timestamp: new Date().toISOString(),
+      database: 'Disconnected',
+      error: error.message
+    });
+  }
+});
+
+export default router;
+
+
+PASO 4.5: Integrar todas las rutas
+───────────────────────────────────────────────────────────────────────────────
+POR QUÉ: Centralizar el manejo de rutas en index.js
+
+ACTUALIZAR: server/src/index.js
+
+Agregar después de los middlewares:
+
+import healthRoutes from './routes/healthRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import tallerRoutes from './routes/tallerRoutes.js';
+import resenaRoutes from './routes/resenaRoutes.js';
+import { errorHandler, notFound } from './middlewares/errorHandler.js';
+
+// Rutas
+app.use('/api/health', healthRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/talleres', tallerRoutes);
+app.use('/api/resenas', resenaRoutes);
+
+// Reemplazar los 404 y error handlers existentes con:
+app.use(notFound);
+app.use(errorHandler);
+
+
+═══════════════════════════════════════════════════════════════════════════════
+FASE 5: FRONTEND - SERVICIOS API (1 hora)
+═══════════════════════════════════════════════════════════════════════════════
+
+PASO 5.1: Configurar Axios
+───────────────────────────────────────────────────────────────────────────────
+POR QUÉ: Cliente HTTP configurado con interceptores
+
+CREAR: client/src/services/api.ts
+
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Interceptor para agregar token
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Interceptor para manejar errores
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default api;
+
+
+PASO 5.2: Servicio de autenticación
+───────────────────────────────────────────────────────────────────────────────
+CREAR: client/src/services/authService.ts
+
+import api from './api';
+
+export interface LoginData {
+  email: string;
+  password: string;
+}
+
+export interface RegisterData {
+  email: string;
+  password: string;
+  nombre: string;
+  rol?: 'usuario' | 'taller';
+}
+
+export interface AuthResponse {
+  user: {
+    id: number;
+    email: string;
+    nombre: string;
+    rol: string;
+  };
+  token: string;
+}
+
+export const authService = {
+  async login(data: LoginData): Promise<AuthResponse> {
+    const response = await api.post('/auth/login', data);
+    return response.data.data;
+  },
+
+  async register(data: RegisterData): Promise<AuthResponse> {
+    const response = await api.post('/auth/register', data);
+    return response.data.data;
+  },
+
+  async getProfile() {
+    const response = await api.get('/auth/profile');
+    return response.data.data;
+  },
+
+  logout() {
+    localStorage.removeItem('token');
+    window.location.href = '/';
+  },
+
+  saveToken(token: string) {
+    localStorage.setItem('token', token);
+  },
+
+  getToken() {
+    return localStorage.getItem('token');
+  },
+
+  isAuthenticated() {
+    return !!this.getToken();
+  }
+};
+
+
+PASO 5.3: Servicio de talleres
+───────────────────────────────────────────────────────────────────────────────
+CREAR: client/src/services/tallerService.ts
+
+import api from './api';
+
+export interface Taller {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  direccion: string;
+  ciudad: string;
+  telefono: string;
+  email: string;
+  servicios: string;
+  horario: string;
+  rating_promedio?: number;
+  total_resenas?: number;
+}
+
+export const tallerService = {
+  async getAll(params?: any) {
+    const response = await api.get('/talleres', { params });
+    return response.data.data;
+  },
+
+  async getById(id: number) {
+    const response = await api.get(`/talleres/${id}`);
+    return response.data.data;
+  },
+
+  async create(data: Partial<Taller>) {
+    const response = await api.post('/talleres', data);
+    return response.data.data;
+  },
+
+  async update(id: number, data: Partial<Taller>) {
+    const response = await api.put(`/talleres/${id}`, data);
+    return response.data.data;
+  },
+
+  async delete(id: number) {
+    const response = await api.delete(`/talleres/${id}`);
+    return response.data;
+  }
+};
+
+
+PASO 5.4: Servicio de reseñas
+───────────────────────────────────────────────────────────────────────────────
+CREAR: client/src/services/resenaService.ts
+
+import api from './api';
+
+export interface Resena {
+  id: number;
+  taller_id: number;
+  rating: number;
+  comentario: string;
+  servicio_usado: string;
+  votos_utiles: number;
+  created_at: string;
+}
+
+export const resenaService = {
+  async getByTallerId(tallerId: number, params?: any) {
+    const response = await api.get(`/resenas/taller/${tallerId}`, { params });
+    return response.data.data;
+  },
+
+  async create(data: Partial<Resena>) {
+    const response = await api.post('/resenas', data);
+    return response.data.data;
+  },
+
+  async update(id: number, data: Partial<Resena>) {
+    const response = await api.put(`/resenas/${id}`, data);
+    return response.data.data;
+  },
+
+  async delete(id: number) {
+    const response = await api.delete(`/resenas/${id}`);
+    return response.data;
+  },
+
+  async markAsUseful(id: number) {
+    const response = await api.post(`/resenas/${id}/useful`);
+    return response.data;
+  }
+};
+
+
+PASO 5.5: Crear .env para el cliente
+───────────────────────────────────────────────────────────────────────────────
+CREAR: client/.env
+
+VITE_API_URL=http://localhost:5001/api
+
+
+═══════════════════════════════════════════════════════════════════════════════
+FASE 6: FRONTEND - CONTEXT Y ESTADO GLOBAL (45 min)
+═══════════════════════════════════════════════════════════════════════════════
+
+PASO 6.1: Context de autenticación
+───────────────────────────────────────────────────────────────────────────────
+POR QUÉ: Estado global de usuario en toda la app
+
+CREAR: client/src/contexts/AuthContext.tsx
+
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authService, AuthResponse } from '../services/authService';
+
+interface AuthContextType {
+  user: any | null;
+  token: string | null;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  register: (data: any) => Promise<void>;
+  logout: () => void;
+  isAuthenticated: boolean;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<any | null>(null);
+  const [token, setToken] = useState<string | null>(authService.getToken());
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      if (token) {
+        try {
+          const userData = await authService.getProfile();
+          setUser(userData);
+        } catch (error) {
+          console.error('Error loading user:', error);
+          authService.logout();
+          setToken(null);
+        }
+      }
+      setLoading(false);
+    };
+
+    loadUser();
+  }, [token]);
+
+  const login = async (email: string, password: string) => {
+    const response: AuthResponse = await authService.login({ email, password });
+    setUser(response.user);
+    setToken(response.token);
+    authService.saveToken(response.token);
+  };
+
+  const register = async (data: any) => {
+    const response: AuthResponse = await authService.register(data);
+    setUser(response.user);
+    setToken(response.token);
+    authService.saveToken(response.token);
+  };
+
+  const logout = () => {
+    setUser(null);
+    setToken(null);
+    authService.logout();
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        loading,
+        login,
+        register,
+        logout,
+        isAuthenticated: !!token
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
+};
+
+
+PASO 6.2: Envolver App con AuthProvider
+───────────────────────────────────────────────────────────────────────────────
+ACTUALIZAR: client/src/main.tsx
+
+import { AuthProvider } from './contexts/AuthContext'
+
+<React.StrictMode>
+  <BrowserRouter>
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  </BrowserRouter>
+</React.StrictMode>
+
+
+PASO 6.3: Componente de rutas protegidas
+───────────────────────────────────────────────────────────────────────────────
+POR QUÉ: Proteger rutas que requieren autenticación
+
+CREAR: client/src/components/ProtectedRoute.tsx
+
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  requiredRole?: string;
+}
+
+export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
+  const { isAuthenticated, user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Cargando...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (requiredRole && user?.rol !== requiredRole) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+
+═══════════════════════════════════════════════════════════════════════════════
+FASE 7: FRONTEND - PÁGINAS FUNCIONALES (2 horas)
+═══════════════════════════════════════════════════════════════════════════════
+
+PASO 7.1: Crear página de Login
+───────────────────────────────────────────────────────────────────────────────
+CREAR: client/src/pages/Login.tsx
+
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import Logo from '../components/Logo';
+
+export default function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      await login(email, password);
+      navigate('/');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Error al iniciar sesión');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="flex justify-center">
+          <Logo size={48} className="text-primary" />
+        </div>
+        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
+          Iniciar Sesión
+        </h2>
+        <p className="mt-2 text-center text-sm text-gray-600">
+          ¿No tienes cuenta?{' '}
+          <Link to="/register" className="text-primary hover:underline">
+            Regístrate aquí
+          </Link>
+        </p>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+              {error}
+            </div>
+          )}
+
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Contraseña
+              </label>
+              <input
+                id="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
+            >
+              {loading ? 'Iniciando...' : 'Iniciar Sesión'}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+PASO 7.2: Crear página de Register
+───────────────────────────────────────────────────────────────────────────────
+CREAR: client/src/pages/Register.tsx
+
+Similar a Login pero con campos adicionales (nombre, rol)
+
+
+PASO 7.3: Conectar TallerProfile con API
+───────────────────────────────────────────────────────────────────────────────
+ACTUALIZAR: client/src/pages/TallerProfile.tsx
+
+Agregar al inicio:
+
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { tallerService } from '../services/tallerService';
+import { resenaService } from '../services/resenaService';
+
+export default function TallerProfile() {
+  const { id } = useParams();
+  const [taller, setTaller] = useState<any>(null);
+  const [resenas, setResenas] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const tallerData = await tallerService.getById(Number(id));
+        setTaller(tallerData);
+        setResenas(tallerData.resenas || []);
+      } catch (error) {
+        console.error('Error loading taller:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      loadData();
+    }
+  }, [id]);
+
+  if (loading) return <div>Cargando...</div>;
+  if (!taller) return <div>Taller no encontrado</div>;
+
+  // Reemplazar datos hardcoded con {taller.nombre}, {taller.descripcion}, etc.
+
+
+PASO 7.4: Conectar RegistroTaller con API
+───────────────────────────────────────────────────────────────────────────────
+ACTUALIZAR: client/src/pages/RegistroTaller.tsx
+
+Agregar manejo de formulario con tallerService.create()
+
+
+PASO 7.5: Conectar ResenaForm con API
+───────────────────────────────────────────────────────────────────────────────
+ACTUALIZAR: client/src/pages/ResenaForm.tsx
+
+Agregar manejo de formulario con resenaService.create()
+
+
+PASO 7.6: Actualizar rutas en App.tsx
+───────────────────────────────────────────────────────────────────────────────
+ACTUALIZAR: client/src/App.tsx
+
+import ProtectedRoute from './components/ProtectedRoute';
+import Login from './pages/Login';
+import Register from './pages/Register';
+
+<Routes>
+  <Route path="/" element={<Home />} />
+  <Route path="/login" element={<Login />} />
+  <Route path="/register" element={<Register />} />
+  <Route path="/taller/:id" element={<TallerProfile />} />
+  <Route 
+    path="/registro-taller" 
+    element={
+      <ProtectedRoute requiredRole="taller">
+        <RegistroTaller />
+      </ProtectedRoute>
+    } 
+  />
+  <Route 
+    path="/resena" 
+    element={
+      <ProtectedRoute>
+        <ResenaForm />
+      </ProtectedRoute>
+    } 
+  />
+</Routes>
+
+
+═══════════════════════════════════════════════════════════════════════════════
+FASE 8: TESTING Y VALIDACIÓN (1 hora)
+═══════════════════════════════════════════════════════════════════════════════
+
+PASO 8.1: Testing manual de API
+───────────────────────────────────────────────────────────────────────────────
+POR QUÉ: Verificar que todos los endpoints funcionan
+
+ACTUALIZAR: client/index.html
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- SEO Básico -->
+  <title>MotoYA - Talleres Mecánicos de Motos | Encuentra el Mejor Servicio</title>
+  <meta name="description" content="Encuentra talleres mecánicos certificados para tu moto. Reseñas reales, precios justos y mecánicos de confianza en tu ciudad." />
+  <meta name="keywords" content="talleres motos, mecánico motos, reparación motos, mantenimiento motocicletas, repuestos motos" />
+  
+  <!-- Open Graph (Facebook, WhatsApp) -->
+  <meta property="og:title" content="MotoYA - Talleres Mecánicos de Motos" />
+  <meta property="og:description" content="Encuentra talleres certificados con reseñas reales de la comunidad motera" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://motoya.com" />
+  <meta property="og:image" content="/og-image.jpg" />
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="MotoYA - Talleres Mecánicos de Motos" />
+  <meta name="twitter:description" content="Encuentra talleres certificados con reseñas reales" />
+  <meta name="twitter:image" content="/twitter-image.jpg" />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Manifest para PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#f4bf03" />
+</head>
+
+
+PASO 8.2: Crear componente Helmet para SEO dinámico
+───────────────────────────────────────────────────────────────────────────────
+POR QUÉ: Cambiar meta tags por página
+
+Instalar: npm install react-helmet-async
+
+CREAR: client/src/components/SEO.tsx
+
+import { Helmet } from 'react-helmet-async';
+
+interface SEOProps {
+  title?: string;
+  description?: string;
+  image?: string;
+  url?: string;
+}
+
+export default function SEO({ title, description, image, url }: SEOProps) {
+  const defaultTitle = 'MotoYA - Talleres Mecánicos de Motos';
+  const defaultDescription = 'Encuentra talleres mecánicos certificados para tu moto';
+  const defaultImage = '/og-image.jpg';
+  const baseUrl = 'https://motoya.com';
+
+  return (
+    <Helmet>
+      <title>{title ? `${title} | MotoYA` : defaultTitle}</title>
+      <meta name="description" content={description || defaultDescription} />
+      
+      <meta property="og:title" content={title || defaultTitle} />
+      <meta property="og:description" content={description || defaultDescription} />
+      <meta property="og:image" content={image || defaultImage} />
+      <meta property="og:url" content={url ? `${baseUrl}${url}` : baseUrl} />
+      
+      <meta name="twitter:title" content={title || defaultTitle} />
+      <meta name="twitter:description" content={description || defaultDescription} />
+      <meta name="twitter:image" content={image || defaultImage} />
+    </Helmet>
+  );
+}
+
+Usar en páginas:
+<SEO 
+  title="Taller El Rápido" 
+  description="Especialistas en mantenimiento de motos en Buenos Aires"
+  url="/taller/1"
+/>
+
+
+PASO 8.3: Optimizar imágenes y assets
+───────────────────────────────────────────────────────────────────────────────
+POR QUÉ: Reducir tamaño de carga y mejorar performance
+
+ACCIONES:
+1. Descargar logos e iconos reales (no usar Google URLs externas)
+2. Colocar en client/public/images/
+3. Convertir a WebP cuando sea posible
+4. Usar lazy loading para imágenes:
+
+<img 
+  src="/images/taller.jpg" 
+  alt="Taller" 
+  loading="lazy"
+  decoding="async"
+/>
+
+
+PASO 8.4: Agregar sitemap.xml
+───────────────────────────────────────────────────────────────────────────────
+POR QUÉ: Ayudar a Google a indexar el sitio
+
+CREAR: client/public/sitemap.xml
+
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://motoya.com/</loc>
+    <lastmod>2026-01-24</lastmod>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://motoya.com/talleres</loc>
+    <lastmod>2026-01-24</lastmod>
+    <priority>0.8</priority>
+  </url>
+</urlset>
+
+
+PASO 8.5: Agregar robots.txt
+───────────────────────────────────────────────────────────────────────────────
+CREAR: client/public/robots.txt
+
+User-agent: *
+Allow: /
+Sitemap: https://motoya.com/sitemap.xml
+
+
+PASO 8.6: Optimizar Vite build
+───────────────────────────────────────────────────────────────────────────────
+ACTUALIZAR: client/vite.config.ts
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 3000,
+    open: true
+  },
+  build: {
+    sourcemap: false,
+    minify: 'terser',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+        }
+      }
+    }
+  }
+});
+
+
+═══════════════════════════════════════════════════════════════════════════════
+FASE 9: TESTING Y VALIDACIÓN (1 hora)
+═══════════════════════════════════════════════════════════════════════════════
+
+PASO 9.1: Testing manual de API
+───────────────────────────────────────────────────────────────────────────────
+POR QUÉ: Verificar que todos los endpoints funcionan
+
+USAR: Postman o Thunder Client
+
+Tests:
+1. POST /api/auth/register
+2. POST /api/auth/login
+3. GET /api/auth/profile (con token)
+4. GET /api/talleres
+5. GET /api/talleres/:id
+6. POST /api/talleres (con token de taller)
+7. POST /api/resenas (con token)
+8. GET /api/resenas/taller/:id
+
+
+PASO 8.2: Testing del flujo completo
+───────────────────────────────────────────────────────────────────────────────
+FLUJO USUARIO:
+1. Abrir http://localhost:3000
+2. Registrarse como usuario
+3. Ver lista de talleres
+4. Entrar a un taller
+5. Dejar una reseña
+
+FLUJO TALLER:
+1. Registrarse como taller
+2. Crear un taller
+3. Ver su taller publicado
+
+
+═══════════════════════════════════════════════════════════════════════════════
+FASE 9: DEPLOYMENT (2 horas)
+═══════════════════════════════════════════════════════════════════════════════
+
+RECOMENDACIÓN: Railway (Backend + MySQL) + Vercel (Frontend)
+
+PASO 9.1: Build de producción
+───────────────────────────────────────────────────────────────────────────────
+cd client
+npm run build
+
+Verificar: carpeta client/dist creada
+
+
+PASO 10.2: Variables de entorno de producción
+───────────────────────────────────────────────────────────────────────────────
+CREAR: server/.env.production
+
+NODE_ENV=production
+PORT=5001
+DB_HOST=tu-db-host-produccion
+DB_USER=tu-user-produccion
+DB_PASSWORD=tu-password-produccion
+DB_NAME=motoya
+JWT_SECRET=clave_super_secreta_cambiar
+ALLOWED_ORIGINS=https://tu-dominio.com
+
+
+PASO 10.3: Deploy Backend (Railway/Render)
+───────────────────────────────────────────────────────────────────────────────
+OPCIÓN A: Railway
+1. Conectar repo de GitHub
+2. Seleccionar carpeta server/
+3. Agregar MySQL addon
+4. Configurar variables de entorno
+5. Deploy automático
+
+OPCIÓN B: Render
+1. New Web Service
+2. Conectar GitHub
+3. Root directory: server
+4. Build: npm install
+5. Start: npm start
+
+
+PASO 9.4: Deploy Frontend con Vercel
+───────────────────────────────────────────────────────────────────────────────
+1. Conectar repo de GitHub
+2. Root directory: client
+3. Build command: npm run build
+4. Output directory: dist
+5. Variables de entorno:
+   VITE_API_URL=https://tu-api.railway.app/api
+6. Deploy
+
+
+═══════════════════════════════════════════════════════════════════════════════
+FASE 10: SEO Y OPTIMIZACIÓN - POST-MVP (1-2 horas)
+═══════════════════════════════════════════════════════════════════════════════
+
+⚠️ HACER DESPUÉS: Esta fase se implementa cuando:
+   - La app está funcionando
+   - Hay contenido real
+   - Hay URLs estables
+   - Hay dominio definitivo
+
+PASO 10.1: Meta tags básicos (opcional ahora)
+───────────────────────────────────────────────────────────────────────────────
+Agregar title, description, og:tags en client/index.html
+
+PASO 10.2: SEO dinámico con react-helmet-async (opcional)
+───────────────────────────────────────────────────────────────────────────────
+Para cambiar meta tags por página
+
+PASO 10.3: Optimizar assets (cuando haya contenido real)
+───────────────────────────────────────────────────────────────────────────────
+- Imágenes locales, WebP, lazy loading
+
+PASO 10.4: Sitemap.xml y robots.txt (cuando haya dominio)
+───────────────────────────────────────────────────────────────────────────────
+Para indexación de Google
+
+PASO 10.5: Lighthouse audit (post-deploy)
+───────────────────────────────────────────────────────────────────────────────
+Verificar scores > 80
+
+
+═══════════════════════════════════════════════════════════════════════════════
+CHECKLIST FINAL POR CATEGORÍA
+═══════════════════════════════════════════════════════════════════════════════
+
+✓ DATABASE
+  [ ] MySQL instalado y corriendo
+  [ ] Base de datos 'motoya' creada
+  [ ] Tablas sincronizadas con Sequelize
+  [ ] Seeds ejecutados correctamente
+  [ ] Relaciones funcionando (JOIN queries)
+  [ ] Índices creados para performance
+
+✓ BACKEND - MODELOS
+  [ ] User model con bcrypt
+  [ ] Taller model con validaciones
+  [ ] Resena model con constraints
+  [ ] Relaciones definidas (hasMany, belongsTo)
+  [ ] toJSON() para ocultar datos sensibles
+
+✓ BACKEND - MIDDLEWARES
+  [ ] authenticateToken (JWT)
+  [ ] requireRole (autorización)
+  [ ] validate (express-validator)
+  [ ] errorHandler (centralizado)
+  [ ] notFound (404)
+
+✓ BACKEND - CONTROLLERS
+  [ ] authController (register, login, profile)
+  [ ] tallerController (CRUD completo)
+  [ ] resenaController (CRUD + markAsUseful)
+  [ ] Manejo de errores con try/catch
+  [ ] Responses consistentes
+
+✓ BACKEND - ROUTES
+  [ ] authRoutes (/api/auth/*)
+  [ ] tallerRoutes (/api/talleres/*)
+  [ ] resenaRoutes (/api/resenas/*)
+  [ ] Validaciones en cada ruta
+  [ ] Protección con middlewares
+
+✓ BACKEND - GENERAL
+  [ ] CORS configurado correctamente
+  [ ] .env con todas las variables
+  [ ] Logging en desarrollo
+  [ ] Health check endpoint (/api/health)
+  [ ] Sequelize sync automático (⚠️ alter: true solo en dev)
+
+✓ FRONTEND - SERVICIOS
+  [ ] api.ts con Axios + interceptors
+  [ ] authService (login, register, profile)
+  [ ] tallerService (CRUD)
+  [ ] resenaService (CRUD)
+  [ ] Manejo de tokens en localStorage
+
+✓ FRONTEND - CONTEXT
+  [ ] AuthContext creado
+  [ ] AuthProvider en App
+  [ ] useAuth hook funcionando
+  [ ] Estado persistente en refresh
+
+✓ FRONTEND - COMPONENTES
+  [ ] Navbar con links funcionales
+  [ ] Footer completo
+  [ ] Logo optimizado
+  [ ] Icon component
+  [ ] ProtectedRoute para rutas privadas
+  [ ] SEO component para meta tags
+
+✓ FRONTEND - PÁGINAS
+  [ ] Home con búsqueda
+  [ ] Login funcional
+  [ ] Register funcional
+  [ ] TallerProfile conectado a API
+  [ ] RegistroTaller con formulario funcional
+  [ ] ResenaForm conectado a API
+  [ ] Manejo de loading states
+  [ ] Manejo de errores
+
+✓ FRONTEND - ROUTING
+  [ ] React Router configurado
+  [ ] Rutas públicas
+  [ ] Rutas protegidas
+  [ ] Rutas con parámetros (/taller/:id)
+  [ ] Redirects correctos
+
+✓ SEO Y OPTIMIZACIÓN
+  [ ] Meta tags en index.html
+  [ ] Open Graph tags
+  [ ] Twitter Cards
+  [ ] Favicon y apple-touch-icon
+  [ ] SEO component dinámico
+  [ ] Sitemap.xml
+  [ ] Robots.txt
+  [ ] Imágenes optimizadas (WebP)
+  [ ] Lazy loading de imágenes
+  [ ] Code splitting en build
+
+✓ ASSETS
+  [ ] Logo local (no URL externa)
+  [ ] Iconos SVG inline
+  [ ] Imágenes de placeholder
+  [ ] Favicon generado
+  [ ] Fonts optimizados
+
+✓ TESTING
+  [ ] Endpoints testeados con Postman
+  [ ] Flujo de usuario completo
+  [ ] Flujo de taller completo
+  [ ] Lighthouse score > 80
+  [ ] No hay errores en consola
+
+✓ DEPLOYMENT
+  [ ] Build de producción exitoso
+  [ ] Variables de entorno configuradas
+  [ ] Backend deployado (Railway/Render)
+  [ ] Frontend deployado (Vercel)
+  [ ] Base de datos en producción
+  [ ] CORS configurado para producción
+  [ ] SSL/HTTPS configurado
+
+✓ SEGURIDAD
+  [ ] JWT secret seguro
+  [ ] Passwords hasheados con bcrypt
+  [ ] Validación de inputs
+  [ ] Rate limiting (opcional)
+  [ ] Helmet.js (opcional)
+  [ ] SQL injection protegido (Sequelize)
+
+✓ UX Y UI
+  [ ] Responsive design funcionando
+  [ ] Loading states
+  [ ] Error messages claros
+  [ ] Success notifications
+  [ ] Formularios con validación
+  [ ] Navegación intuitiva
+
+═══════════════════════════════════════════════════════════════════════════════
+TIEMPO ESTIMADO TOTAL: 8-10 horas (MVP funcional)
+═══════════════════════════════════════════════════════════════════════════════
+
+NOTA: SEO y optimizaciones (Fase 10) agregan 1-2 horas adicionales pero son
+post-MVP y no bloquean funcionalidad.
+
+═══════════════════════════════════════════════════════════════════════════════
+DECISIONES TÉCNICAS CLAVE
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ Base de Datos: MySQL 8.4.6
+✅ ORM: Sequelize (con sync en dev, migrations en prod)
+✅ Auth: JWT + bcryptjs
+✅ Frontend: React 18 + TypeScript + Vite
+✅ Routing: React Router 6
+✅ Styling: Tailwind CSS
+✅ HTTP Client: Axios con interceptors
+✅ Estado: Context API (AuthContext)
+✅ Deploy recomendado: Railway (backend + MySQL) + Vercel (frontend)
+✅ Seeds: Script manual ES Modules (no sequelize-cli)
+✅ Rating calculation: reduce() para MVP, optimizar después con columna dedicada
+
+⚠️ ADVERTENCIAS:
+- sequelize.sync({ alter: true }) SOLO para desarrollo
+- Migrar a sequelize migrations antes de producción
+- CORS debe configurarse con origins específicos en producción
+- JWT_SECRET debe ser seguro en producción (no hardcodear)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+PRIORIDAD ALTA (hacer primero - FUNCIONALIDAD CORE):
+1. Fase 1: Database (con warnings sobre sync)
+2. Fase 2: Middlewares
+3. Fase 3: Controllers
+4. Fase 4: Routes (incluye Health Check)
+5. Fase 5: Servicios Frontend
+6. Fase 6: Context
+7. Fase 7: Páginas funcionales
+
+PRIORIDAD MEDIA (validación):
+8. Fase 8: Testing
+
+PRIORIDAD BAJA (cuando funcione todo):
+9. Fase 9: Deployment
+10. Fase 10: SEO Post-MVP (hacer después con contenido real)
+
+═══════════════════════════════════════════════════════════════════════════════
+FIN DEL PLAN
+═══════════════════════════════════════════════════════════════════════════════

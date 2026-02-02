@@ -1,4 +1,5 @@
 import React from 'react';
+import spriteUrl from '../assets/icons/sprite.svg';
 
 interface IconProps {
   name: string;
@@ -15,7 +16,7 @@ const Icon: React.FC<IconProps> = ({ name, className = '', size = 24 }) => {
       viewBox="0 0 24 24"
       fill="currentColor"
     >
-      <use href={`#${name}`} />
+      <use href={`${spriteUrl}#${name}`} />
     </svg>
   );
 };

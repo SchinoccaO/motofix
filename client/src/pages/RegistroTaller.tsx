@@ -1,34 +1,17 @@
-import { Link } from 'react-router-dom' // Importa el componente Link para navegación entre páginas
+import { Link } from 'react-router-dom'
+import Logo from '../components/Logo'
+import Footer from '../components/Footer'
 
 export default function RegistroTaller() {
   return (
     <div className="font-display bg-background-light dark:bg-background-dark text-[#181611] dark:text-white transition-colors duration-200 min-h-screen"> 
-      {/* Navbar */}
-      <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-[#f4f3f0] dark:border-[#3a352a] px-6 lg:px-10 py-3 bg-white dark:bg-[#1a170e]">
-        <Link to="/" className="flex items-center gap-4">
-          <div className="size-10 flex items-center justify-center rounded-lg bg-primary/20 text-primary">
-            <span className="material-symbols-outlined text-2xl">two_wheeler</span>
-          </div>
-          <h2 className="text-lg font-bold leading-tight tracking-[-0.015em] text-[#181611] dark:text-white">
-            MotoYA
-          </h2>
-        </Link>
-        <div className="flex flex-1 justify-end gap-8">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-sm">arrow_back</span>
-            <Link
-              to="/"
-              className="text-sm font-medium leading-normal text-[#181611] dark:text-gray-200 hover:text-primary transition-colors"
-            >
-              Volver al Inicio
-            </Link>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link
-              to="/resena"
-              className="text-sm font-medium leading-normal text-[#181611] dark:text-gray-200 hover:text-primary transition-colors"
-            >
-              Dejar reseña
+      {/* Simple Navbar */}
+      <header className="bg-white dark:bg-card-dark border-b border-[#f4f3f0] dark:border-[#3f3b2e]">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-10 py-3">
+          <div className="flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-3">
+              <Logo />
+              <h2 className="text-[#181611] dark:text-white text-xl font-bold leading-tight tracking-tight">MotoFIX</h2>
             </Link>
           </div>
         </div>
@@ -41,7 +24,7 @@ export default function RegistroTaller() {
             <div className="p-8 pb-4">
               <div className="flex flex-col gap-3">
                 <p className="text-[#181611] dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-[-0.033em]">
-                  Únete a MotoYA
+                  Únete a MotoFIX
                 </p>
                 <p className="text-[#887f63] dark:text-gray-400 text-base font-normal leading-normal">
                   Registra tu taller o tienda y conecta con miles de motociclistas en tu zona.
@@ -237,7 +220,7 @@ export default function RegistroTaller() {
                     <a className="text-[#181611] dark:text-white underline font-medium hover:text-primary" href="#">
                       Términos y Condiciones
                     </a>{' '}
-                    de MotoYA.
+                    de MotoFIX.
                   </span>
                 </label>
                 <button className="w-full rounded-xl bg-primary hover:bg-[#d9ae2b] text-[#181611] text-base font-bold text-center py-4 px-6 transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-[0.99]">
@@ -248,6 +231,7 @@ export default function RegistroTaller() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   )
 }

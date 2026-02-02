@@ -381,7 +381,7 @@ export default function TallerProfile() {
                 <div className="flex items-start gap-3">
                   <span className="material-symbols-outlined text-primary text-3xl">verified</span>
                   <div>
-                    <h4 className="font-bold text-sm mb-1">Certificado MotoYA</h4>
+                    <h4 className="font-bold text-sm mb-1">Certificado MotoFIX</h4>
                     <p className="text-xs text-text-secondary mb-2">
                       Este taller cumple con nuestros estándares de calidad y transparencia.
                     </p>

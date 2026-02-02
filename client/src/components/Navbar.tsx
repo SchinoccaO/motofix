@@ -1,72 +1,48 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from 'react-router-dom'
+import Logo from './Logo'
 
 export default function Navbar() {
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white dark:bg-background-dark dark:border-gray-800">
-      <div className="px-4 md:px-8 lg:px-12 py-3">
+    <nav className="w-full bg-white dark:bg-card-dark border-b border-[#f4f3f0] dark:border-[#3f3b2e]">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-10 py-3">
         <div className="flex items-center justify-between">
           {/* Logo & Brand */}
-          <Link to="/" className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-text-main dark:text-white">
-              <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-text-main">
-                <span className="material-symbols-outlined">two_wheeler</span>
-              </div>
-              <h2 className="text-xl font-bold leading-tight tracking-tight">
-                motoTEC
-              </h2>
-            </div>
+          <Link to="/" className="flex items-center gap-3">
+            <Logo />
+            <h2 className="text-[#181611] dark:text-white text-xl font-bold leading-tight tracking-tight">MotoFIX</h2>
           </Link>
 
-          {/* Search (Desktop) */}
-          <div className="hidden md:flex flex-1 max-w-md mx-8">
-            <label className="relative w-full">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-text-secondary">
-                <span className="material-symbols-outlined">search</span>
-              </div>
-              <input
-                className="block w-full p-2.5 pl-10 text-sm text-text-main bg-gray-100 rounded-lg border-none focus:ring-2 focus:ring-primary dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
-                placeholder="Buscar talleres, repuestos..."
-                type="text"
-              />
-            </label>
-          </div>
-
           {/* Right Menu */}
-          <div className="flex items-center gap-6">
-            <div className="hidden lg:flex items-center gap-6">
-              <a
-                className="text-sm font-medium hover:text-primary transition-colors dark:text-gray-300"
-                href="#"
-              >
+          <div className="hidden md:flex flex-1 justify-end gap-8">
+            <div className="flex items-center gap-9">
+              <a className="text-[#181611] dark:text-gray-200 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">
                 Talleres
               </a>
-              <a
-                className="text-sm font-medium hover:text-primary transition-colors dark:text-gray-300"
-                href="#"
-              >
+              <a className="text-[#181611] dark:text-gray-200 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">
                 Repuestos
               </a>
-              <a
-                className="text-sm font-medium hover:text-primary transition-colors dark:text-gray-300"
-                href="#"
-              >
+              <a className="text-[#181611] dark:text-gray-200 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">
                 Comunidad
               </a>
               <Link
                 to="/registro-taller"
-                className="text-sm font-medium hover:text-primary transition-colors dark:text-gray-300"
+                className="text-[#181611] dark:text-gray-200 text-sm font-medium leading-normal hover:text-primary transition-colors"
               >
                 Registrar taller
               </Link>
-              <Link
-                to="/resena"
-                className="text-sm font-medium hover:text-primary transition-colors dark:text-gray-300"
-              >
-                Dejar reseña
-              </Link>
             </div>
-            <button className="flex items-center justify-center px-4 py-2 text-sm font-bold bg-primary text-text-main rounded-lg hover:bg-opacity-90 transition-colors">
-              Ingresar
+            <div
+              className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 ring-2 ring-primary/20"
+              style={{
+                backgroundImage: 'url("https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100")',
+              }}
+            ></div>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
+            <button className="text-[#181611] dark:text-white">
+              <span className="material-symbols-outlined">menu</span>
             </button>
           </div>
         </div>
