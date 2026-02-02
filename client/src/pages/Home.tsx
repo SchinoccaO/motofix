@@ -116,7 +116,7 @@ export default function Home() {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-0">
                             <div className="flex flex-1 gap-6 rounded-xl border border-[#e5e3dc] bg-white p-8 flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow">
                                 <div className="text-[#181611] bg-primary/20 p-4 rounded-full flex items-center justify-center size-16">
-                                    <Icon name="location_on" size={36} />
+                                    <span className="material-symbols-outlined" style={{ fontSize: '36px' }}>location_on</span>
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <h2 className="text-[#181611] text-xl font-bold leading-tight">1. Elegí tu zona</h2>
@@ -127,7 +127,7 @@ export default function Home() {
                             </div>
                             <div className="flex flex-1 gap-6 rounded-xl border border-[#e5e3dc] bg-white p-8 flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow">
                                 <div className="text-[#181611] bg-primary/20 p-4 rounded-full flex items-center justify-center size-16">
-                                    <Icon name="star" size={36} />
+                                    <span className="material-symbols-outlined" style={{ fontSize: '36px' }}>star</span>
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <h2 className="text-[#181611] text-xl font-bold leading-tight">2. Compará reseñas</h2>
@@ -138,7 +138,7 @@ export default function Home() {
                             </div>
                             <div className="flex flex-1 gap-6 rounded-xl border border-[#e5e3dc] bg-white p-8 flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow">
                                 <div className="text-[#181611] bg-primary/20 p-4 rounded-full flex items-center justify-center size-16">
-                                    <Icon name="build" size={36} />
+                                    <span className="material-symbols-outlined" style={{ fontSize: '36px' }}>build</span>
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <h2 className="text-[#181611] text-xl font-bold leading-tight">3. Repará tu moto</h2>
