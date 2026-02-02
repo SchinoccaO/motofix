@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import Icon from '../components/Icon'
 import Logo from '../components/Logo'
+import Footer from '../components/Footer'
 
 export default function Home() {
     return (
@@ -8,19 +9,23 @@ export default function Home() {
             {/* Top Navigation Bar */}
             <header className="bg-white border-b border-solid border-b-[#f4f3f0]">
                 <div className="px-4 md:px-10 py-3 flex items-center justify-between max-w-[1280px] mx-auto w-full">
-                    <Link to="/" className="flex items-center gap-4 text-[#181611]">
-                        <Logo className="text-primary" size={32} />
-                        <h2 className="text-[#181611] text-2xl font-bold leading-tight tracking-[-0.015em]">MotoYA</h2>
+                    <Link to="/" className="flex items-center gap-3 text-[#181611]">
+                        <Logo />
+                        <h2 className="text-[#181611] text-xl font-bold leading-tight tracking-tight">MotoFIX</h2>
                     </Link>
                     <div className="hidden md:flex flex-1 justify-end gap-8">
                         <div className="flex items-center gap-9">
-                            <a className="text-[#181611] text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Talleres</a>
+                            <Link to="/talleres" className="text-[#181611] text-sm font-medium leading-normal hover:text-primary transition-colors">Talleres</Link>
                             <a className="text-[#181611] text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Repuestos</a>
+                            <Link to="/resena" className="text-[#181611] text-sm font-medium leading-normal hover:text-primary transition-colors">Dejar reseña</Link>
                             <a className="text-[#181611] text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Cómo funciona</a>
                         </div>
-                        <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary hover:bg-[#d6aa28] transition-colors text-[#181611] text-sm font-bold leading-normal tracking-[0.015em]">
+                        <Link
+                            to="/talleres"
+                            className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary hover:bg-[#d6aa28] transition-colors text-[#181611] text-sm font-bold leading-normal tracking-[0.015em]"
+                        >
                             <span className="truncate">Buscar talleres</span>
-                        </button>
+                        </Link>
                     </div>
                     <div className="md:hidden">
                         <button className="text-[#181611]">
@@ -158,7 +163,7 @@ export default function Home() {
                         {/* Columna izquierda */}
                         <div className="flex flex-col gap-4">
                             <h1 className="text-[#181611] tracking-tight text-[32px] font-bold leading-tight">
-                                Por qué elegir MotoYA
+                                Por qué elegir MotoFIX
                             </h1>
 
                             <p className="text-gray-600 text-lg">
@@ -265,7 +270,7 @@ export default function Home() {
                                     ¿Tenés un taller mecánico?
                                 </h1>
                                 <p className="text-gray-300 text-lg font-normal leading-normal">
-                                    Sumate a MotoYA y llegá a más clientes en tu zona. Gestioná tus turnos y construí tu reputación online.
+                                    Sumate a MotoFIX y llegá a más clientes en tu zona. Gestioná tus turnos y construí tu reputación online.
                                 </p>
                             </div>
                             <div className="flex flex-col sm:flex-row gap-4">
@@ -284,46 +289,7 @@ export default function Home() {
                 </div>
             </div>
 
-            {/* Footer */}
-            <footer className="bg-white border-t border-[#f4f3f0]">
-                <div className="max-w-[1280px] mx-auto px-4 md:px-10 py-12">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                        <div className="flex flex-col gap-4">
-                            <div className="flex items-center gap-2 text-[#181611]">
-                                <Logo className="text-primary" size={24} />
-                                <span className="text-xl font-bold">MotoYA</span>
-                            </div>
-                            <p className="text-gray-500 text-sm">La plataforma líder para conectar motociclistas con talleres de confianza.</p>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                            <h4 className="font-bold text-[#181611]">Compañía</h4>
-                            <a className="text-gray-600 hover:text-primary text-sm" href="#">Sobre nosotros</a>
-                            <a className="text-gray-600 hover:text-primary text-sm" href="#">Carreras</a>
-                            <a className="text-gray-600 hover:text-primary text-sm" href="#">Blog</a>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                            <h4 className="font-bold text-[#181611]">Soporte</h4>
-                            <a className="text-gray-600 hover:text-primary text-sm" href="#">Ayuda</a>
-                            <a className="text-gray-600 hover:text-primary text-sm" href="#">Términos y condiciones</a>
-                            <a className="text-gray-600 hover:text-primary text-sm" href="#">Privacidad</a>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                            <h4 className="font-bold text-[#181611]">Síguenos</h4>
-                            <div className="flex gap-4">
-                                <a className="text-gray-400 hover:text-primary transition-colors" href="#" aria-label="Facebook">
-                                    <Icon name="facebook" size={24} />
-                                </a>
-                                <a className="text-gray-400 hover:text-primary transition-colors" href="#" aria-label="Instagram">
-                                    <Icon name="instagram" size={24} />
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="mt-12 border-t border-gray-100 pt-8 text-center text-sm text-gray-500">
-                        <p>© 2023 MotoYA. Todos los derechos reservados.</p>
-                    </div>
-                </div>
-            </footer>
+            <Footer />
         </div>
     )
 }
