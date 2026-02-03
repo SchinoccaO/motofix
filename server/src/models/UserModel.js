@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 
 /**
  * Modelo User - Usuario del sistema
- * Roles: 'usuario', 'taller', 'admin'
+ * Roles: 'cliente', 'mecanico', 'admin'
  */
 class User extends Model {
   // Método para ocultar la contraseña en JSON
@@ -44,8 +44,8 @@ User.init(
       allowNull: false
     },
     rol: {
-      type: DataTypes.ENUM('usuario', 'taller', 'admin'),
-      defaultValue: 'usuario'
+      type: DataTypes.ENUM('cliente', 'mecanico', 'admin'),
+      defaultValue: 'cliente'
     }
   },
   {

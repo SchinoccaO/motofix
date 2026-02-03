@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import sequelize, { testConnection } from './config/db.js';
 import './models/index.js'; // Cargar modelos y relaciones
 import authRoutes from './routes/authRoutes.js';
+import tallerRoutes from './routes/tallerRoutes.js';
+import resenaRoutes from './routes/resenaRoutes.js';
 
 dotenv.config();
 
@@ -44,6 +46,12 @@ if (process.env.NODE_ENV === 'development') {
 
 // Rutas de autenticación
 app.use('/api/auth', authRoutes);
+
+// Rutas de talleres
+app.use('/api/talleres', tallerRoutes);
+
+// Rutas de reseñas
+app.use('/api/resenas', resenaRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

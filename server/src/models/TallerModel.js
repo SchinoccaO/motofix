@@ -40,6 +40,9 @@ Taller.init(
     telefono: {
       type: DataTypes.STRING(20)
     },
+    whatsapp: {
+      type: DataTypes.STRING(20)
+    },
     email: {
       type: DataTypes.STRING(255),
       validate: {
@@ -50,11 +53,37 @@ Taller.init(
       type: DataTypes.TEXT,
       comment: 'CSV: mantenimiento,reparacion,repuestos,pintura'
     },
-    horario: {
+    horarios: {
       type: DataTypes.STRING(255)
+    },
+    marcas_atendidas: {
+      type: DataTypes.TEXT,
+      comment: 'CSV: Honda,Yamaha,Suzuki,etc'
     },
     foto_url: {
       type: DataTypes.STRING(500)
+    },
+    latitud: {
+      type: DataTypes.DECIMAL(10, 8)
+    },
+    longitud: {
+      type: DataTypes.DECIMAL(11, 8)
+    },
+    calificacion_promedio: {
+      type: DataTypes.DECIMAL(2, 1),
+      defaultValue: 0.0
+    },
+    total_resenas: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      defaultValue: 0
+    },
+    verificado: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+    activo: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true
     }
   },
   {
@@ -65,7 +94,9 @@ Taller.init(
     underscored: true,
     indexes: [
       { fields: ['ciudad'] },
-      { fields: ['usuario_id'] } // Cambiado de user_id a usuario_id
+      { fields: ['usuario_id'] },
+      { fields: ['verificado'] },
+      { fields: ['activo'] }
     ]
   }
 );

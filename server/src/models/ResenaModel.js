@@ -46,7 +46,7 @@ Resena.init(
     servicio_usado: {
       type: DataTypes.STRING(100)
     },
-    respuesta_taller: {
+    respuesta_mecanico: {
       type: DataTypes.TEXT
     },
     fecha_respuesta: {
@@ -55,6 +55,14 @@ Resena.init(
     votos_utiles: {
       type: DataTypes.INTEGER.UNSIGNED,
       defaultValue: 0
+    },
+    verificada: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+    reportada: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
     }
   },
   {
@@ -65,12 +73,13 @@ Resena.init(
     underscored: true,
     indexes: [
       { fields: ['taller_id'] },
-      { fields: ['usuario_id'] }, // Cambiado de user_id
+      { fields: ['usuario_id'] },
       { fields: ['rating'] },
       { fields: ['created_at'] },
+      { fields: ['verificada'] },
       {
         unique: true,
-        fields: ['usuario_id', 'taller_id'], // Cambiado de user_id
+        fields: ['usuario_id', 'taller_id'],
         name: 'unique_user_taller'
       }
     ]
