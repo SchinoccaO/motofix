@@ -4,7 +4,7 @@ import sequelize from '../config/db.js';
 /**
  * Modelo Resena - Reseñas de talleres
  */
-class Resena extends Model {}
+class Resena extends Model { }
 
 Resena.init(
   {
@@ -13,11 +13,11 @@ Resena.init(
       autoIncrement: true,
       primaryKey: true
     },
-    user_id: {
+    usuario_id: {
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
       references: {
-        model: 'users',
+        model: 'usuarios',
         key: 'id'
       },
       onDelete: 'CASCADE'
@@ -65,12 +65,12 @@ Resena.init(
     underscored: true,
     indexes: [
       { fields: ['taller_id'] },
-      { fields: ['user_id'] },
+      { fields: ['usuario_id'] }, // Cambiado de user_id
       { fields: ['rating'] },
       { fields: ['created_at'] },
       {
         unique: true,
-        fields: ['user_id', 'taller_id'],
+        fields: ['usuario_id', 'taller_id'], // Cambiado de user_id
         name: 'unique_user_taller'
       }
     ]

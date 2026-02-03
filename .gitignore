@@ -1,8 +1,15 @@
-# Dependencies
+# Dependencies - NUNCA subir node_modules
 node_modules/
+/node_modules/
+client/node_modules/
+server/node_modules/
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+
+# Configuración en raíz (solo debe estar en client/ y server/)
+/package.json
+/package-lock.json
 
 # Environment variables
 .env
@@ -10,12 +17,17 @@ pnpm-lock.yaml
 .env.development
 .env.production
 .env.test
+server/.env
+server/.env.local
 
 # Build outputs
 dist/
 build/
 out/
 .next/
+client/dist/
+server/dist/
+*.tsbuildinfo
 
 # Logs
 logs/
@@ -24,6 +36,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+lerna-debug.log*
 
 # IDE
 .vscode/
@@ -41,9 +54,29 @@ coverage/
 tmp/
 temp/
 *.tmp
+*.temp
+*.bak
+*.old
+Untitled-*
+*_A_ELIMINAR.*
+ESTRUCTURA_*
+AUDITORIA_*
+REVISION_*
+LIMPIEZA_*
+
+# Documentación temporal
+FRONTEND_FIX.md
+INTERCONEXION.md
+PLAN_*.txt
+PLAN_*.md
+
+# HTML estáticos en raíz (solo usar React)
+/*.html
+!client/index.html
 
 # Database
 *.sqlite
+*.sqlite3
 *.db
 
 # Uploads
@@ -54,6 +87,9 @@ public/uploads/
 .cache/
 .parcel-cache/
 .eslintcache
+.vite/
+client/.vite/
+.turbo/
 
 # OS
 Thumbs.db
