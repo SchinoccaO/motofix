@@ -46,12 +46,12 @@ export default function Navbar() {
           <div className="flex items-center gap-6">
             {/* Links (solo en pantallas grandes) */}
             <div className="hidden lg:flex items-center gap-6">
-              <a
+              <Link
+                to="/talleres"
                 className="text-sm font-medium hover:text-primary transition-colors dark:text-gray-300"
-                href="#"
               >
                 Talleres
-              </a>
+              </Link>
               <a
                 className="text-sm font-medium hover:text-primary transition-colors dark:text-gray-300"
                 href="#"
