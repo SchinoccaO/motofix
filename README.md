@@ -2,6 +2,26 @@
 
 Plataforma web que conecta motociclistas con talleres de confianza en Argentina.
 
+> **📚 PARA APRENDER:** Este proyecto incluye documentación completa con comentarios explicativos en todo el código.  
+> 👉 **Comienza leyendo:** [`README_DOCUMENTACION.md`](README_DOCUMENTACION.md) para ver el índice completo de recursos educativos.
+
+---
+
+## 🎓 RECURSOS DE APRENDIZAJE
+
+Si estás aprendiendo a programar, este proyecto incluye:
+
+| Archivo                                              | Descripción                          |
+| ---------------------------------------------------- | ------------------------------------ |
+| [`README_DOCUMENTACION.md`](README_DOCUMENTACION.md) | 📖 Índice completo + plan de estudio |
+| [`GUIA_APRENDIZAJE.md`](GUIA_APRENDIZAJE.md)         | 📘 Conceptos básicos y arquitectura  |
+| [`DIAGRAMAS_FLUJOS.md`](DIAGRAMAS_FLUJOS.md)         | 📊 Diagramas visuales del sistema    |
+| [`EJEMPLOS_PRACTICOS.md`](EJEMPLOS_PRACTICOS.md)     | 💻 Código de ejemplo paso a paso     |
+
+**Además:** Todo el código fuente está comentado línea por línea para facilitar el aprendizaje.
+
+---
+
 ## 📁 Estructura del Proyecto
 
 ```
@@ -37,17 +57,17 @@ MOTOYA/
 ├── server/                     # 🚀 Backend - Node.js + Express + MySQL (XAMPP)
 │   ├── src/
 │   │   ├── config/            # Configuración de la aplicación
-│   │   │   ├── config.js      # Config general
-│   │   │   └── db.js          # Conexión a MySQL (XAMPP)
+│   │   │   ├── config.js      # Config general (COMENTADO)
+│   │   │   └── db.js          # Conexión a MySQL (COMENTADO)
 │   │   ├── controllers/       # Lógica de negocio
-│   │   │   └── authController.js
+│   │   │   └── authController.js  # (COMENTADO LÍNEA POR LÍNEA)
 │   │   ├── middlewares/       # Middlewares Express
-│   │   │   └── auth.js        # Autenticación JWT
+│   │   │   └── auth.js        # Autenticación JWT (COMENTADO)
 │   │   ├── models/            # Modelos de Sequelize ORM
 │   │   │   ├── index.js       # Configuración modelos
-│   │   │   ├── UserModel.js   # Modelo Usuario
-│   │   │   ├── TallerModel.js # Modelo Taller
-│   │   │   └── ResenaModel.js # Modelo Reseña
+│   │   │   ├── UserModel.js   # Modelo Usuario (COMENTADO)
+│   │   │   ├── TallerModel.js # Modelo Taller (COMENTADO)
+│   │   │   └── ResenaModel.js # Modelo Reseña (COMENTADO)
 │   │   ├── routes/            # Rutas de la API REST
 │   │   │   └── authRoutes.js  # Rutas de autenticación
 │   │   ├── scripts/           # Scripts de utilidad
