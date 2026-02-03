@@ -1,19 +1,31 @@
-import { Routes, Route } from 'react-router-dom'  // Importa los componentes necesarios de react-router-dom
-import Home from './pages/Home'               // Importa el componente de la página de inicio
-import TallerProfile from './pages/TallerProfile'  // Importa el componente del perfil del taller
-import RegistroTaller from './pages/RegistroTaller'   // Importa el componente de registro de taller
-import ResenaForm from './pages/ResenaForm' // Importa el componente del formulario de reseña
-import './App.css' // Importa los estilos globales
+// ═══════════════════════════════════════════════════════════════════════════
+// ARCHIVO: App.tsx - CONFIGURACIÓN DE RUTAS (URLs) DE LA APLICACIÓN
+// ═══════════════════════════════════════════════════════════════════════════
+// Este archivo define qué página se muestra según la URL:
+// - http://localhost:3000/          → Página Home
+// - http://localhost:3000/taller    → Perfil del Taller
+// - etc.
 
-function App(): JSX.Element { // Componente principal de la aplicación
-  return ( 
-    <Routes> // Define las rutas de la aplicación
+import { Routes, Route } from "react-router-dom";
+import Home from "./pages/Home"; // Página principal/inicio
+import BuscarTalleres from "./pages/BuscarTalleres"; // Página de búsqueda de talleres
+import TallerProfile from "./pages/TallerProfile"; // Perfil de un taller específico
+import RegistroTaller from "./pages/RegistroTaller"; // Formulario para registrar taller
+import ResenaForm from "./pages/ResenaForm"; // Formulario para dejar reseña
+import "./App.css";
+
+// ─── COMPONENTE PRINCIPAL ────────────────────────────────────────────────────
+function App(): JSX.Element {
+  return (
+    <Routes>
+      {/* Cada Route mapea una URL a un componente de página */}
       <Route path="/" element={<Home />} />
-      <Route path="/taller" element={<TallerProfile />} />
+      <Route path="/talleres" element={<BuscarTalleres />} />
+      <Route path="/taller/:id" element={<TallerProfile />} />
       <Route path="/registro-taller" element={<RegistroTaller />} />
       <Route path="/resena" element={<ResenaForm />} />
     </Routes>
-  )
+  );
 }
 
-export default App
+export default App;

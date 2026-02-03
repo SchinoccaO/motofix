@@ -1,49 +1,21 @@
 import { Link } from 'react-router-dom'
 import Logo from '../components/Logo'
+import Footer from '../components/Footer'
 
 export default function ResenaForm() {
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-[#181611] dark:text-gray-100 min-h-screen flex flex-col">
-      {/* TopNavBar */}
-      <div className="w-full bg-white dark:bg-card-dark border-b border-[#f4f3f0] dark:border-[#3f3b2e]">
+      {/* Simple TopNavBar */}
+      <header className="bg-white dark:bg-card-dark border-b border-[#f4f3f0] dark:border-[#3f3b2e]">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-10 py-3">
-          <header className="flex items-center justify-between whitespace-nowrap">
-            <Link to="/" className="flex items-center gap-4">
-              <Logo className="text-primary" size={32} />
-              <h2 className="text-[#181611] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">MotoYA</h2>
+          <div className="flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-3">
+              <Logo />
+              <h2 className="text-[#181611] dark:text-white text-xl font-bold leading-tight tracking-tight">MotoFIX</h2>
             </Link>
-            <div className="hidden md:flex flex-1 justify-end gap-8">
-              <div className="flex items-center gap-9">
-                <a className="text-[#181611] dark:text-gray-200 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">
-                  Talleres
-                </a>
-                <a className="text-[#181611] dark:text-gray-200 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">
-                  Repuestos
-                </a>
-                <a className="text-[#181611] dark:text-gray-200 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">
-                  Comunidad
-                </a>
-                <Link
-                  to="/registro-taller"
-                  className="text-[#181611] dark:text-gray-200 text-sm font-medium leading-normal hover:text-primary transition-colors"
-                >
-                  Registrar taller
-                </Link>
-              </div>
-              <div
-                className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 ring-2 ring-primary/20"
-                style={{
-                  backgroundImage:
-                    'url("https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100")',
-                }}
-              ></div>
-            </div>
-            <div className="flex md:hidden">
-              <span className="material-symbols-outlined text-[#181611] dark:text-white cursor-pointer">menu</span>
-            </div>
-          </header>
+          </div>
         </div>
-      </div>
+      </header>
 
       {/* Main Content Area */}
       <div className="flex-1 flex justify-center py-8 px-4 sm:px-6">
@@ -220,6 +192,7 @@ export default function ResenaForm() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   )
 }
