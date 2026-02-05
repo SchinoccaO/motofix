@@ -1,11 +1,11 @@
-import React from 'react';
+import React from "react";
 
 interface LogoProps {
   className?: string;
   size?: number;
 }
 
-const Logo: React.FC<LogoProps> = ({ className = '', size }) => {
+const Logo: React.FC<LogoProps> = ({ className = "", size }) => {
   return (
     <img
       src="/assets/moto-logo-fondotransparente.png"

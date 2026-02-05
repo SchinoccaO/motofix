@@ -50,14 +50,8 @@ export default function Navbar() {
                 to="/talleres"
                 className="text-sm font-medium hover:text-primary transition-colors dark:text-gray-300"
               >
-                Talleres
+                Talleres y Repuestos
               </Link>
-              <a
-                className="text-sm font-medium hover:text-primary transition-colors dark:text-gray-300"
-                href="#"
-              >
-                Repuestos
-              </a>
               <a
                 className="text-sm font-medium hover:text-primary transition-colors dark:text-gray-300"
                 href="#"
