@@ -95,6 +95,12 @@ INSERT INTO resenas (usuario_id, taller_id, calificacion, comentario, servicio, 
  DATE_SUB(NOW(), INTERVAL 30 DAY),
  DATE_SUB(NOW(), INTERVAL 30 DAY));
 
+SELECT * FROM USUARIUOS;
+
+UPDATE usuarios SET nombre = 'Nuevo nombre' WHERE id = 1;
+
+
+
 -- Verificar los datos insertados
 SELECT 'Usuarios creados:' as Info;
 SELECT COUNT(*) as Total FROM usuarios;

@@ -3,31 +3,33 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-  }
+    body {
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+    }
 }
 
 @layer components {
-  /* Custom styles for filled icons */
-  .material-symbols-outlined.filled {
-    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-  }
+
+    /* Custom styles for filled icons */
+    .material-symbols-outlined.filled {
+        font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
 }
 
 @layer utilities {
-  /* Hide scrollbar for clean look */
-  body::-webkit-scrollbar {
-    width: 8px;
-  }
 
-  body::-webkit-scrollbar-track {
-    background: transparent;
-  }
+    /* Hide scrollbar for clean look */
+    body::-webkit-scrollbar {
+        width: 8px;
+    }
 
-  body::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.1);
-    border-radius: 4px;
-  }
+    body::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    body::-webkit-scrollbar-thumb {
+        background-color: rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+    }
 }
