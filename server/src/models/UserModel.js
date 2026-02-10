@@ -1,15 +1,10 @@
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/db.js';
 
-/**
- * Modelo User - Usuario del sistema
- * Roles: 'usuario', 'taller', 'admin'
- */
 class User extends Model {
-  // Método para ocultar la contraseña en JSON
   toJSON() {
     const values = { ...this.get() };
-    delete values.password;
+    delete values.password_hash;
     return values;
   }
 }
@@ -21,6 +16,10 @@ User.init(
       autoIncrement: true,
       primaryKey: true
     },
+    name: {
+      type: DataTypes.STRING(255),
+      allowNull: false
+    },
     email: {
       type: DataTypes.STRING(255),
       allowNull: false,
@@ -29,17 +28,19 @@ User.init(
         isEmail: true
       }
     },
-    password: {
+    password_hash: {
       type: DataTypes.STRING(255),
       allowNull: false
     },
-    nombre: {
-      type: DataTypes.STRING(255),
-      allowNull: false
+    role: {
+      type: DataTypes.ENUM('user', 'admin'),
+      allowNull: false,
+      defaultValue: 'user'
     },
-    rol: {
-      type: DataTypes.ENUM('usuario', 'taller', 'admin'),
-      defaultValue: 'usuario'
+    is_active: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true
     }
   },
   {
@@ -50,7 +51,7 @@ User.init(
     underscored: true,
     indexes: [
       { fields: ['email'] },
-      { fields: ['rol'] }
+      { fields: ['role'] }
     ]
   }
 );

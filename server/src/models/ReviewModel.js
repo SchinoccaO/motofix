@@ -1,12 +1,9 @@
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/db.js';
 
-/**
- * Modelo Resena - Reseñas de talleres
- */
-class Resena extends Model {}
+class Review extends Model {}
 
-Resena.init(
+Review.init(
   {
     id: {
       type: DataTypes.INTEGER.UNSIGNED,
@@ -20,16 +17,16 @@ Resena.init(
         model: 'users',
         key: 'id'
       },
-      onDelete: 'CASCADE'
+      onDelete: 'RESTRICT'
     },
-    taller_id: {
+    provider_id: {
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
       references: {
-        model: 'talleres',
+        model: 'providers',
         key: 'id'
       },
-      onDelete: 'CASCADE'
+      onDelete: 'RESTRICT'
     },
     rating: {
       type: DataTypes.TINYINT.UNSIGNED,
@@ -39,42 +36,23 @@ Resena.init(
         max: 5
       }
     },
-    comentario: {
+    comment: {
       type: DataTypes.TEXT,
       allowNull: false
-    },
-    servicio_usado: {
-      type: DataTypes.STRING(100)
-    },
-    respuesta_taller: {
-      type: DataTypes.TEXT
-    },
-    fecha_respuesta: {
-      type: DataTypes.DATE
-    },
-    votos_utiles: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      defaultValue: 0
     }
   },
   {
     sequelize,
-    modelName: 'Resena',
-    tableName: 'resenas',
+    modelName: 'Review',
+    tableName: 'reviews',
     timestamps: true,
     underscored: true,
     indexes: [
-      { fields: ['taller_id'] },
       { fields: ['user_id'] },
-      { fields: ['rating'] },
-      { fields: ['created_at'] },
-      {
-        unique: true,
-        fields: ['user_id', 'taller_id'],
-        name: 'unique_user_taller'
-      }
+      { fields: ['provider_id'] },
+      { fields: ['rating'] }
     ]
   }
 );
 
-export default Resena;
+export default Review;

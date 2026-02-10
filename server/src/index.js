@@ -34,7 +34,7 @@ if (process.env.NODE_ENV === 'development') {
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
-    message: 'MotoYA API is running',
+    message: 'MotoFIX API is running',
     database: 'MySQL + Sequelize',
     timestamp: new Date().toISOString()
   });
@@ -43,13 +43,13 @@ app.get('/api/health', (req, res) => {
 // Routes (placeholder)
 app.get('/api', (req, res) => {
   res.json({
-    message: 'Bienvenido a la API de MotoYA',
+    message: 'Bienvenido a la API de MotoFIX',
     version: '1.0.0',
     orm: 'Sequelize',
     endpoints: {
-      talleres: '/api/talleres',
-      usuarios: '/api/usuarios',
-      resenas: '/api/resenas'
+      providers: '/api/providers',
+      users: '/api/users',
+      reviews: '/api/reviews'
     }
   });
 });

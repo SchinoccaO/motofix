@@ -25,7 +25,7 @@
     "repuestos",
     "reseñas"
   ],
-  "author": "MotoYA Team",
+  "author": "MotoFIX Team",
   "license": "UNLICENSED",
   "devDependencies": {
     "concurrently": "^8.2.2",

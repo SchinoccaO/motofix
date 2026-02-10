@@ -1,8 +1,8 @@
-# Script de configuración de MySQL para MotoYA
+# Script de configuración de MySQL para MotoFIX
 # DEBE EJECUTARSE COMO ADMINISTRADOR
 
 Write-Host "==================================" -ForegroundColor Cyan
-Write-Host "  Configuracion MySQL - MotoYA" -ForegroundColor Cyan
+Write-Host "  Configuracion MySQL - MotoFIX" -ForegroundColor Cyan
 Write-Host "==================================" -ForegroundColor Cyan
 Write-Host ""
 

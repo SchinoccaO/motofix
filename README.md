@@ -1,4 +1,4 @@
-# MotoYA
+# MotoFIX
 
 Plataforma web full-stack para conectar motociclistas con talleres mecánicos certificados. Sistema de reseñas, reputación y búsqueda de servicios.
 

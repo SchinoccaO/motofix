@@ -69,7 +69,7 @@ http://localhost:5001/api/health
 ```json
 {
   "status": "OK",
-  "message": "MotoYA API is running",
+  "message": "MotoFIX API is running",
   "database": "MySQL + Sequelize",
   "timestamp": "2026-01-24T..."
 }
@@ -83,13 +83,13 @@ http://localhost:5001/api
 **Respuesta esperada:**
 ```json
 {
-  "message": "Bienvenido a la API de MotoYA",
+  "message": "Bienvenido a la API de MotoFIX",
   "version": "1.0.0",
   "orm": "Sequelize",
   "endpoints": {
-    "talleres": "/api/talleres",
-    "usuarios": "/api/usuarios",
-    "resenas": "/api/resenas"
+    "providers": "/api/providers",
+    "users": "/api/users",
+    "reviews": "/api/reviews"
   }
 }
 ```
@@ -178,16 +178,17 @@ npm run dev:all
 - **Admin:** admin@motoya.com / 123456
 - **Usuario:** juan@mail.com / 123456
 - **Usuario:** maria@mail.com / 123456
-- **Taller:** taller1@mail.com / 123456
-- **Taller:** taller2@mail.com / 123456
+- **Usuario:** carlos@mail.com / 123456
 
-### Talleres:
-1. **MotoTaller El Rápido** (Buenos Aires)
-2. **Moto Service Premium** (Córdoba)
-3. **TallerMoto Express** (Rosario)
+### Providers:
+1. **MotoTaller El Rápido** (shop, Buenos Aires) — verificado
+2. **Diego Mecánica Motos** (mechanic, Córdoba) — verificado
+3. **RepuestosMoto Center** (parts_store, Rosario) — no verificado
+4. **Moto Service Premium** (shop, Buenos Aires) — verificado
 
 ### Reseñas:
-- 5 reseñas distribuidas entre los talleres
+- 5 reseñas distribuidas entre los providers
+- 4 review replies (hilos de conversación)
 - Ratings de 3 a 5 estrellas
 
 ---
@@ -228,7 +229,7 @@ npm run dev
 
 - [x] MySQL corriendo
 - [x] Base de datos `motoya` creada
-- [x] Datos de prueba insertados (5 users, 3 talleres, 5 reseñas)
+- [x] Datos de prueba insertados (4 users, 4 providers, 4 locations, 5 reviews, 4 replies)
 - [x] Backend corriendo en puerto 5001
 - [x] Frontend corriendo en puerto 3000
 - [x] CORS configurado correctamente
@@ -242,7 +243,7 @@ npm run dev
 ## 🎯 Próximos Pasos (FASE 2)
 
 1. Crear **middlewares** de autenticación (JWT)
-2. Crear **controllers** (auth, taller, resena)
+2. Crear **controllers** (auth, provider, review)
 3. Crear **routes** con validaciones
 4. Conectar frontend con API real
 5. Implementar login/register

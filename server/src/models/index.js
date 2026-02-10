@@ -1,42 +1,62 @@
 import User from './UserModel.js';
-import Taller from './TallerModel.js';
-import Resena from './ResenaModel.js';
+import Provider from './ProviderModel.js';
+import Location from './LocationModel.js';
+import Review from './ReviewModel.js';
+import ReviewReply from './ReviewReplyModel.js';
 
-/**
- * Definir relaciones entre modelos
- */
-
-// Un Usuario puede tener muchos Talleres
-User.hasMany(Taller, {
+// User 1-N Review
+User.hasMany(Review, {
   foreignKey: 'user_id',
-  as: 'talleres'
+  as: 'reviews'
 });
 
-Taller.belongsTo(User, {
+Review.belongsTo(User, {
   foreignKey: 'user_id',
-  as: 'propietario'
+  as: 'user'
 });
 
-// Un Usuario puede tener muchas Reseñas
-User.hasMany(Resena, {
+// Provider 1-N Review
+Provider.hasMany(Review, {
+  foreignKey: 'provider_id',
+  as: 'reviews'
+});
+
+Review.belongsTo(Provider, {
+  foreignKey: 'provider_id',
+  as: 'provider'
+});
+
+// Provider 1-1 Location
+Provider.hasOne(Location, {
+  foreignKey: 'provider_id',
+  as: 'location'
+});
+
+Location.belongsTo(Provider, {
+  foreignKey: 'provider_id',
+  as: 'provider'
+});
+
+// Review 1-N ReviewReply
+Review.hasMany(ReviewReply, {
+  foreignKey: 'review_id',
+  as: 'replies'
+});
+
+ReviewReply.belongsTo(Review, {
+  foreignKey: 'review_id',
+  as: 'review'
+});
+
+// User 1-N ReviewReply
+User.hasMany(ReviewReply, {
   foreignKey: 'user_id',
-  as: 'resenas'
+  as: 'reviewReplies'
 });
 
-Resena.belongsTo(User, {
+ReviewReply.belongsTo(User, {
   foreignKey: 'user_id',
-  as: 'usuario'
+  as: 'user'
 });
 
-// Un Taller puede tener muchas Reseñas
-Taller.hasMany(Resena, {
-  foreignKey: 'taller_id',
-  as: 'resenas'
-});
-
-Resena.belongsTo(Taller, {
-  foreignKey: 'taller_id',
-  as: 'taller'
-});
-
-export { User, Taller, Resena };
+export { User, Provider, Location, Review, ReviewReply };
