@@ -1,50 +1,62 @@
 import User from './UserModel.js';
-import Taller from './TallerModel.js';
-import Resena from './ResenaModel.js';
+import Provider from './ProviderModel.js';
+import Location from './LocationModel.js';
+import Review from './ReviewModel.js';
+import ReviewReply from './ReviewReplyModel.js';
 
-/**
- * Definir relaciones entre modelos
- * IMPORTANTE: Los foreignKey usan los nombres de atributo del modelo (user_id),
- * que Sequelize mapea automáticamente a las columnas de DB (usuario_id) gracias al field
- */
-
-// Un Usuario puede tener muchos Talleres
-User.hasMany(Taller, {
-  foreignKey: 'usuario_id',
-  sourceKey: 'id',
-  as: 'talleres'
+// User 1-N Review
+User.hasMany(Review, {
+  foreignKey: 'user_id',
+  as: 'reviews'
 });
 
-Taller.belongsTo(User, {
-  foreignKey: 'usuario_id',
-  targetKey: 'id',
-  as: 'propietario'
+Review.belongsTo(User, {
+  foreignKey: 'user_id',
+  as: 'user'
 });
 
-// Un Usuario puede tener muchas Reseñas
-User.hasMany(Resena, {
-  foreignKey: 'usuario_id',
-  sourceKey: 'id',
-  as: 'resenas'
+// Provider 1-N Review
+Provider.hasMany(Review, {
+  foreignKey: 'provider_id',
+  as: 'reviews'
 });
 
-Resena.belongsTo(User, {
-  foreignKey: 'usuario_id',
-  targetKey: 'id',
-  as: 'usuario'
+Review.belongsTo(Provider, {
+  foreignKey: 'provider_id',
+  as: 'provider'
 });
 
-// Un Taller puede tener muchas Reseñas
-Taller.hasMany(Resena, {
-  foreignKey: 'taller_id',
-  sourceKey: 'id',
-  as: 'resenas'
+// Provider 1-1 Location
+Provider.hasOne(Location, {
+  foreignKey: 'provider_id',
+  as: 'location'
 });
 
-Resena.belongsTo(Taller, {
-  foreignKey: 'taller_id',
-  targetKey: 'id',
-  as: 'taller'
+Location.belongsTo(Provider, {
+  foreignKey: 'provider_id',
+  as: 'provider'
 });
 
-export { User, Taller, Resena };
+// Review 1-N ReviewReply
+Review.hasMany(ReviewReply, {
+  foreignKey: 'review_id',
+  as: 'replies'
+});
+
+ReviewReply.belongsTo(Review, {
+  foreignKey: 'review_id',
+  as: 'review'
+});
+
+// User 1-N ReviewReply
+User.hasMany(ReviewReply, {
+  foreignKey: 'user_id',
+  as: 'reviewReplies'
+});
+
+ReviewReply.belongsTo(User, {
+  foreignKey: 'user_id',
+  as: 'user'
+});
+
+export { User, Provider, Location, Review, ReviewReply };
