@@ -1,26 +1,26 @@
 import express from 'express';
 import {
-    getTalleres,
-    getTallerById,
-    createTaller,
-    updateTaller,
-    deleteTaller
+    getProviders,
+    getProviderById,
+    createProvider,
+    updateProvider,
+    deleteProvider
 } from '../controllers/tallerController.js';
 import { verificarToken } from '../middlewares/auth.js';
 
 const router = express.Router();
 
 /**
- * Rutas públicas
+ * Rutas publicas
  */
-router.get('/', getTalleres);
-router.get('/:id', getTallerById);
+router.get('/', getProviders);
+router.get('/:id', getProviderById);
 
 /**
- * Rutas protegidas (requieren autenticación)
+ * Rutas protegidas (requieren autenticacion)
  */
-router.post('/', verificarToken, createTaller);
-router.put('/:id', verificarToken, updateTaller);
-router.delete('/:id', verificarToken, deleteTaller);
+router.post('/', verificarToken, createProvider);
+router.put('/:id', verificarToken, updateProvider);
+router.delete('/:id', verificarToken, deleteProvider);
 
 export default router;

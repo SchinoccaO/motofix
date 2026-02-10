@@ -1,79 +1,83 @@
-import { Taller, User, Resena } from '../models/index.js';
+import { Provider, Location, Review, User } from '../models/index.js';
 import { Op } from 'sequelize';
 
 /**
- * Obtener todos los talleres con filtros opcionales
+ * Obtener todos los providers con filtros opcionales
  */
-export const getTalleres = async (req, res) => {
+export const getProviders = async (req, res) => {
     try {
-        const { ciudad, servicio, verificado, activo = true } = req.query;
+        const { type, city, is_verified, is_active = 'true', search } = req.query;
 
-        const whereClause = { activo };
+        const whereClause = { is_active: is_active === 'true' };
 
-        if (ciudad) {
-            whereClause.ciudad = { [Op.like]: `%${ciudad}%` };
+        if (type) {
+            whereClause.type = type;
         }
 
-        if (servicio) {
-            whereClause.servicios = { [Op.like]: `%${servicio}%` };
+        if (is_verified !== undefined) {
+            whereClause.is_verified = is_verified === 'true';
         }
 
-        if (verificado !== undefined) {
-            whereClause.verificado = verificado === 'true';
+        if (search) {
+            whereClause.name = { [Op.like]: `%${search}%` };
         }
 
-        const talleres = await Taller.findAll({
+        const locationWhere = {};
+        if (city) {
+            locationWhere.city = { [Op.like]: `%${city}%` };
+        }
+
+        const providers = await Provider.findAll({
             where: whereClause,
             include: [
                 {
-                    model: User,
-                    as: 'propietario',
-                    attributes: ['id', 'nombre', 'email']
+                    model: Location,
+                    as: 'location',
+                    ...(city ? { where: locationWhere } : {})
                 }
             ],
             order: [
-                ['calificacion_promedio', 'DESC'],
-                ['total_resenas', 'DESC']
+                ['average_rating', 'DESC'],
+                ['total_reviews', 'DESC']
             ]
         });
 
         res.json({
             success: true,
-            count: talleres.length,
-            data: talleres
+            count: providers.length,
+            data: providers
         });
     } catch (error) {
-        console.error('Error al obtener talleres:', error);
+        console.error('Error al obtener providers:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al obtener talleres',
+            error: 'Error al obtener providers',
             message: error.message
         });
     }
 };
 
 /**
- * Obtener un taller por ID con sus reseñas
+ * Obtener un provider por ID con sus reviews
  */
-export const getTallerById = async (req, res) => {
+export const getProviderById = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const taller = await Taller.findByPk(id, {
+        const provider = await Provider.findByPk(id, {
             include: [
                 {
-                    model: User,
-                    as: 'propietario',
-                    attributes: ['id', 'nombre', 'email']
+                    model: Location,
+                    as: 'location'
                 },
                 {
-                    model: Resena,
-                    as: 'resenas',
+                    model: Review,
+                    as: 'reviews',
                     include: [
                         {
                             model: User,
-                            as: 'usuario',
-                            attributes: ['id', 'nombre']
+                            as: 'user',
+                            attributes: ['id', 'name', 'email']
                         }
                     ],
                     order: [['created_at', 'DESC']]
@@ -81,199 +85,165 @@ export const getTallerById = async (req, res) => {
             ]
         });
 
-        if (!taller) {
+        if (!provider) {
             return res.status(404).json({
                 success: false,
-                error: 'Taller no encontrado'
+                error: 'Provider no encontrado'
             });
         }
 
         res.json({
             success: true,
-            data: taller
+            data: provider
         });
     } catch (error) {
-        console.error('Error al obtener taller:', error);
+        console.error('Error al obtener provider:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al obtener taller',
+            error: 'Error al obtener provider',
             message: error.message
         });
     }
 };
 
 /**
- * Crear un nuevo taller (requiere autenticación)
+ * Crear un nuevo provider (requiere autenticacion)
  */
-export const createTaller = async (req, res) => {
+export const createProvider = async (req, res) => {
     try {
         const {
-            nombre,
-            descripcion,
-            direccion,
-            ciudad,
-            telefono,
-            whatsapp,
+            type,
+            name,
+            description,
+            phone,
             email,
-            servicios,
-            horarios,
-            marcas_atendidas,
-            latitud,
-            longitud
+            website,
+            address,
+            city,
+            province,
+            country,
+            latitude,
+            longitude
         } = req.body;
 
-        // El usuario_id viene del middleware de autenticación
-        const usuario_id = req.user?.id;
+        const provider = await Provider.create({
+            type,
+            name,
+            description,
+            phone,
+            email,
+            website
+        });
 
-        if (!usuario_id) {
-            return res.status(401).json({
-                success: false,
-                error: 'Usuario no autenticado'
+        if (address && city && province) {
+            await Location.create({
+                provider_id: provider.id,
+                address,
+                city,
+                province,
+                country: country || 'Argentina',
+                latitude,
+                longitude
             });
         }
 
-        const taller = await Taller.create({
-            usuario_id,
-            nombre,
-            descripcion,
-            direccion,
-            ciudad,
-            telefono,
-            whatsapp,
-            email,
-            servicios,
-            horarios,
-            marcas_atendidas,
-            latitud,
-            longitud,
-            verificado: false,
-            activo: true
+        const result = await Provider.findByPk(provider.id, {
+            include: [{ model: Location, as: 'location' }]
         });
 
         res.status(201).json({
             success: true,
-            message: 'Taller creado exitosamente',
-            data: taller
+            message: 'Provider creado exitosamente',
+            data: result
         });
     } catch (error) {
-        console.error('Error al crear taller:', error);
+        console.error('Error al crear provider:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al crear taller',
+            error: 'Error al crear provider',
             message: error.message
         });
     }
 };
 
 /**
- * Actualizar un taller (requiere autenticación y ser propietario)
+ * Actualizar un provider
  */
-export const updateTaller = async (req, res) => {
+export const updateProvider = async (req, res) => {
     try {
         const { id } = req.params;
-        const usuario_id = req.user?.id;
 
-        const taller = await Taller.findByPk(id);
+        const provider = await Provider.findByPk(id);
 
-        if (!taller) {
+        if (!provider) {
             return res.status(404).json({
                 success: false,
-                error: 'Taller no encontrado'
-            });
-        }
-
-        // Verificar que el usuario es el propietario
-        if (taller.usuario_id !== usuario_id && req.user?.rol !== 'admin') {
-            return res.status(403).json({
-                success: false,
-                error: 'No tienes permiso para actualizar este taller'
+                error: 'Provider no encontrado'
             });
         }
 
         const {
-            nombre,
-            descripcion,
-            direccion,
-            ciudad,
-            telefono,
-            whatsapp,
+            type,
+            name,
+            description,
+            phone,
             email,
-            servicios,
-            horarios,
-            marcas_atendidas,
-            latitud,
-            longitud,
-            activo
+            website,
+            is_active
         } = req.body;
 
-        await taller.update({
-            nombre,
-            descripcion,
-            direccion,
-            ciudad,
-            telefono,
-            whatsapp,
+        await provider.update({
+            type,
+            name,
+            description,
+            phone,
             email,
-            servicios,
-            horarios,
-            marcas_atendidas,
-            latitud,
-            longitud,
-            activo
+            website,
+            is_active
         });
 
         res.json({
             success: true,
-            message: 'Taller actualizado exitosamente',
-            data: taller
+            message: 'Provider actualizado exitosamente',
+            data: provider
         });
     } catch (error) {
-        console.error('Error al actualizar taller:', error);
+        console.error('Error al actualizar provider:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al actualizar taller',
+            error: 'Error al actualizar provider',
             message: error.message
         });
     }
 };
 
 /**
- * Eliminar un taller (soft delete)
+ * Eliminar un provider (soft delete)
  */
-export const deleteTaller = async (req, res) => {
+export const deleteProvider = async (req, res) => {
     try {
         const { id } = req.params;
-        const usuario_id = req.user?.id;
 
-        const taller = await Taller.findByPk(id);
+        const provider = await Provider.findByPk(id);
 
-        if (!taller) {
+        if (!provider) {
             return res.status(404).json({
                 success: false,
-                error: 'Taller no encontrado'
+                error: 'Provider no encontrado'
             });
         }
 
-        // Verificar permisos
-        if (taller.usuario_id !== usuario_id && req.user?.rol !== 'admin') {
-            return res.status(403).json({
-                success: false,
-                error: 'No tienes permiso para eliminar este taller'
-            });
-        }
-
-        // Soft delete
-        await taller.update({ activo: false });
+        await provider.update({ is_active: false });
 
         res.json({
             success: true,
-            message: 'Taller desactivado exitosamente'
+            message: 'Provider desactivado exitosamente'
         });
     } catch (error) {
-        console.error('Error al eliminar taller:', error);
+        console.error('Error al eliminar provider:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al eliminar taller',
+            error: 'Error al eliminar provider',
             message: error.message
         });
     }

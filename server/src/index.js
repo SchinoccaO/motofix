@@ -3,6 +3,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import sequelize, { testConnection } from './config/db.js';
 import './models/index.js'; // Cargar modelos y relaciones
+import tallerRoutes from './routes/tallerRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 
 dotenv.config();
 
@@ -13,7 +15,7 @@ const PORT = process.env.PORT || 5001;
 const corsOptions = {
   origin: process.env.ALLOWED_ORIGINS 
     ? process.env.ALLOWED_ORIGINS.split(',') 
-    : ['http://localhost:3000', 'http://localhost:3001'],
+    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 'http://localhost:5174'],
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -53,6 +55,10 @@ app.get('/api', (req, res) => {
     }
   });
 });
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/providers', tallerRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
