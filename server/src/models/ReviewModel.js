@@ -39,6 +39,16 @@ Review.init(
     comment: {
       type: DataTypes.TEXT,
       allowNull: false
+    },
+    estimated_time: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: true,
+      comment: 'Tiempo estimado por el taller en horas'
+    },
+    actual_time: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: true,
+      comment: 'Tiempo real que tomo el trabajo en horas'
     }
   },
   {

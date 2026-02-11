@@ -67,6 +67,8 @@ export interface ReviewData {
   id: number;
   rating: number;
   comment: string;
+  estimated_time: number | null;
+  actual_time: number | null;
   created_at: string;
   user: { id: number; name: string; email: string };
 }
@@ -128,9 +130,16 @@ export async function getProviderById(id: number): Promise<Provider> {
 export async function createReview(
   providerId: number,
   rating: number,
-  comment: string
+  comment: string,
+  estimated_time?: number | null,
+  actual_time?: number | null
 ): Promise<ReviewData> {
-  const { data } = await api.post(`/providers/${providerId}/reviews`, { rating, comment });
+  const { data } = await api.post(`/providers/${providerId}/reviews`, {
+    rating,
+    comment,
+    estimated_time: estimated_time || null,
+    actual_time: actual_time || null,
+  });
   return data.data;
 }
 

@@ -57,6 +57,15 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
+function formatTime(hours: number): string {
+  if (hours < 24) return `${hours} ${hours === 1 ? "hora" : "horas"}`;
+  const days = Math.floor(hours / 24);
+  const remaining = hours % 24;
+  const dayStr = `${days} ${days === 1 ? "dia" : "dias"}`;
+  if (remaining === 0) return dayStr;
+  return `${dayStr} y ${remaining} ${remaining === 1 ? "hora" : "horas"}`;
+}
+
 function getInitials(name: string): string {
   return name
     .split(" ")
@@ -89,6 +98,10 @@ export default function TallerProfile() {
   const [reviewComment, setReviewComment] = useState("");
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
+  const [estDays, setEstDays] = useState(0);
+  const [estHours, setEstHours] = useState(0);
+  const [actDays, setActDays] = useState(0);
+  const [actHours, setActHours] = useState(0);
 
   const ratingLabels = ["", "Muy mala", "Mala", "Regular", "Buena", "Excelente"];
 
@@ -130,10 +143,22 @@ export default function TallerProfile() {
     setReviewError(null);
     setReviewSubmitting(true);
     try {
-      await createReview(Number(id), reviewRating, reviewComment.trim());
+      const estTotal = estDays * 24 + estHours;
+      const actTotal = actDays * 24 + actHours;
+      await createReview(
+        Number(id),
+        reviewRating,
+        reviewComment.trim(),
+        estTotal > 0 ? estTotal : null,
+        actTotal > 0 ? actTotal : null
+      );
       // Reset form and reload provider to see the new review
       setReviewRating(0);
       setReviewComment("");
+      setEstDays(0);
+      setEstHours(0);
+      setActDays(0);
+      setActHours(0);
       setShowReviewForm(false);
       fetchProvider();
     } catch (err: any) {
@@ -367,6 +392,77 @@ export default function TallerProfile() {
                         </div>
                       </div>
 
+                      {/* Time fields */}
+                      <div className="mb-4">
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                          Tiempos del trabajo <span className="text-xs text-gray-400 font-normal">(opcional)</span>
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {/* Estimated */}
+                          <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-1">
+                              <span className="material-symbols-outlined text-sm">schedule</span>
+                              Tiempo estimado
+                            </p>
+                            <div className="flex gap-2">
+                              <div className="flex-1">
+                                <select
+                                  value={estDays}
+                                  onChange={(e) => setEstDays(Number(e.target.value))}
+                                  className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm py-1.5 px-2 focus:border-primary focus:outline-none"
+                                >
+                                  {Array.from({ length: 31 }, (_, i) => (
+                                    <option key={i} value={i}>{i} {i === 1 ? "dia" : "dias"}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div className="flex-1">
+                                <select
+                                  value={estHours}
+                                  onChange={(e) => setEstHours(Number(e.target.value))}
+                                  className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm py-1.5 px-2 focus:border-primary focus:outline-none"
+                                >
+                                  {Array.from({ length: 24 }, (_, i) => (
+                                    <option key={i} value={i}>{i} {i === 1 ? "hora" : "horas"}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                          {/* Actual */}
+                          <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-1">
+                              <span className="material-symbols-outlined text-sm">timer</span>
+                              Tiempo real
+                            </p>
+                            <div className="flex gap-2">
+                              <div className="flex-1">
+                                <select
+                                  value={actDays}
+                                  onChange={(e) => setActDays(Number(e.target.value))}
+                                  className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm py-1.5 px-2 focus:border-primary focus:outline-none"
+                                >
+                                  {Array.from({ length: 31 }, (_, i) => (
+                                    <option key={i} value={i}>{i} {i === 1 ? "dia" : "dias"}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div className="flex-1">
+                                <select
+                                  value={actHours}
+                                  onChange={(e) => setActHours(Number(e.target.value))}
+                                  className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm py-1.5 px-2 focus:border-primary focus:outline-none"
+                                >
+                                  {Array.from({ length: 24 }, (_, i) => (
+                                    <option key={i} value={i}>{i} {i === 1 ? "hora" : "horas"}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
                       {/* Actions */}
                       <div className="flex gap-3 justify-end">
                         <button
@@ -375,6 +471,10 @@ export default function TallerProfile() {
                             setShowReviewForm(false);
                             setReviewRating(0);
                             setReviewComment("");
+                            setEstDays(0);
+                            setEstHours(0);
+                            setActDays(0);
+                            setActHours(0);
                             setReviewError(null);
                           }}
                           className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
@@ -472,6 +572,26 @@ export default function TallerProfile() {
                             <StarRating rating={review.rating} />
                           </div>
                           <p className="text-text-main dark:text-gray-300 text-sm mt-2">{review.comment}</p>
+                          {(review.estimated_time || review.actual_time) && (
+                            <div className="flex flex-wrap gap-3 mt-3">
+                              {review.estimated_time && (
+                                <span className="inline-flex items-center gap-1 text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded-full">
+                                  <span className="material-symbols-outlined text-sm">schedule</span>
+                                  Estimado: {formatTime(review.estimated_time)}
+                                </span>
+                              )}
+                              {review.actual_time && (
+                                <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full ${
+                                  review.estimated_time && review.actual_time > review.estimated_time
+                                    ? "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+                                    : "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                                }`}>
+                                  <span className="material-symbols-outlined text-sm">timer</span>
+                                  Real: {formatTime(review.actual_time)}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>

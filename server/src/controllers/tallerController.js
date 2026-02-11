@@ -224,7 +224,7 @@ export const updateProvider = async (req, res) => {
 export const createReview = async (req, res) => {
     try {
         const { id } = req.params;
-        const { rating, comment } = req.body;
+        const { rating, comment, estimated_time, actual_time } = req.body;
 
         if (!rating || !comment) {
             return res.status(400).json({
@@ -252,7 +252,9 @@ export const createReview = async (req, res) => {
             user_id: req.usuario.id,
             provider_id: id,
             rating,
-            comment
+            comment,
+            estimated_time: estimated_time || null,
+            actual_time: actual_time || null
         });
 
         // Recalcular promedio y total
