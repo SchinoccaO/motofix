@@ -25,17 +25,20 @@ export const getProviders = async (req, res) => {
         }
 
         // Búsqueda global: busca en name, description, y location (city, province, address)
+        // Usa COLLATE utf8mb4_general_ci para búsqueda insensible a acentos y mayúsculas
         if (search) {
             const searchTerms = search.trim().split(/\s+/);
-            const searchConditions = searchTerms.map(term => ({
-                [Op.or]: [
-                    { name: { [Op.like]: `%${term}%` } },
-                    { description: { [Op.like]: `%${term}%` } },
-                    { '$location.city$': { [Op.like]: `%${term}%` } },
-                    { '$location.province$': { [Op.like]: `%${term}%` } },
-                    { '$location.address$': { [Op.like]: `%${term}%` } }
-                ]
-            }));
+            const ci = 'COLLATE utf8mb4_general_ci';
+            const searchConditions = searchTerms.map(term => {
+                const escaped = term.replace(/[%_\\]/g, '\\$&');
+                return sequelize.literal(
+                    `(\`Provider\`.\`name\` ${ci} LIKE '%${escaped}%' OR ` +
+                    `\`Provider\`.\`description\` ${ci} LIKE '%${escaped}%' OR ` +
+                    `\`location\`.\`city\` ${ci} LIKE '%${escaped}%' OR ` +
+                    `\`location\`.\`province\` ${ci} LIKE '%${escaped}%' OR ` +
+                    `\`location\`.\`address\` ${ci} LIKE '%${escaped}%')`
+                );
+            });
             whereClause[Op.and] = [
                 ...(whereClause[Op.and] || []),
                 ...searchConditions
