@@ -4,6 +4,17 @@ import Location from './LocationModel.js';
 import Review from './ReviewModel.js';
 import ReviewReply from './ReviewReplyModel.js';
 
+// User 1-N Provider (owner)
+User.hasMany(Provider, {
+  foreignKey: 'owner_id',
+  as: 'providers'
+});
+
+Provider.belongsTo(User, {
+  foreignKey: 'owner_id',
+  as: 'owner'
+});
+
 // User 1-N Review
 User.hasMany(Review, {
   foreignKey: 'user_id',

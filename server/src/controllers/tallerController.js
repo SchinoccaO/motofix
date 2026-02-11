@@ -133,7 +133,8 @@ export const createProvider = async (req, res) => {
             description,
             phone,
             email,
-            website
+            website,
+            owner_id: req.usuario.id
         });
 
         if (address && city && province) {
@@ -183,6 +184,13 @@ export const updateProvider = async (req, res) => {
             });
         }
 
+        if (provider.owner_id !== req.usuario.id && req.usuario.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                error: 'No tenés permiso para editar este provider'
+            });
+        }
+
         const {
             type,
             name,
@@ -190,6 +198,7 @@ export const updateProvider = async (req, res) => {
             phone,
             email,
             website,
+            photo_url,
             is_active
         } = req.body;
 
@@ -200,6 +209,7 @@ export const updateProvider = async (req, res) => {
             phone,
             email,
             website,
+            photo_url,
             is_active
         });
 
@@ -304,6 +314,13 @@ export const deleteProvider = async (req, res) => {
             return res.status(404).json({
                 success: false,
                 error: 'Provider no encontrado'
+            });
+        }
+
+        if (provider.owner_id !== req.usuario.id && req.usuario.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                error: 'No tenés permiso para eliminar este provider'
             });
         }
 

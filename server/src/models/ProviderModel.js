@@ -10,6 +10,15 @@ Provider.init(
       autoIncrement: true,
       primaryKey: true
     },
+    owner_id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id'
+      },
+      onDelete: 'SET NULL'
+    },
     type: {
       type: DataTypes.ENUM('shop', 'mechanic', 'parts_store'),
       allowNull: false
@@ -32,6 +41,10 @@ Provider.init(
     },
     website: {
       type: DataTypes.STRING(500)
+    },
+    photo_url: {
+      type: DataTypes.STRING(500),
+      allowNull: true
     },
     is_verified: {
       type: DataTypes.BOOLEAN,
@@ -61,7 +74,8 @@ Provider.init(
     timestamps: true,
     underscored: true,
     indexes: [
-      { fields: ['type'] }
+      { fields: ['type'] },
+      { fields: ['owner_id'] }
     ]
   }
 );
