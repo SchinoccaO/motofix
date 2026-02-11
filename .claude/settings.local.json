@@ -6,7 +6,10 @@
       "Bash(npx tsc:*)",
       "Bash(npx vite build:*)",
       "Bash(dir:*)",
-      "Bash(del nul)"
+      "Bash(del nul)",
+      "Bash(node -e:*)",
+      "Bash(pushd:*)",
+      "Bash(powershell -Command:*)"
     ]
   }
 }
