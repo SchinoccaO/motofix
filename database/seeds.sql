@@ -5,10 +5,10 @@ USE motoya;
 
 -- Users (1 admin, 3 regular users)
 INSERT INTO users (name, email, password_hash, role, is_active) VALUES
-('Admin MotoYA', 'admin@motoya.com', '$2a$10$rQ8K7YXyKT6M0QrIx0YXFe8EzV8Eu6Y8Q3N3Pq6hJ3J6J8K0K0K0K', 'admin', TRUE),
-('Juan Pérez', 'juan@mail.com', '$2a$10$rQ8K7YXyKT6M0QrIx0YXFe8EzV8Eu6Y8Q3N3Pq6hJ3J6J8K0K0K0K', 'user', TRUE),
-('María González', 'maria@mail.com', '$2a$10$rQ8K7YXyKT6M0QrIx0YXFe8EzV8Eu6Y8Q3N3Pq6hJ3J6J8K0K0K0K', 'user', TRUE),
-('Carlos Rodríguez', 'carlos@mail.com', '$2a$10$rQ8K7YXyKT6M0QrIx0YXFe8EzV8Eu6Y8Q3N3Pq6hJ3J6J8K0K0K0K', 'user', TRUE);
+('Admin MotoYA', 'admin@motoya.com', '$2a$10$DsUCU0d2ofsKRdXvQBFya.uEzYccJKX/EqqfGYm14Teb1Bp8ZSBPy', 'admin', TRUE),
+('Juan Pérez', 'juan@mail.com', '$2a$10$DsUCU0d2ofsKRdXvQBFya.uEzYccJKX/EqqfGYm14Teb1Bp8ZSBPy', 'user', TRUE),
+('María González', 'maria@mail.com', '$2a$10$DsUCU0d2ofsKRdXvQBFya.uEzYccJKX/EqqfGYm14Teb1Bp8ZSBPy', 'user', TRUE),
+('Carlos Rodríguez', 'carlos@mail.com', '$2a$10$DsUCU0d2ofsKRdXvQBFya.uEzYccJKX/EqqfGYm14Teb1Bp8ZSBPy', 'user', TRUE);
 
 -- Providers (2 shops, 1 mechanic, 1 parts store)
 INSERT INTO providers (type, name, description, phone, email, website, is_verified, is_active, average_rating, total_reviews) VALUES

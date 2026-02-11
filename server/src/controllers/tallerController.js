@@ -1,5 +1,6 @@
 import { Provider, Location, Review, User } from '../models/index.js';
 import { Op } from 'sequelize';
+import sequelize from '../config/db.js';
 
 /**
  * Obtener todos los providers con filtros opcionales
@@ -212,6 +213,77 @@ export const updateProvider = async (req, res) => {
         res.status(500).json({
             success: false,
             error: 'Error al actualizar provider',
+            message: error.message
+        });
+    }
+};
+
+/**
+ * Crear una review para un provider (requiere autenticacion)
+ */
+export const createReview = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { rating, comment } = req.body;
+
+        if (!rating || !comment) {
+            return res.status(400).json({
+                success: false,
+                error: 'Rating y comentario son obligatorios'
+            });
+        }
+
+        if (rating < 1 || rating > 5) {
+            return res.status(400).json({
+                success: false,
+                error: 'El rating debe estar entre 1 y 5'
+            });
+        }
+
+        const provider = await Provider.findByPk(id);
+        if (!provider) {
+            return res.status(404).json({
+                success: false,
+                error: 'Provider no encontrado'
+            });
+        }
+
+        const review = await Review.create({
+            user_id: req.usuario.id,
+            provider_id: id,
+            rating,
+            comment
+        });
+
+        // Recalcular promedio y total
+        const stats = await Review.findOne({
+            where: { provider_id: id },
+            attributes: [
+                [sequelize.fn('AVG', sequelize.col('rating')), 'avg'],
+                [sequelize.fn('COUNT', sequelize.col('id')), 'total']
+            ],
+            raw: true
+        });
+
+        await provider.update({
+            average_rating: parseFloat(stats.avg).toFixed(2),
+            total_reviews: stats.total
+        });
+
+        const result = await Review.findByPk(review.id, {
+            include: [{ model: User, as: 'user', attributes: ['id', 'name', 'email'] }]
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'Reseña creada exitosamente',
+            data: result
+        });
+    } catch (error) {
+        console.error('Error al crear review:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al crear review',
             message: error.message
         });
     }

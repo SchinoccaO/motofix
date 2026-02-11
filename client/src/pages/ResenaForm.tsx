@@ -1,11 +1,141 @@
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import Logo from '../components/Logo'
 import Footer from '../components/Footer'
+import { getStoredUser, getProviderById, createReview, logout, type AuthUser, type Provider } from '../services/api'
 
 export default function ResenaForm() {
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const [provider, setProvider] = useState<Provider | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
+
+  // Form state
+  const [rating, setRating] = useState(0)
+  const [hoverRating, setHoverRating] = useState(0)
+  const [comment, setComment] = useState('')
+
+  const ratingLabels = ['', 'Muy mala', 'Mala', 'Regular', 'Buena', 'Excelente']
+
+  useEffect(() => {
+    setUser(getStoredUser())
+  }, [])
+
+  useEffect(() => {
+    if (!id) return
+    getProviderById(Number(id))
+      .then(setProvider)
+      .catch(() => setError('No se pudo cargar el negocio'))
+      .finally(() => setLoading(false))
+  }, [id])
+
+  const handleLogout = () => {
+    logout()
+    window.location.reload()
+  }
+
+  const handleSubmit = async () => {
+    if (!user) {
+      navigate(`/login`)
+      return
+    }
+
+    if (rating === 0) {
+      setError('Selecciona una calificacion')
+      return
+    }
+
+    if (!comment.trim()) {
+      setError('Escribe un comentario')
+      return
+    }
+
+    setError(null)
+    setSubmitting(true)
+
+    try {
+      await createReview(Number(id), rating, comment.trim())
+      setSuccess(true)
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || 'Error al enviar la resena'
+      setError(msg)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (!user) {
+    return (
+      <div className="bg-background-light dark:bg-background-dark font-display text-[#181611] dark:text-gray-100 min-h-screen flex flex-col">
+        <header className="bg-white dark:bg-card-dark border-b border-[#f4f3f0] dark:border-[#3f3b2e]">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-10 py-3">
+            <div className="flex items-center justify-between">
+              <Link to="/" className="flex items-center gap-3">
+                <Logo />
+                <h2 className="text-[#181611] dark:text-white text-xl font-bold leading-tight tracking-tight">MotoFIX</h2>
+              </Link>
+            </div>
+          </div>
+        </header>
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="text-center max-w-md">
+            <span className="material-symbols-outlined text-5xl text-gray-400 mb-4 block">lock</span>
+            <h2 className="text-2xl font-bold mb-2">Inicia sesion para dejar tu resena</h2>
+            <p className="text-gray-500 mb-6">Necesitas una cuenta para calificar negocios.</p>
+            <div className="flex gap-3 justify-center">
+              <Link to="/login" className="bg-primary hover:bg-[#d6aa28] text-[#181611] font-bold px-6 py-3 rounded-lg transition-colors">
+                Iniciar sesion
+              </Link>
+              <Link to="/register" className="border border-gray-300 hover:bg-gray-100 font-bold px-6 py-3 rounded-lg transition-colors">
+                Registrarse
+              </Link>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
+
+  if (success) {
+    return (
+      <div className="bg-background-light dark:bg-background-dark font-display text-[#181611] dark:text-gray-100 min-h-screen flex flex-col">
+        <header className="bg-white dark:bg-card-dark border-b border-[#f4f3f0] dark:border-[#3f3b2e]">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-10 py-3">
+            <div className="flex items-center justify-between">
+              <Link to="/" className="flex items-center gap-3">
+                <Logo />
+                <h2 className="text-[#181611] dark:text-white text-xl font-bold leading-tight tracking-tight">MotoFIX</h2>
+              </Link>
+            </div>
+          </div>
+        </header>
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="text-center max-w-md">
+            <span className="material-symbols-outlined text-5xl text-green-500 mb-4 block">check_circle</span>
+            <h2 className="text-2xl font-bold mb-2">Resena publicada</h2>
+            <p className="text-gray-500 mb-6">Gracias por compartir tu experiencia con la comunidad motera.</p>
+            <Link
+              to={`/taller/${id}`}
+              className="bg-primary hover:bg-[#d6aa28] text-[#181611] font-bold px-6 py-3 rounded-lg transition-colors inline-block"
+            >
+              Volver al perfil
+            </Link>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
+
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-[#181611] dark:text-gray-100 min-h-screen flex flex-col">
-      {/* Simple TopNavBar */}
+      {/* TopNavBar */}
       <header className="bg-white dark:bg-card-dark border-b border-[#f4f3f0] dark:border-[#3f3b2e]">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-10 py-3">
           <div className="flex items-center justify-between">
@@ -13,6 +143,15 @@ export default function ResenaForm() {
               <Logo />
               <h2 className="text-[#181611] dark:text-white text-xl font-bold leading-tight tracking-tight">MotoFIX</h2>
             </Link>
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium">{user.name}</span>
+              <button
+                onClick={handleLogout}
+                className="text-sm font-bold px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                Cerrar sesion
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -20,10 +159,10 @@ export default function ResenaForm() {
       {/* Main Content Area */}
       <div className="flex-1 flex justify-center py-8 px-4 sm:px-6">
         <div className="w-full max-w-[640px]">
-          {/* Breadcrumbs / Back button */}
+          {/* Back button */}
           <div className="mb-6 flex items-center gap-2">
             <Link
-              to="/"
+              to={id ? `/taller/${id}` : '/talleres'}
               className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-primary transition-colors dark:text-gray-400"
             >
               <span className="material-symbols-outlined text-[20px]">arrow_back</span>
@@ -31,164 +170,122 @@ export default function ResenaForm() {
             </Link>
           </div>
 
-          {/* Main Form Card */}
-          <main className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-[#f4f3f0] dark:border-[#3f3b2e] overflow-hidden">
-            {/* PageHeading */}
-            <div className="p-6 md:p-8 pb-4">
-              <div className="flex flex-col gap-2">
-                <h1 className="text-[#181611] dark:text-white tracking-tight text-[32px] font-bold leading-tight">
-                  Escribe tu reseña
-                </h1>
-                <p className="text-[#887f63] dark:text-gray-400 text-sm font-normal leading-normal flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[18px]">storefront</span>
-                  Estás calificando a{' '}
-                  <span className="font-semibold text-[#181611] dark:text-gray-200">MotoRepuestos Central</span>
-                </p>
-              </div>
+          {loading && (
+            <div className="flex items-center justify-center py-20">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
             </div>
+          )}
 
-            <form className="flex flex-col">
-              {/* Rating Section */}
-              <div className="px-6 md:px-8 py-4">
-                <h2 className="text-[#181611] dark:text-gray-100 text-lg font-bold leading-tight tracking-[-0.015em] pb-3">
-                  ¿Qué tal fue tu experiencia?
-                </h2>
-                <div className="flex gap-2 items-center">
-                  {/* Interactive Stars (simulated state) */}
-                  {[1, 2, 3, 4].map((star) => (
-                    <button key={star} className="group focus:outline-none transition-transform active:scale-95" type="button">
-                      <span className="material-symbols-outlined text-primary text-4xl filled">star</span>
-                    </button>
-                  ))}
-                  <button className="group focus:outline-none transition-transform active:scale-95" type="button">
-                    <span className="material-symbols-outlined text-gray-300 dark:text-gray-600 text-4xl hover:text-primary/50 transition-colors">
-                      star
-                    </span>
-                  </button>
-                  <span className="ml-3 text-sm font-medium text-primary">Muy buena</span>
+          {!loading && provider && (
+            <main className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-[#f4f3f0] dark:border-[#3f3b2e] overflow-hidden">
+              {/* PageHeading */}
+              <div className="p-6 md:p-8 pb-4">
+                <div className="flex flex-col gap-2">
+                  <h1 className="text-[#181611] dark:text-white tracking-tight text-[32px] font-bold leading-tight">
+                    Escribe tu resena
+                  </h1>
+                  <p className="text-[#887f63] dark:text-gray-400 text-sm font-normal leading-normal flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px]">storefront</span>
+                    Estas calificando a{' '}
+                    <span className="font-semibold text-[#181611] dark:text-gray-200">{provider.name}</span>
+                  </p>
                 </div>
               </div>
 
-              <div className="border-t border-gray-100 dark:border-gray-800 mx-8 my-2"></div>
-
-              {/* Service Type Section */}
-              <div className="px-6 md:px-8 py-4">
-                <h2 className="text-[#181611] dark:text-gray-100 text-lg font-bold leading-tight tracking-[-0.015em] pb-4">
-                  ¿Qué servicio realizaste?
-                </h2>
-                <div className="flex flex-wrap gap-3">
-                  <label className="cursor-pointer">
-                    <input className="peer sr-only" name="service" type="radio" defaultChecked />
-                    <span className="inline-flex items-center justify-center px-4 py-2 rounded-full text-sm font-medium border border-primary bg-primary/10 text-primary-dark dark:text-primary peer-checked:bg-primary peer-checked:text-black peer-checked:border-primary transition-all">
-                      Mantenimiento
-                    </span>
-                  </label>
-                  <label className="cursor-pointer">
-                    <input className="peer sr-only" name="service" type="radio" />
-                    <span className="inline-flex items-center justify-center px-4 py-2 rounded-full text-sm font-medium border border-gray-200 dark:border-gray-700 bg-white dark:bg-transparent text-gray-600 dark:text-gray-400 peer-checked:bg-primary peer-checked:text-black peer-checked:border-primary hover:border-primary/50 transition-all">
-                      Reparación
-                    </span>
-                  </label>
-                  <label className="cursor-pointer">
-                    <input className="peer sr-only" name="service" type="radio" />
-                    <span className="inline-flex items-center justify-center px-4 py-2 rounded-full text-sm font-medium border border-gray-200 dark:border-gray-700 bg-white dark:bg-transparent text-gray-600 dark:text-gray-400 peer-checked:bg-primary peer-checked:text-black peer-checked:border-primary hover:border-primary/50 transition-all">
-                      Compra de Repuestos
-                    </span>
-                  </label>
-                  <label className="cursor-pointer">
-                    <input className="peer sr-only" name="service" type="radio" />
-                    <span className="inline-flex items-center justify-center px-4 py-2 rounded-full text-sm font-medium border border-gray-200 dark:border-gray-700 bg-white dark:bg-transparent text-gray-600 dark:text-gray-400 peer-checked:bg-primary peer-checked:text-black peer-checked:border-primary hover:border-primary/50 transition-all">
-                      Otro
-                    </span>
-                  </label>
+              {error && (
+                <div className="mx-6 md:mx-8 mb-2 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                  {error}
                 </div>
-              </div>
+              )}
 
-              {/* Time Transparency Section */}
-              <div className="px-6 md:px-8 py-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <h2 className="text-[#181611] dark:text-gray-100 text-lg font-bold leading-tight tracking-[-0.015em]">
-                    Cumplimiento de plazos
+              <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
+                {/* Rating Section */}
+                <div className="px-6 md:px-8 py-4">
+                  <h2 className="text-[#181611] dark:text-gray-100 text-lg font-bold leading-tight tracking-[-0.015em] pb-3">
+                    Como fue tu experiencia?
                   </h2>
-                  <span
-                    className="material-symbols-outlined text-gray-400 text-[20px]"
-                    title="Ayuda a otros usuarios a saber si cumplen con los tiempos"
+                  <div className="flex gap-2 items-center">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        className="group focus:outline-none transition-transform active:scale-95"
+                        type="button"
+                        onMouseEnter={() => setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        onClick={() => setRating(star)}
+                      >
+                        <span
+                          className={`material-symbols-outlined text-4xl transition-colors ${
+                            star <= (hoverRating || rating)
+                              ? 'text-primary filled'
+                              : 'text-gray-300 dark:text-gray-600 hover:text-primary/50'
+                          }`}
+                          style={star <= (hoverRating || rating) ? { fontVariationSettings: "'FILL' 1" } : {}}
+                        >
+                          star
+                        </span>
+                      </button>
+                    ))}
+                    {(hoverRating || rating) > 0 && (
+                      <span className="ml-3 text-sm font-medium text-primary">
+                        {ratingLabels[hoverRating || rating]}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-100 dark:border-gray-800 mx-8 my-2"></div>
+
+                {/* Comments Section */}
+                <div className="px-6 md:px-8 py-4 pb-6">
+                  <h2 className="text-[#181611] dark:text-gray-100 text-lg font-bold leading-tight tracking-[-0.015em] pb-3">
+                    Tu opinion
+                  </h2>
+                  <div className="relative">
+                    <textarea
+                      className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-card-dark text-gray-900 dark:text-white shadow-sm focus:border-primary focus:ring-primary text-sm p-3 resize-y min-h-[120px]"
+                      placeholder="Conta mas detalles sobre el servicio, la atencion y el precio..."
+                      rows={6}
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value.slice(0, 500))}
+                    />
+                    <div className="absolute bottom-3 right-3 text-xs text-gray-400">{comment.length}/500</div>
+                  </div>
+                </div>
+
+                {/* Footer Actions */}
+                <div className="px-6 md:px-8 py-6 bg-gray-50 dark:bg-[#252015] border-t border-[#f4f3f0] dark:border-[#3f3b2e] flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
+                  <Link
+                    to={`/taller/${id}`}
+                    className="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-4 py-2"
                   >
-                    info
-                  </span>
+                    Cancelar
+                  </Link>
+                  <button
+                    className="w-full sm:w-auto bg-primary hover:bg-[#d6aa28] text-[#181611] font-bold text-sm px-8 py-3 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    type="button"
+                    disabled={submitting}
+                    onClick={handleSubmit}
+                  >
+                    <span>{submitting ? 'Publicando...' : 'Publicar Resena'}</span>
+                    {!submitting && <span className="material-symbols-outlined text-[18px] font-bold">send</span>}
+                  </button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-background-light dark:bg-background-dark/50 p-4 rounded-lg border border-gray-100 dark:border-gray-800">
-                  {/* Promised Time */}
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Tiempo Prometido</label>
-                    <div className="relative">
-                      <input
-                        className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-card-dark text-gray-900 dark:text-white shadow-sm focus:border-primary focus:ring-primary text-sm py-2.5 pl-3 pr-10"
-                        placeholder="Ej: 2 días"
-                        type="text"
-                      />
-                      <span className="material-symbols-outlined absolute right-3 top-2.5 text-gray-400 text-[20px]">
-                        calendar_clock
-                      </span>
-                    </div>
-                  </div>
-                  {/* Actual Time */}
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Tiempo Real</label>
-                    <div className="relative">
-                      <input
-                        className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-card-dark text-gray-900 dark:text-white shadow-sm focus:border-primary focus:ring-primary text-sm py-2.5 pl-3 pr-10"
-                        placeholder="Ej: 3 días"
-                        type="text"
-                      />
-                      <span className="material-symbols-outlined absolute right-3 top-2.5 text-gray-400 text-[20px]">
-                        history
-                      </span>
-                    </div>
-                  </div>
-                  <div className="md:col-span-2">
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                      Comparte si el taller cumplió con el tiempo estimado inicial.
-                    </p>
-                  </div>
-                </div>
-              </div>
+              </form>
+            </main>
+          )}
 
-              {/* Comments Section */}
-              <div className="px-6 md:px-8 py-4 pb-6">
-                <h2 className="text-[#181611] dark:text-gray-100 text-lg font-bold leading-tight tracking-[-0.015em] pb-3">
-                  Tu opinión en breve
-                </h2>
-                <div className="relative">
-                  <textarea
-                    className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-card-dark text-gray-900 dark:text-white shadow-sm focus:border-primary focus:ring-primary text-sm p-3 resize-y min-h-[120px]"
-                    placeholder="Cuéntanos más detalles sobre el servicio, la atención y el precio..."
-                    rows={6}
-                  />
-                  <div className="absolute bottom-3 right-3 text-xs text-gray-400">0/280</div>
-                </div>
-              </div>
-
-              {/* Footer Actions */}
-              <div className="px-6 md:px-8 py-6 bg-gray-50 dark:bg-[#252015] border-t border-[#f4f3f0] dark:border-[#3f3b2e] flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
-                <button
-                  className="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-4 py-2"
-                  type="button"
-                >
-                  Cancelar
-                </button>
-                <button className="w-full sm:w-auto bg-primary hover:bg-primary-hover text-[#181611] font-bold text-sm px-8 py-3 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2" type="button">
-                  <span>Publicar Reseña</span>
-                  <span className="material-symbols-outlined text-[18px] font-bold">send</span>
-                </button>
-              </div>
-            </form>
-          </main>
+          {!loading && !provider && (
+            <div className="text-center py-20">
+              <span className="material-symbols-outlined text-5xl text-gray-400 mb-4 block">error</span>
+              <p className="text-gray-500">No se encontro el negocio.</p>
+            </div>
+          )}
 
           {/* Trust Indicator */}
           <div className="mt-6 flex justify-center items-center gap-2 text-xs text-gray-400">
             <span className="material-symbols-outlined text-[16px]">verified_user</span>
-            <span>Tu reseña ayuda a miles de motociclistas a elegir mejor.</span>
+            <span>Tu resena ayuda a miles de motociclistas a elegir mejor.</span>
           </div>
         </div>
       </div>

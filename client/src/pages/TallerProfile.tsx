@@ -1,11 +1,67 @@
-import { Link } from "react-router-dom";
-import Navbar from "../components/Navbar";
+import { useState, useEffect } from "react";
+import { Link, useParams } from "react-router-dom";
+import Logo from "../components/Logo";
 import Footer from "../components/Footer";
+import { getStoredUser, logout, type AuthUser } from "../services/api";
 
 export default function TallerProfile() {
+  const { id } = useParams<{ id: string }>();
+  const [user, setUser] = useState<AuthUser | null>(null);
+
+  useEffect(() => {
+    setUser(getStoredUser());
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    window.location.reload();
+  };
+
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-text-main dark:text-white overflow-x-hidden min-h-screen">
-      <Navbar />
+      {/* Navbar */}
+      <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white dark:bg-background-dark dark:border-gray-800">
+        <div className="px-4 md:px-8 lg:px-12 py-3 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2">
+            <Logo size={32} />
+            <span className="text-xl font-bold text-gray-900 dark:text-white">MotoFIX</span>
+          </Link>
+          <div className="flex items-center gap-6">
+            <Link
+              to="/registro-taller"
+              className="hidden md:block text-sm font-medium hover:text-primary transition-colors"
+            >
+              Registrar taller
+            </Link>
+            {user ? (
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-medium">{user.name}</span>
+                <button
+                  onClick={handleLogout}
+                  className="text-sm font-bold px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  Cerrar sesion
+                </button>
+              </div>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="text-sm font-bold px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  Ingresar
+                </Link>
+                <Link
+                  to="/register"
+                  className="text-sm font-bold px-4 py-2 rounded-lg bg-primary hover:bg-[#d6aa28] text-[#181611] transition-colors"
+                >
+                  Registrarse
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
 
       {/* Main Content */}
       <main className="w-full max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-6">
@@ -255,10 +311,13 @@ export default function TallerProfile() {
             <div id="reviews">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-2xl font-bold">Reseñas y Opiniones</h3>
-                <button className="bg-primary hover:bg-yellow-500 text-text-main font-bold py-2 px-6 rounded-lg transition-colors flex items-center gap-2">
+                <Link
+                  to={`/taller/${id}/resena`}
+                  className="bg-primary hover:bg-yellow-500 text-text-main font-bold py-2 px-6 rounded-lg transition-colors flex items-center gap-2"
+                >
                   <span className="material-symbols-outlined">rate_review</span>
-                  Dejar reseña
-                </button>
+                  Dejar resena
+                </Link>
               </div>
 
               {/* Ratings Summary */}

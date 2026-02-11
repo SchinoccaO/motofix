@@ -13,6 +13,13 @@ export default function RegistroTaller() {
               <Logo />
               <h2 className="text-[#181611] dark:text-white text-xl font-bold leading-tight tracking-tight">MotoFIX</h2>
             </Link>
+            <Link
+              to="/"
+              className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-primary transition-colors"
+            >
+              <span className="material-symbols-outlined text-lg">arrow_back</span>
+              Volver
+            </Link>
           </div>
         </div>
       </header>

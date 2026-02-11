@@ -4,7 +4,8 @@ import {
     getProviderById,
     createProvider,
     updateProvider,
-    deleteProvider
+    deleteProvider,
+    createReview
 } from '../controllers/tallerController.js';
 import { verificarToken } from '../middlewares/auth.js';
 
@@ -22,5 +23,8 @@ router.get('/:id', getProviderById);
 router.post('/', verificarToken, createProvider);
 router.put('/:id', verificarToken, updateProvider);
 router.delete('/:id', verificarToken, deleteProvider);
+
+// Reviews
+router.post('/:id/reviews', verificarToken, createReview);
 
 export default router;

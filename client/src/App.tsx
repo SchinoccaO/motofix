@@ -7,6 +7,7 @@
 // - etc.
 
 import { Routes, Route } from "react-router-dom";
+import ScrollToTop from "./components/ScrollToTop";
 import Home from "./pages/Home"; // Página principal/inicio
 import Login from "./pages/Login"; // Página de inicio de sesión
 import Register from "./pages/Register"; // Página de registro
@@ -19,7 +20,9 @@ import "./App.css";
 // ─── COMPONENTE PRINCIPAL ────────────────────────────────────────────────────
 function App(): JSX.Element {
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       {/* Cada Route mapea una URL a un componente de página */}
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
@@ -27,8 +30,9 @@ function App(): JSX.Element {
       <Route path="/talleres" element={<BuscarTalleres />} />
       <Route path="/taller/:id" element={<TallerProfile />} />
       <Route path="/registro-taller" element={<RegistroTaller />} />
-      <Route path="/resena" element={<ResenaForm />} />
+      <Route path="/taller/:id/resena" element={<ResenaForm />} />
     </Routes>
+    </>
   );
 }
 

@@ -1,9 +1,22 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Icon from '../components/Icon'
 import Logo from '../components/Logo'
 import Footer from '../components/Footer'
+import { getStoredUser, logout, type AuthUser } from '../services/api'
 
 export default function Home() {
+    const [user, setUser] = useState<AuthUser | null>(null)
+
+    useEffect(() => {
+        setUser(getStoredUser())
+    }, [])
+
+    const handleLogout = () => {
+        logout()
+        window.location.reload()
+    }
+
     return (
         <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-background-light text-[#181611] font-display">
             {/* Top Navigation Bar */}
@@ -15,17 +28,36 @@ export default function Home() {
                     </Link>
                     <div className="hidden md:flex flex-1 justify-end gap-8">
                         <div className="flex items-center gap-9">
-                            <Link to="/talleres" className="text-[#181611] text-sm font-medium leading-normal hover:text-primary transition-colors">Talleres</Link>
-                            <a className="text-[#181611] text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Repuestos</a>
-                            <Link to="/resena" className="text-[#181611] text-sm font-medium leading-normal hover:text-primary transition-colors">Dejar reseña</Link>
-                            <a className="text-[#181611] text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Cómo funciona</a>
+                            <Link to="/talleres" className="text-[#181611] text-sm font-medium leading-normal hover:text-primary transition-colors">Talleres y Repuestos</Link>
+                            <Link to="/talleres" className="text-[#181611] text-sm font-medium leading-normal hover:text-primary transition-colors">Dejar resena</Link>
+                            <a className="text-[#181611] text-sm font-medium leading-normal hover:text-primary transition-colors" href="#como-funciona">Cómo funciona</a>
                         </div>
-                        <Link
-                            to="/talleres"
-                            className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary hover:bg-[#d6aa28] transition-colors text-[#181611] text-sm font-bold leading-normal tracking-[0.015em]"
-                        >
-                            <span className="truncate">Buscar talleres</span>
-                        </Link>
+                        {user ? (
+                            <div className="flex items-center gap-4">
+                                <span className="text-sm font-medium text-[#181611]">{user.name}</span>
+                                <button
+                                    onClick={handleLogout}
+                                    className="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 border border-gray-300 hover:bg-gray-100 transition-colors text-[#181611] text-sm font-bold"
+                                >
+                                    Cerrar sesión
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-3">
+                                <Link
+                                    to="/login"
+                                    className="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 border border-gray-300 hover:bg-gray-100 transition-colors text-[#181611] text-sm font-bold"
+                                >
+                                    Ingresar
+                                </Link>
+                                <Link
+                                    to="/register"
+                                    className="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary hover:bg-[#d6aa28] transition-colors text-[#181611] text-sm font-bold leading-normal tracking-[0.015em]"
+                                >
+                                    Registrarse
+                                </Link>
+                            </div>
+                        )}
                     </div>
                     <div className="md:hidden">
                         <button className="text-[#181611]">
@@ -102,7 +134,7 @@ export default function Home() {
             </div>
 
             {/* How It Works Section */}
-            <div className="flex-1 justify-center py-5 bg-[#fcfbf9]">
+            <div id="como-funciona" className="flex-1 justify-center py-5 bg-[#fcfbf9]">
                 <div className="layout-content-container flex flex-col max-w-[1280px] mx-auto flex-1">
                     <div className="flex flex-col gap-10 px-4 py-16 md:px-10 @container">
                         <div className="flex flex-col gap-4 text-center items-center">
