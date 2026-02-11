@@ -25,18 +25,23 @@ export const getProviders = async (req, res) => {
         }
 
         // Búsqueda global: busca en name, description, y location (city, province, address)
-        // Usa COLLATE utf8mb4_general_ci para búsqueda insensible a acentos y mayúsculas
+        // Normaliza acentos con REPLACE para búsqueda insensible a tildes
         if (search) {
+            const normalize = (col) =>
+                `LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(${col}, 'á', 'a'), 'é', 'e'), 'í', 'i'), 'ó', 'o'), 'ú', 'u'))`;
+
             const searchTerms = search.trim().split(/\s+/);
-            const ci = 'COLLATE utf8mb4_general_ci';
             const searchConditions = searchTerms.map(term => {
-                const escaped = term.replace(/[%_\\]/g, '\\$&');
+                const escaped = term.toLowerCase()
+                    .replace(/[áà]/g, 'a').replace(/[éè]/g, 'e')
+                    .replace(/[íì]/g, 'i').replace(/[óò]/g, 'o')
+                    .replace(/[úù]/g, 'u').replace(/[%_\\]/g, '\\$&');
                 return sequelize.literal(
-                    `(\`Provider\`.\`name\` ${ci} LIKE '%${escaped}%' OR ` +
-                    `\`Provider\`.\`description\` ${ci} LIKE '%${escaped}%' OR ` +
-                    `\`location\`.\`city\` ${ci} LIKE '%${escaped}%' OR ` +
-                    `\`location\`.\`province\` ${ci} LIKE '%${escaped}%' OR ` +
-                    `\`location\`.\`address\` ${ci} LIKE '%${escaped}%')`
+                    `(${normalize('`Provider`.`name`')} LIKE '%${escaped}%' OR ` +
+                    `${normalize('`Provider`.`description`')} LIKE '%${escaped}%' OR ` +
+                    `${normalize('`location`.`city`')} LIKE '%${escaped}%' OR ` +
+                    `${normalize('`location`.`province`')} LIKE '%${escaped}%' OR ` +
+                    `${normalize('`location`.`address`')} LIKE '%${escaped}%')`
                 );
             });
             whereClause[Op.and] = [
