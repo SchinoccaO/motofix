@@ -61,6 +61,16 @@ export async function registerUser(name: string, email: string, password: string
   return data;
 }
 
+// --- Review types ---
+
+export interface ReviewData {
+  id: number;
+  rating: number;
+  comment: string;
+  created_at: string;
+  user: { id: number; name: string; email: string };
+}
+
 // --- Provider types & functions ---
 
 export interface Provider {
@@ -84,6 +94,7 @@ export interface Provider {
     latitude: number | null;
     longitude: number | null;
   };
+  reviews?: ReviewData[];
 }
 
 interface ProvidersResponse {
@@ -113,14 +124,6 @@ export async function getProviderById(id: number): Promise<Provider> {
 }
 
 // --- Review functions ---
-
-export interface ReviewData {
-  id: number;
-  rating: number;
-  comment: string;
-  created_at: string;
-  user: { id: number; name: string; email: string };
-}
 
 export async function createReview(
   providerId: number,
