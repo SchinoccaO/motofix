@@ -32,14 +32,24 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'OK',
-    message: 'MotoFIX API is running',
-    database: 'MySQL + Sequelize',
-    timestamp: new Date().toISOString()
-  });
+// Health check (con verificación de DB para Render)
+app.get('/api/health', async (req, res) => {
+  try {
+    await sequelize.authenticate();
+    res.json({
+      status: 'OK',
+      message: 'MotoFIX API is running',
+      database: 'connected',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'ERROR',
+      message: 'MotoFIX API is running but database is unreachable',
+      database: 'disconnected',
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // Routes (placeholder)
