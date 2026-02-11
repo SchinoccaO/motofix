@@ -25,29 +25,35 @@ export const getProviders = async (req, res) => {
         }
 
         // Búsqueda global: busca en name, description, y location (city, province, address)
-        // Normaliza acentos con REPLACE para búsqueda insensible a tildes
+        // Usa raw query para encontrar IDs con normalización de acentos
         if (search) {
-            const normalize = (col) =>
-                `LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(${col}, 'á', 'a'), 'é', 'e'), 'í', 'i'), 'ó', 'o'), 'ú', 'u'))`;
+            const norm = (col) =>
+                `LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(${col},'á','a'),'é','e'),'í','i'),'ó','o'),'ú','u'))`;
 
             const searchTerms = search.trim().split(/\s+/);
-            const searchConditions = searchTerms.map(term => {
+            const termConditions = searchTerms.map(term => {
                 const escaped = term.toLowerCase()
                     .replace(/[áà]/g, 'a').replace(/[éè]/g, 'e')
                     .replace(/[íì]/g, 'i').replace(/[óò]/g, 'o')
                     .replace(/[úù]/g, 'u').replace(/[%_\\]/g, '\\$&');
-                return sequelize.literal(
-                    `(${normalize('`Provider`.`name`')} LIKE '%${escaped}%' OR ` +
-                    `${normalize('`Provider`.`description`')} LIKE '%${escaped}%' OR ` +
-                    `${normalize('`location`.`city`')} LIKE '%${escaped}%' OR ` +
-                    `${normalize('`location`.`province`')} LIKE '%${escaped}%' OR ` +
-                    `${normalize('`location`.`address`')} LIKE '%${escaped}%')`
-                );
+                return `(${norm('p.name')} LIKE '%${escaped}%' OR ` +
+                    `${norm('p.description')} LIKE '%${escaped}%' OR ` +
+                    `${norm('l.city')} LIKE '%${escaped}%' OR ` +
+                    `${norm('l.province')} LIKE '%${escaped}%' OR ` +
+                    `${norm('l.address')} LIKE '%${escaped}%')`;
             });
-            whereClause[Op.and] = [
-                ...(whereClause[Op.and] || []),
-                ...searchConditions
-            ];
+
+            const [matchingIds] = await sequelize.query(
+                `SELECT DISTINCT p.id FROM providers p ` +
+                `LEFT JOIN locations l ON l.provider_id = p.id ` +
+                `WHERE ${termConditions.join(' AND ')}`
+            );
+
+            const ids = matchingIds.map(r => r.id);
+            if (ids.length === 0) {
+                return res.json({ success: true, count: 0, data: [] });
+            }
+            whereClause.id = { [Op.in]: ids };
         }
 
         const providers = await Provider.findAll({
@@ -59,7 +65,6 @@ export const getProviders = async (req, res) => {
                     ...(city ? { where: locationWhere } : {})
                 }
             ],
-            subQuery: false,
             order: [
                 ['average_rating', 'DESC'],
                 ['total_reviews', 'DESC']
