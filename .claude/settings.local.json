@@ -9,7 +9,8 @@
       "Bash(del nul)",
       "Bash(node -e:*)",
       "Bash(pushd:*)",
-      "Bash(powershell -Command:*)"
+      "Bash(powershell -Command:*)",
+      "Bash(del \"C:\\\\Users\\\\USUARIO\\\\motoya\\\\server\\\\src\\\\config\\\\config.js\")"
     ]
   }
 }

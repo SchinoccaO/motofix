@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 import Logo from '../components/Logo'
 import Footer from '../components/Footer'
@@ -7,10 +7,22 @@ import { getStoredUser, logout, type AuthUser } from '../services/api'
 
 export default function Home() {
     const [user, setUser] = useState<AuthUser | null>(null)
+    const [searchTerm, setSearchTerm] = useState('')
+    const navigate = useNavigate()
 
     useEffect(() => {
         setUser(getStoredUser())
     }, [])
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault()
+        const query = searchTerm.trim()
+        if (query) {
+            navigate(`/talleres?search=${encodeURIComponent(query)}`)
+        } else {
+            navigate('/talleres')
+        }
+    }
 
     const handleLogout = () => {
         logout()
@@ -81,7 +93,7 @@ export default function Home() {
                                         Encontrá mecánicos y repuestos calificados por la comunidad motera. Transparencia y rapidez para que vuelvas a rodar.
                                     </p>
                                 </div>
-                                <label className="flex flex-col w-full max-w-[500px]">
+                                <form onSubmit={handleSearch} className="flex flex-col w-full max-w-[500px]">
                                     <div className="flex w-full items-stretch rounded-lg h-12">
                                         <div className="flex items-center flex-1 bg-[#f4f3f0] rounded-l-lg border border-transparent focus-within:border-primary/50 transition-colors">
                                             <div className="text-[#887f63] flex items-center justify-center pl-3">
@@ -90,14 +102,16 @@ export default function Home() {
                                             <input
                                                 className="flex w-full min-w-0 flex-1 resize-none overflow-hidden text-[#181611] text-sm focus:outline-0 bg-transparent border-none placeholder:text-[#887f63] px-3 h-full font-normal"
                                                 placeholder="Ej: Cambio de aceite, Frenos..."
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
                                             />
                                         </div>
-                                        <button className="flex min-w-[100px] cursor-pointer items-center justify-center rounded-r-lg px-5 bg-primary hover:bg-[#d6aa28] transition-colors text-[#181611] text-sm font-bold">
+                                        <button type="submit" className="flex min-w-[100px] cursor-pointer items-center justify-center rounded-r-lg px-5 bg-primary hover:bg-[#d6aa28] transition-colors text-[#181611] text-sm font-bold">
                                             <span className="truncate">Buscar</span>
                                         </button>
                                     </div>
                                     <span className="text-xs text-gray-500 mt-2">Ej: Palermo, Belgrano, Centro...</span>
-                                </label>
+                                </form>
                                 {/* Trust badges */}
                                 <div className="flex items-center gap-3">
                                     <div className="flex -space-x-2">

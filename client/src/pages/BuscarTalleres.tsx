@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import Logo from "../components/Logo";
 import Footer from "../components/Footer";
@@ -32,11 +32,12 @@ const BRANDS = [
 ];
 
 export default function BuscarTalleres() {
+  const [searchParams] = useSearchParams();
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [typeFilter, setTypeFilter] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || "");
+  const [typeFilter, setTypeFilter] = useState<string>(searchParams.get('type') || "");
   const [user, setUser] = useState<AuthUser | null>(null);
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const [failedLogos, setFailedLogos] = useState<Set<string>>(new Set());
