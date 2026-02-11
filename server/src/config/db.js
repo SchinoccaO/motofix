@@ -9,51 +9,53 @@
 import { Sequelize } from 'sequelize';
 // Importamos dotenv para leer variables de entorno del archivo .env
 import dotenv from 'dotenv';
+// Importamos fs y path para leer el certificado CA de TiDB Cloud
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Cargamos las variables de entorno (como DB_USER, DB_PASSWORD, etc.)
 dotenv.config();
 
 // ===== CREAMOS LA CONEXIÓN A LA BASE DE DATOS =====
-// Sequelize necesita 3 parámetros básicos: nombre BD, usuario, contraseña
-const sequelize = new Sequelize(
-  process.env.DB_NAME || 'motoya_db',     // Nombre de la base de datos
-  process.env.DB_USER || 'root',          // Usuario de MySQL
-  process.env.DB_PASSWORD || '',          // Contraseña de MySQL
-  {
-    // === OPCIONES DE CONEXIÓN ===
-    host: process.env.DB_HOST || 'localhost',  // Dónde está MySQL (localhost = esta PC)
-    port: process.env.DB_PORT || 3306,         // Puerto de MySQL (3306 es el estándar)
-    dialect: 'mysql',                          // Tipo de base de datos (mysql, postgres, etc.)
+// Ruta al certificado CA de TiDB Cloud
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const caPath = path.resolve(__dirname, '../../isrgrootx1.pem');
 
-    // Opciones específicas de MySQL
-    dialectOptions: {
-      charset: 'utf8mb4'  // Codificación que soporta emojis y caracteres especiales
-    },
+// Usamos DATABASE_URL para conectar a TiDB Cloud
+// Removemos ?ssl=true de la URL porque SSL se configura manualmente en dialectOptions
+const dbUrl = (process.env.DATABASE_URL || '').replace(/[?&]ssl=true/gi, '');
+const sequelize = new Sequelize(dbUrl, {
+  dialect: 'mysql',
+  port: 4000, // TiDB usa puerto 4000 en vez del 3306 estándar
 
-    // logging: si queremos ver las queries SQL en consola
-    // Solo lo activamos en desarrollo para aprender/debuggear
-    logging: process.env.NODE_ENV === 'development' ? console.log : false,
-
-    // === POOL DE CONEXIONES ===
-    // En lugar de abrir/cerrar una conexión por cada petición (lento),
-    // mantenemos varias conexiones abiertas y las reutilizamos (rápido)
-    pool: {
-      max: 10,        // Máximo 10 conexiones abiertas al mismo tiempo
-      min: 0,         // Mínimo 0 (se crean cuando se necesitan)
-      acquire: 30000, // 30 segundos máximo para conseguir una conexión
-      idle: 10000     // 10 segundos máximo de inactividad antes de cerrar
-    },
-
-    // === CONFIGURACIÓN DE MODELOS ===
-    // Estas opciones se aplican a todas las tablas/modelos
-    define: {
-      timestamps: true,           // Agregar created_at y updated_at automáticamente
-      underscored: true,          // Usar snake_case (created_at) en vez de camelCase (createdAt)
-      createdAt: 'created_at',    // Nombre de la columna para fecha de creación
-      updatedAt: 'updated_at'     // Nombre de la columna para fecha de actualización
+  // TiDB Cloud requiere SSL con certificado CA
+  dialectOptions: {
+    ssl: {
+      ca: fs.readFileSync(caPath),
+      rejectUnauthorized: true
     }
+  },
+
+  // logging: solo en desarrollo para debuggear
+  logging: process.env.NODE_ENV === 'development' ? console.log : false,
+
+  // === POOL DE CONEXIONES ===
+  pool: {
+    max: 10,
+    min: 0,
+    acquire: 30000,
+    idle: 10000
+  },
+
+  // === CONFIGURACIÓN DE MODELOS ===
+  define: {
+    timestamps: true,
+    underscored: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   }
-);
+});
 
 // ============================================
 // FUNCIONES ÚTILES PARA LA BASE DE DATOS
@@ -65,11 +67,11 @@ export async function testConnection() {
   try {
     // authenticate() intenta conectarse a la BD
     await sequelize.authenticate();
-    console.log('✅ Conexión a MySQL exitosa (Sequelize)');
+    console.log('✅ Conexión a TiDB Cloud exitosa (Sequelize)');
     return true;  // Devuelve true si la conexión fue exitosa
   } catch (error) {
     // Si hay un error (contraseña incorrecta, BD no existe, etc.)
-    console.error('❌ Error conectando a MySQL:', error.message);
+    console.error('❌ Error conectando a TiDB Cloud:', error.message);
     return false; // Devuelve false si falló
   }
 }

@@ -26,13 +26,19 @@ export default {
   // ===== CONFIGURACIÓN PARA DESARROLLO =====
   // Usamos esta configuración cuando desarrollamos en nuestra computadora
   development: {
-    username: process.env.DB_USER || 'root',        // Usuario de MySQL (por defecto 'root')
-    password: process.env.DB_PASSWORD || '',        // Contraseña de MySQL (vacía por defecto)
-    database: process.env.DB_NAME || 'motoya',      // Nombre de la base de datos
-    host: process.env.DB_HOST || 'localhost',       // Servidor de la BD (nuestra PC)
-    port: process.env.DB_PORT || 3306,              // Puerto de MySQL (3306 es el estándar)
-    dialect: 'mysql',                                // Tipo de base de datos que usamos
-    logging: console.log                             // Mostrar queries SQL en la consola (para aprender)
+    username: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'motoya',
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 4000,
+    dialect: 'mysql',
+    logging: console.log,
+    dialectOptions: {
+      ssl: {
+        minVersion: 'TLSv1.2',
+        rejectUnauthorized: true
+      }
+    }
   },
 
   // ===== CONFIGURACIÓN PARA PRUEBAS =====
@@ -50,19 +56,24 @@ export default {
   // ===== CONFIGURACIÓN PARA PRODUCCIÓN =====
   // Esta configuración se usa cuando la aplicación está en un servidor real (ej: Vercel, AWS)
   production: {
-    username: process.env.DB_USER,                  // En producción, estas variables DEBEN existir
+    username: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     host: process.env.DB_HOST,
-    port: process.env.DB_PORT || 3306,
+    port: process.env.DB_PORT || 4000,
     dialect: 'mysql',
-    logging: false,                                 // No mostrar queries en producción (seguridad)
-    // Pool de conexiones: reutiliza conexiones a la BD en lugar de crear nuevas cada vez
+    logging: false,
+    dialectOptions: {
+      ssl: {
+        minVersion: 'TLSv1.2',
+        rejectUnauthorized: true
+      }
+    },
     pool: {
-      max: 10,        // Máximo 10 conexiones simultáneas a la base de datos
-      min: 0,         // Mínimo 0 conexiones (se crean cuando se necesitan)
-      acquire: 30000, // Tiempo máximo (30 seg) para obtener una conexión antes de error
-      idle: 10000     // Tiempo máximo (10 seg) que una conexión puede estar inactiva
+      max: 10,
+      min: 0,
+      acquire: 30000,
+      idle: 10000
     }
   }
 };
