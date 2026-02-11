@@ -32,14 +32,24 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'OK',
-    message: 'MotoFIX API is running',
-    database: 'MySQL + Sequelize',
-    timestamp: new Date().toISOString()
-  });
+// Health check (con verificación de DB para Render)
+app.get('/api/health', async (req, res) => {
+  try {
+    await sequelize.authenticate();
+    res.json({
+      status: 'OK',
+      message: 'MotoFIX API is running',
+      database: 'connected',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'ERROR',
+      message: 'MotoFIX API is running but database is unreachable',
+      database: 'disconnected',
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // Routes (placeholder)
@@ -79,29 +89,27 @@ app.use((err, req, res, next) => {
 
 // Iniciar servidor
 async function startServer() {
+  // Primero arrancamos el servidor HTTP (Render necesita que el puerto esté escuchando)
+  app.listen(PORT, () => {
+    console.log(`\n🚀 Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`📍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📦 ORM: Sequelize`);
+  });
+
+  // Luego intentamos conectar a la DB (sin crashear si falla)
   try {
-    // Verificar conexión a DB
     await testConnection();
     
-    // Sincronizar modelos (crear tablas si no existen)
-    // ⚠️ alter: true SOLO para desarrollo inicial
-    // En producción usar migraciones de Sequelize
     await sequelize.sync({ 
-      alter: false, // Cambiado a false para evitar ALTER constantes
+      alter: false,
       force: false 
     });
     console.log('✅ Modelos sincronizados con la base de datos');
-    
-    app.listen(PORT, () => {
-      console.log(`\n🚀 Servidor corriendo en http://localhost:${PORT}`);
-      console.log(`📍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`📦 ORM: Sequelize`);
-      console.log(`💾 Base de datos: ${process.env.DB_NAME}`);
-      console.log(`\n✅ Backend listo para recibir peticiones\n`);
-    });
+    console.log(`💾 Base de datos: ${process.env.DB_NAME || 'TiDB Cloud'}`);
+    console.log(`\n✅ Backend listo para recibir peticiones\n`);
   } catch (error) {
-    console.error('❌ Error al iniciar el servidor:', error);
-    process.exit(1);
+    console.error('⚠️ Servidor arrancó pero la DB no está disponible:', error.message);
+    console.error('El endpoint /api/health reportará el estado de la DB');
   }
 }
 
