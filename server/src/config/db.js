@@ -23,8 +23,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const caPath = path.resolve(__dirname, '../../isrgrootx1.pem');
 
 // Usamos DATABASE_URL para conectar a TiDB Cloud
-// Removemos ?ssl=true de la URL porque SSL se configura manualmente en dialectOptions
-const dbUrl = (process.env.DATABASE_URL || '').replace(/[?&]ssl=true/gi, '');
+// Removemos parámetros SSL de la URL porque SSL se configura manualmente en dialectOptions
+const dbUrl = (process.env.DATABASE_URL || '').replace(/[?&](ssl=true|ssl-mode=[^&]*)/gi, '');
 const sequelize = new Sequelize(dbUrl, {
   dialect: 'mysql',
   port: 4000, // TiDB usa puerto 4000 en vez del 3306 estándar
