@@ -67,19 +67,19 @@ export default function Navbar({ activePage }: NavbarProps) {
     <nav ref={menuRef} className="bg-white dark:bg-background-dark border-b border-[#f4f3f0] dark:border-gray-800 sticky top-0 z-50">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
         {/* Left: Logo + Links */}
-        <div className="flex items-center gap-8">
+        <div className="flex items-center">
           <Link to="/" className="flex items-center gap-2 sm:gap-3">
             <Logo />
             <h2 className="text-lg sm:text-xl font-bold tracking-tight">MotoFIX</h2>
           </Link>
-          <div className="hidden lg:flex items-center gap-6">
+        </div>
+
+        {/* Right: Nav links + User section + Hamburger */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="hidden lg:flex items-center gap-6 mr-4">
             <Link to="/talleres" className={linkClass("talleres")}>Talleres</Link>
             <Link to="/registro-taller" className={linkClass("registro-taller")}>Registrar taller</Link>
           </div>
-        </div>
-
-        {/* Right: User section + Hamburger */}
-        <div className="flex items-center gap-2 sm:gap-3">
           {user ? (
             <>
               <Link to="/mi-perfil" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
