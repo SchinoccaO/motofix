@@ -1,39 +1,10 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import Logo from '../components/Logo'
+import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import { getStoredUser, type AuthUser } from '../services/api'
-import UserAvatar from '../components/UserAvatar'
 
 export default function RegistroTaller() {
-  const [user, setUser] = useState<AuthUser | null>(null)
-
-  useEffect(() => {
-    setUser(getStoredUser())
-  }, [])
   return (
-    <div className="font-display bg-background-light dark:bg-background-dark text-[#181611] dark:text-white transition-colors duration-200 min-h-screen"> 
-      {/* Simple Navbar */}
-      <header className="bg-white dark:bg-card-dark border-b border-[#f4f3f0] dark:border-[#3f3b2e]">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-10 py-3">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-3">
-              <Logo />
-              <h2 className="text-[#181611] dark:text-white text-xl font-bold leading-tight tracking-tight">MotoFIX</h2>
-            </Link>
-            <div className="flex items-center gap-4">
-              {user && <UserAvatar user={user} />}
-              <Link
-                to="/"
-                className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-primary transition-colors"
-              >
-                <span className="material-symbols-outlined text-lg">arrow_back</span>
-                Volver
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="font-display bg-background-light dark:bg-background-dark text-[#181611] dark:text-white transition-colors duration-200 min-h-screen">
+      <Navbar activePage="registro-taller" />
 
       <div className="layout-container flex h-full grow flex-col">
         <div className="px-4 md:px-20 lg:px-40 flex flex-1 justify-center py-10">

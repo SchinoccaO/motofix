@@ -1,19 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
-import Logo from '../components/Logo'
+import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import { getStoredUser, logout, type AuthUser } from '../services/api'
-import UserAvatar from '../components/UserAvatar'
 
 export default function Home() {
-    const [user, setUser] = useState<AuthUser | null>(null)
     const [searchTerm, setSearchTerm] = useState('')
     const navigate = useNavigate()
-
-    useEffect(() => {
-        setUser(getStoredUser())
-    }, [])
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()
@@ -25,60 +18,9 @@ export default function Home() {
         }
     }
 
-    const handleLogout = () => {
-        logout()
-        window.location.reload()
-    }
-
     return (
         <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-background-light text-[#181611] font-display">
-            {/* Top Navigation Bar */}
-            <header className="bg-white border-b border-solid border-b-[#f4f3f0]">
-                <div className="px-4 md:px-10 py-3 flex items-center justify-between max-w-[1280px] mx-auto w-full">
-                    <Link to="/" className="flex items-center gap-3 text-[#181611]">
-                        <Logo />
-                        <h2 className="text-[#181611] text-xl font-bold leading-tight tracking-tight">MotoFIX</h2>
-                    </Link>
-                    <div className="hidden md:flex flex-1 justify-end gap-8">
-                        <div className="flex items-center gap-9">
-                            <Link to="/talleres" className="text-[#181611] text-sm font-medium leading-normal hover:text-primary transition-colors">Talleres y Repuestos</Link>
-                            <Link to="/talleres" className="text-[#181611] text-sm font-medium leading-normal hover:text-primary transition-colors">Dejar resena</Link>
-                            <a className="text-[#181611] text-sm font-medium leading-normal hover:text-primary transition-colors" href="#como-funciona">Cómo funciona</a>
-                        </div>
-                        {user ? (
-                            <div className="flex items-center gap-4">
-                                <UserAvatar user={user} />
-                                <button
-                                    onClick={handleLogout}
-                                    className="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 border border-gray-300 hover:bg-gray-100 transition-colors text-[#181611] text-sm font-bold"
-                                >
-                                    Cerrar sesión
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="flex items-center gap-3">
-                                <Link
-                                    to="/login"
-                                    className="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 border border-gray-300 hover:bg-gray-100 transition-colors text-[#181611] text-sm font-bold"
-                                >
-                                    Ingresar
-                                </Link>
-                                <Link
-                                    to="/register"
-                                    className="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary hover:bg-[#d6aa28] transition-colors text-[#181611] text-sm font-bold leading-normal tracking-[0.015em]"
-                                >
-                                    Registrarse
-                                </Link>
-                            </div>
-                        )}
-                    </div>
-                    <div className="md:hidden">
-                        <button className="text-[#181611]">
-                            <Icon name="menu" size={24} />
-                        </button>
-                    </div>
-                </div>
-            </header>
+            <Navbar activePage="home" />
 
             {/* Hero Section */}
             <div className="flex-1 justify-center py-5 bg-white">

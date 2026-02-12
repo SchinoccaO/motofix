@@ -4,12 +4,14 @@ import sequelize from '../config/db.js';
 
 class User extends Model {
   async compararPassword(password) {
+    if (!this.password_hash) return false;
     return bcrypt.compare(password, this.password_hash);
   }
 
   toJSON() {
     const values = { ...this.get() };
     delete values.password_hash;
+    delete values.google_id;
     return values;
   }
 }
@@ -35,7 +37,16 @@ User.init(
     },
     password_hash: {
       type: DataTypes.STRING(255),
-      allowNull: false
+      allowNull: true
+    },
+    google_id: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    auth_provider: {
+      type: DataTypes.ENUM('local', 'google'),
+      allowNull: false,
+      defaultValue: 'local'
     },
     phone: {
       type: DataTypes.STRING(30),

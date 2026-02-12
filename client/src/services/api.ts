@@ -66,6 +66,13 @@ export async function registerUser(name: string, email: string, password: string
   return data;
 }
 
+export async function googleLogin(credential: string): Promise<AuthResponse> {
+  const { data } = await api.post<AuthResponse>('/auth/google', { credential });
+  localStorage.setItem('token', data.token);
+  localStorage.setItem('usuario', JSON.stringify(data.usuario));
+  return data;
+}
+
 // --- User profile functions ---
 
 export interface UserProfile extends AuthUser {

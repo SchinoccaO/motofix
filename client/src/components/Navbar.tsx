@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import Logo from "./Logo";
 import { getStoredUser, logout, type AuthUser } from "../services/api";
 
@@ -21,12 +21,31 @@ interface NavbarProps {
 
 export default function Navbar({ activePage }: NavbarProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setUser(getStoredUser());
   }, []);
+
+  // Close menu on route change
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [menuOpen]);
 
   const handleLogout = () => {
     logout();
@@ -39,14 +58,19 @@ export default function Navbar({ activePage }: NavbarProps) {
       ? "text-sm font-medium text-primary"
       : "text-sm font-medium hover:text-primary transition-colors";
 
+  const mobileLinkClass = (page: string) =>
+    activePage === page
+      ? "block py-3 text-sm font-bold text-primary"
+      : "block py-3 text-sm font-medium hover:text-primary transition-colors";
+
   return (
-    <nav className="bg-white dark:bg-background-dark border-b border-[#f4f3f0] dark:border-gray-800 sticky top-0 z-50">
+    <nav ref={menuRef} className="bg-white dark:bg-background-dark border-b border-[#f4f3f0] dark:border-gray-800 sticky top-0 z-50">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
         {/* Left: Logo + Links */}
         <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-2 sm:gap-3">
             <Logo />
-            <h2 className="text-xl font-bold tracking-tight">MotoFIX</h2>
+            <h2 className="text-lg sm:text-xl font-bold tracking-tight">MotoFIX</h2>
           </Link>
           <div className="hidden lg:flex items-center gap-6">
             <Link to="/talleres" className={linkClass("talleres")}>Talleres</Link>
@@ -54,11 +78,11 @@ export default function Navbar({ activePage }: NavbarProps) {
           </div>
         </div>
 
-        {/* Right: User section */}
-        <div className="flex items-center gap-3">
+        {/* Right: User section + Hamburger */}
+        <div className="flex items-center gap-2 sm:gap-3">
           {user ? (
-            <div className="flex items-center gap-3">
-              <Link to="/mi-perfil" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+            <>
+              <Link to="/mi-perfil" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                 <span className="text-sm font-medium text-[#5c584a] dark:text-gray-300 hidden sm:inline">
                   {user.name.split(" ")[0]}
                 </span>
@@ -79,53 +103,68 @@ export default function Navbar({ activePage }: NavbarProps) {
               >
                 Cerrar sesion
               </button>
-              <button
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                <span className="material-symbols-outlined text-[22px]">{menuOpen ? "close" : "menu"}</span>
-              </button>
-            </div>
+            </>
           ) : (
-            <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-3">
               <Link to="/login" className="text-sm font-bold px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                 Ingresar
               </Link>
               <Link to="/register" className="text-sm font-bold px-4 py-2 rounded-lg bg-primary hover:bg-[#d6aa28] text-[#181611] transition-colors">
                 Registrarse
               </Link>
-              <button
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                <span className="material-symbols-outlined text-[22px]">{menuOpen ? "close" : "menu"}</span>
-              </button>
             </div>
           )}
+          {/* Hamburger - always visible on mobile */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Menu"
+          >
+            <span className="material-symbols-outlined text-[24px]">{menuOpen ? "close" : "menu"}</span>
+          </button>
         </div>
       </div>
 
       {/* Mobile dropdown menu */}
       {menuOpen && (
-        <div className="lg:hidden border-t border-[#f4f3f0] dark:border-gray-800 bg-white dark:bg-background-dark px-4 py-3 space-y-2">
-          <Link to="/talleres" className="block py-2 text-sm font-medium hover:text-primary transition-colors" onClick={() => setMenuOpen(false)}>
+        <div className="lg:hidden border-t border-[#f4f3f0] dark:border-gray-800 bg-white dark:bg-background-dark px-4 py-2 shadow-lg">
+          <Link to="/talleres" className={mobileLinkClass("talleres")} onClick={() => setMenuOpen(false)}>
             Talleres
           </Link>
-          <Link to="/registro-taller" className="block py-2 text-sm font-medium hover:text-primary transition-colors" onClick={() => setMenuOpen(false)}>
+          <Link to="/registro-taller" className={mobileLinkClass("registro-taller")} onClick={() => setMenuOpen(false)}>
             Registrar taller
           </Link>
-          {user && (
+          {user ? (
             <>
-              <Link to="/mi-perfil" className="block py-2 text-sm font-medium hover:text-primary transition-colors" onClick={() => setMenuOpen(false)}>
+              <Link to="/mi-perfil" className={mobileLinkClass("mi-perfil")} onClick={() => setMenuOpen(false)}>
                 Mi Perfil
               </Link>
-              <button
-                onClick={() => { setMenuOpen(false); handleLogout(); }}
-                className="block w-full text-left py-2 text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
-              >
-                Cerrar sesion
-              </button>
+              <div className="border-t border-[#f4f3f0] dark:border-gray-800 mt-1 pt-1">
+                <button
+                  onClick={() => { setMenuOpen(false); handleLogout(); }}
+                  className="block w-full text-left py-3 text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
+                >
+                  Cerrar sesion
+                </button>
+              </div>
             </>
+          ) : (
+            <div className="border-t border-[#f4f3f0] dark:border-gray-800 mt-1 pt-3 pb-2 flex flex-col gap-2 sm:hidden">
+              <Link
+                to="/login"
+                className="block text-center text-sm font-bold px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                onClick={() => setMenuOpen(false)}
+              >
+                Ingresar
+              </Link>
+              <Link
+                to="/register"
+                className="block text-center text-sm font-bold px-4 py-2.5 rounded-lg bg-primary hover:bg-[#d6aa28] text-[#181611] transition-colors"
+                onClick={() => setMenuOpen(false)}
+              >
+                Registrarse
+              </Link>
+            </div>
           )}
         </div>
       )}

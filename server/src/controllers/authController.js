@@ -1,5 +1,8 @@
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
 import { User, Review, Provider, Location } from '../models/index.js';
+
+const googleClient = new OAuth2Client();
 
 const generarToken = (usuario) => {
     return jwt.sign(
@@ -75,6 +78,10 @@ export const login = async (req, res) => {
         const usuario = await User.findOne({ where: { email } });
         if (!usuario) {
             return res.status(401).json({ error: 'Credenciales inválidas' });
+        }
+
+        if (usuario.auth_provider === 'google' && !usuario.password_hash) {
+            return res.status(401).json({ error: 'Esta cuenta usa Google. Iniciá sesión con el botón de Google.' });
         }
 
         const passwordValida = await usuario.compararPassword(password);
@@ -185,6 +192,68 @@ export const cambiarContrasena = async (req, res) => {
     } catch (error) {
         console.error('Error al cambiar contraseña:', error);
         res.status(500).json({ error: 'Error al cambiar la contraseña' });
+    }
+};
+
+export const googleLogin = async (req, res) => {
+    try {
+        const { credential } = req.body;
+
+        if (!credential) {
+            return res.status(400).json({ error: 'Token de Google es obligatorio' });
+        }
+
+        // Verify Google ID token
+        const ticket = await googleClient.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+
+        const payload = ticket.getPayload();
+        const { sub: googleId, email, name, picture } = payload;
+
+        // Find existing user by google_id or email
+        let usuario = await User.findOne({
+            where: { google_id: googleId }
+        });
+
+        if (!usuario) {
+            // Check if a local account exists with the same email
+            usuario = await User.findOne({ where: { email } });
+
+            if (usuario) {
+                // Link Google to existing local account
+                usuario.google_id = googleId;
+                if (!usuario.avatar_url && picture) {
+                    usuario.avatar_url = picture;
+                }
+                await usuario.save();
+            } else {
+                // Create new user from Google data
+                usuario = await User.create({
+                    name,
+                    email,
+                    google_id: googleId,
+                    auth_provider: 'google',
+                    avatar_url: picture || null,
+                    role: 'user'
+                });
+            }
+        }
+
+        const token = generarToken(usuario);
+
+        res.json({
+            mensaje: 'Login con Google exitoso',
+            usuario,
+            token
+        });
+    } catch (error) {
+        console.error('Error en Google login:', error);
+        res.status(401).json({
+            error: 'Token de Google inválido',
+            detalle: error.message
+        });
     }
 };
 

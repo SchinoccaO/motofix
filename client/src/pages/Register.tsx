@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { registerUser } from "../services/api";
+import { GoogleLogin } from "@react-oauth/google";
+import { registerUser, googleLogin } from "../services/api";
 import Logo from "../components/Logo";
 import Footer from "../components/Footer";
 
@@ -13,8 +14,25 @@ export default function Register() {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const navigate = useNavigate();
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    setError("");
+    setGoogleLoading(true);
+    try {
+      const data = await googleLogin(credentialResponse.credential);
+      alert("¡Registro exitoso! Bienvenido " + data.usuario.name);
+      navigate("/talleres");
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || "Error al registrarse con Google.";
+      setError(msg);
+      console.error("Google register error:", err);
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -33,7 +51,8 @@ export default function Register() {
       alert("¡Registro exitoso! Bienvenido " + data.usuario.name);
       navigate("/talleres");
     } catch (err: any) {
-      const msg = err?.response?.data?.error || "Error de conexión. Verifica que el backend esté corriendo.";
+      const msg = err?.response?.data?.error
+        || (err?.code === 'ERR_NETWORK' ? "Error de red. Verificá tu conexión o que el backend permita tu dominio (CORS)." : "Error de conexión. Verifica que el backend esté corriendo.");
       setError(msg);
       console.error("Error:", err);
     } finally {
@@ -130,6 +149,32 @@ export default function Register() {
             {loading ? "Registrando..." : "Crear Cuenta"}
           </button>
         </form>
+
+        <div className="mt-6">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">O registrate con</span>
+            </div>
+          </div>
+
+          <div className="mt-4 flex justify-center">
+            {googleLoading ? (
+              <p className="text-sm text-gray-500">Conectando con Google...</p>
+            ) : (
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setError("Error al conectar con Google.")}
+                text="signup_with"
+                shape="rectangular"
+                size="large"
+                width={350}
+              />
+            )}
+          </div>
+        </div>
 
         <p className="mt-6 text-center text-sm text-gray-600">
           ¿Ya tienes cuenta?{" "}

@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import Logo from '../components/Logo'
+import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import { getStoredUser, getProviderById, createReview, logout, type AuthUser, type Provider } from '../services/api'
-import UserAvatar from '../components/UserAvatar'
+import { getStoredUser, getProviderById, createReview, type AuthUser, type Provider } from '../services/api'
 
 export default function ResenaForm() {
   const { id } = useParams<{ id: string }>()
@@ -34,11 +33,6 @@ export default function ResenaForm() {
       .catch(() => setError('No se pudo cargar el negocio'))
       .finally(() => setLoading(false))
   }, [id])
-
-  const handleLogout = () => {
-    logout()
-    window.location.reload()
-  }
 
   const handleSubmit = async () => {
     if (!user) {
@@ -73,16 +67,7 @@ export default function ResenaForm() {
   if (!user) {
     return (
       <div className="bg-background-light dark:bg-background-dark font-display text-[#181611] dark:text-gray-100 min-h-screen flex flex-col">
-        <header className="bg-white dark:bg-card-dark border-b border-[#f4f3f0] dark:border-[#3f3b2e]">
-          <div className="max-w-[1280px] mx-auto px-4 sm:px-10 py-3">
-            <div className="flex items-center justify-between">
-              <Link to="/" className="flex items-center gap-3">
-                <Logo />
-                <h2 className="text-[#181611] dark:text-white text-xl font-bold leading-tight tracking-tight">MotoFIX</h2>
-              </Link>
-            </div>
-          </div>
-        </header>
+        <Navbar />
         <div className="flex-1 flex items-center justify-center px-4">
           <div className="text-center max-w-md">
             <span className="material-symbols-outlined text-5xl text-gray-400 mb-4 block">lock</span>
@@ -106,16 +91,7 @@ export default function ResenaForm() {
   if (success) {
     return (
       <div className="bg-background-light dark:bg-background-dark font-display text-[#181611] dark:text-gray-100 min-h-screen flex flex-col">
-        <header className="bg-white dark:bg-card-dark border-b border-[#f4f3f0] dark:border-[#3f3b2e]">
-          <div className="max-w-[1280px] mx-auto px-4 sm:px-10 py-3">
-            <div className="flex items-center justify-between">
-              <Link to="/" className="flex items-center gap-3">
-                <Logo />
-                <h2 className="text-[#181611] dark:text-white text-xl font-bold leading-tight tracking-tight">MotoFIX</h2>
-              </Link>
-            </div>
-          </div>
-        </header>
+        <Navbar />
         <div className="flex-1 flex items-center justify-center px-4">
           <div className="text-center max-w-md">
             <span className="material-symbols-outlined text-5xl text-green-500 mb-4 block">check_circle</span>
@@ -136,26 +112,7 @@ export default function ResenaForm() {
 
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-[#181611] dark:text-gray-100 min-h-screen flex flex-col">
-      {/* TopNavBar */}
-      <header className="bg-white dark:bg-card-dark border-b border-[#f4f3f0] dark:border-[#3f3b2e]">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-10 py-3">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-3">
-              <Logo />
-              <h2 className="text-[#181611] dark:text-white text-xl font-bold leading-tight tracking-tight">MotoFIX</h2>
-            </Link>
-            <div className="flex items-center gap-4">
-              <UserAvatar user={user} />
-              <button
-                onClick={handleLogout}
-                className="text-sm font-bold px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                Cerrar sesion
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Main Content Area */}
       <div className="flex-1 flex justify-center py-8 px-4 sm:px-6">

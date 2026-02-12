@@ -12,10 +12,21 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 
 // Middlewares
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+  : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 'http://localhost:5174'];
+
 const corsOptions = {
-  origin: process.env.ALLOWED_ORIGINS 
-    ? process.env.ALLOWED_ORIGINS.split(',') 
-    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 'http://localhost:5174'],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, server-to-server)
+    if (!origin) return callback(null, true);
+    // Check exact match
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    // Allow any Vercel preview deployment for this project
+    if (origin.endsWith('.vercel.app')) return callback(null, true);
+    console.warn(`CORS blocked origin: ${origin}`);
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -100,9 +111,9 @@ async function startServer() {
   try {
     await testConnection();
     
-    await sequelize.sync({ 
+    await sequelize.sync({
       alter: false,
-      force: false 
+      force: false
     });
     console.log('✅ Modelos sincronizados con la base de datos');
     console.log(`💾 Base de datos: ${process.env.DB_NAME || 'TiDB Cloud'}`);

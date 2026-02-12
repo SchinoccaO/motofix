@@ -2,6 +2,7 @@ import express from 'express';
 import {
     registrar,
     login,
+    googleLogin,
     obtenerPerfil,
     actualizarPerfil,
     cambiarContrasena,
@@ -14,6 +15,7 @@ const router = express.Router();
 // Rutas publicas
 router.post('/register', registrar);
 router.post('/login', login);
+router.post('/google', googleLogin);
 router.get('/users/:id', obtenerPerfilPublico);
 
 // Rutas protegidas

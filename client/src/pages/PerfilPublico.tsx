@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import Logo from "../components/Logo";
+import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { getPublicProfile, getStoredUser, logout, type AuthUser, type UserProfile } from "../services/api";
-import UserAvatar from "../components/UserAvatar";
+import { getPublicProfile, type UserProfile } from "../services/api";
 
 const COLORS = ["#E53E3E", "#DD6B20", "#38A169", "#3182CE", "#805AD5", "#D53F8C"];
 
@@ -55,12 +54,6 @@ export default function PerfilPublico() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<AuthUser | null>(null);
-
-  useEffect(() => {
-    setUser(getStoredUser());
-  }, []);
-
   useEffect(() => {
     if (!id) return;
     setLoading(true);
@@ -70,11 +63,6 @@ export default function PerfilPublico() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  const handleLogout = () => {
-    logout();
-    window.location.reload();
-  };
-
   const reviews = profile?.reviews || [];
   const reviewCount = reviews.length;
   const avgRating = reviewCount > 0
@@ -83,36 +71,7 @@ export default function PerfilPublico() {
 
   return (
     <div className="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display text-[#181611] dark:text-gray-100">
-      {/* Navbar */}
-      <nav className="bg-white dark:bg-background-dark border-b border-[#f4f3f0] dark:border-gray-800 sticky top-0 z-50">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <Link to="/" className="flex items-center gap-3">
-              <Logo />
-              <h2 className="text-xl font-bold tracking-tight">MotoFIX</h2>
-            </Link>
-            <div className="hidden lg:flex items-center gap-6">
-              <Link to="/talleres" className="text-sm font-medium hover:text-primary transition-colors">Talleres</Link>
-              <Link to="/registro-taller" className="text-sm font-medium hover:text-primary transition-colors">Registrar taller</Link>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            {user ? (
-              <div className="flex items-center gap-4">
-                <UserAvatar user={user} />
-                <button onClick={handleLogout} className="text-sm font-bold px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                  Cerrar sesion
-                </button>
-              </div>
-            ) : (
-              <>
-                <Link to="/login" className="text-sm font-bold px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Ingresar</Link>
-                <Link to="/register" className="text-sm font-bold px-4 py-2 rounded-lg bg-primary hover:bg-[#d6aa28] text-[#181611] transition-colors">Registrarse</Link>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Main */}
       <main className="flex-grow w-full max-w-lg mx-auto sm:max-w-2xl lg:max-w-4xl px-4 py-6 sm:py-8 lg:py-12">

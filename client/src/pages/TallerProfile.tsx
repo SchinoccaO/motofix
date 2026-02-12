@@ -1,17 +1,15 @@
 import { useState, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import Logo from "../components/Logo";
+import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import {
   getStoredUser,
-  logout,
   getProviderById,
   createReview,
   type AuthUser,
   type Provider,
   type ReviewData,
 } from "../services/api";
-import UserAvatar from "../components/UserAvatar";
 
 const TYPE_LABELS: Record<string, string> = {
   shop: "Taller Mecanico",
@@ -123,11 +121,6 @@ export default function TallerProfile() {
     fetchProvider();
   }, [id]);
 
-  const handleLogout = () => {
-    logout();
-    window.location.reload();
-  };
-
   const handleReviewSubmit = async () => {
     if (!user) {
       navigate("/login");
@@ -181,40 +174,7 @@ export default function TallerProfile() {
 
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-text-main dark:text-white overflow-x-hidden min-h-screen">
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white dark:bg-background-dark dark:border-gray-800">
-        <div className="px-4 md:px-8 lg:px-12 py-3 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <Logo size={32} />
-            <span className="text-xl font-bold text-gray-900 dark:text-white">MotoFIX</span>
-          </Link>
-          <div className="flex items-center gap-6">
-            <Link to="/registro-taller" className="hidden md:block text-sm font-medium hover:text-primary transition-colors">
-              Registrar taller
-            </Link>
-            {user ? (
-              <div className="flex items-center gap-4">
-                <UserAvatar user={user} />
-                <button
-                  onClick={handleLogout}
-                  className="text-sm font-bold px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                >
-                  Cerrar sesion
-                </button>
-              </div>
-            ) : (
-              <>
-                <Link to="/login" className="text-sm font-bold px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                  Ingresar
-                </Link>
-                <Link to="/register" className="text-sm font-bold px-4 py-2 rounded-lg bg-primary hover:bg-[#d6aa28] text-[#181611] transition-colors">
-                  Registrarse
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Main Content */}
       <main className="w-full max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-6">

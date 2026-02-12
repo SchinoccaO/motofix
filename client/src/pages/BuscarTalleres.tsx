@@ -1,9 +1,8 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import Logo from "../components/Logo";
+import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { getProviders, getStoredUser, logout, type Provider, type AuthUser } from "../services/api";
-import UserAvatar from "../components/UserAvatar";
+import { getProviders, type Provider } from "../services/api";
 
 const TYPE_LABELS: Record<string, string> = {
   shop: "Taller",
@@ -39,7 +38,6 @@ export default function BuscarTalleres() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || "");
   const [typeFilter, setTypeFilter] = useState<string>(searchParams.get('type') || "");
-  const [user, setUser] = useState<AuthUser | null>(null);
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const [failedLogos, setFailedLogos] = useState<Set<string>>(new Set());
   const brandScrollRef = useRef<HTMLDivElement>(null);
@@ -47,15 +45,7 @@ export default function BuscarTalleres() {
   const [dragStartX, setDragStartX] = useState(0);
   const [dragScrollLeft, setDragScrollLeft] = useState(0);
   const [wasDragging, setWasDragging] = useState(false);
-
-  useEffect(() => {
-    setUser(getStoredUser());
-  }, []);
-
-  const handleLogout = () => {
-    logout();
-    window.location.reload();
-  };
+  const [showFilters, setShowFilters] = useState(false);
 
   const fetchProviders = async () => {
     try {
@@ -136,83 +126,31 @@ export default function BuscarTalleres() {
 
   return (
     <div className="bg-background-light dark:bg-background-dark text-[#181611] dark:text-gray-100 min-h-screen font-display">
-      {/* Simple Navbar */}
-      <header className="sticky top-0 z-50 bg-background-light dark:bg-background-dark border-b border-[#f4f3f0] dark:border-gray-800">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <Link to="/" className="flex items-center gap-3">
-              <Logo />
-              <h2 className="text-xl font-bold tracking-tight">MotoFIX</h2>
-            </Link>
-            <form onSubmit={handleSearch} className="hidden md:flex w-80">
-              <label className="relative w-full">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                  <span className="material-symbols-outlined text-gray-400">
-                    search
-                  </span>
-                </span>
-                <input
-                  className="block w-full rounded-lg border-none bg-[#f4f3f0] dark:bg-gray-800 py-2 pl-10 pr-3 text-sm placeholder-gray-500 focus:ring-2 focus:ring-primary focus:outline-none"
-                  placeholder="Buscar talleres o repuestos..."
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </label>
-            </form>
-          </div>
-          <nav className="flex items-center gap-6">
-            <div className="hidden lg:flex items-center gap-6">
-              <Link
-                to="/registro-taller"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Registrar taller
-              </Link>
-              <Link
-                to="/talleres"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Dejar resena
-              </Link>
-            </div>
-            {user ? (
-              <div className="flex items-center gap-4">
-                <UserAvatar user={user} />
-                <button
-                  onClick={handleLogout}
-                  className="text-sm font-bold px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                >
-                  Cerrar sesión
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3">
-                <Link
-                  to="/login"
-                  className="text-sm font-bold px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                >
-                  Ingresar
-                </Link>
-                <Link
-                  to="/register"
-                  className="text-sm font-bold px-4 py-2 rounded-lg bg-primary hover:bg-[#d6aa28] text-[#181611] transition-colors"
-                >
-                  Registrarse
-                </Link>
-              </div>
-            )}
-          </nav>
-        </div>
-      </header>
+      <Navbar activePage="talleres" />
 
-      <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        {/* Mobile Search Bar */}
+        <form onSubmit={handleSearch} className="mb-4">
+          <label className="relative w-full block">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+              <span className="material-symbols-outlined text-gray-400">search</span>
+            </span>
+            <input
+              className="block w-full rounded-lg border-none bg-[#f4f3f0] dark:bg-gray-800 py-3 pl-10 pr-3 text-sm placeholder-gray-500 focus:ring-2 focus:ring-primary focus:outline-none"
+              placeholder="Buscar talleres o repuestos..."
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </label>
+        </form>
+
         {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight mb-2">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1">
             Encuentra los mejores especialistas
           </h1>
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base">
             {loading
               ? "Cargando negocios..."
               : `Explora ${providers.length} negocios de confianza.`}
@@ -353,9 +291,18 @@ export default function BuscarTalleres() {
         </div>
 
         {/* Main Content Layout */}
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+          {/* Mobile filter toggle */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="lg:hidden flex items-center justify-center gap-2 w-full py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-medium hover:border-primary transition-colors"
+          >
+            <span className="material-symbols-outlined text-[18px]">tune</span>
+            {showFilters ? "Ocultar filtros" : "Mostrar filtros"}
+          </button>
+
           {/* Sidebar Filters */}
-          <aside className="w-full lg:w-64 shrink-0 space-y-6">
+          <aside className={`w-full lg:w-64 shrink-0 space-y-6 ${showFilters ? "block" : "hidden lg:block"}`}>
             <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-bold text-lg">Filtros</h3>
