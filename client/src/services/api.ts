@@ -19,7 +19,12 @@ export interface AuthUser {
   id: number;
   name: string;
   email: string;
+  phone: string | null;
+  avatar_url: string | null;
+  city: string | null;
+  province: string | null;
   role: string;
+  created_at?: string;
 }
 
 export interface AuthResponse {
@@ -61,6 +66,33 @@ export async function registerUser(name: string, email: string, password: string
   return data;
 }
 
+// --- User profile functions ---
+
+export interface UserProfile extends AuthUser {
+  reviews?: (ReviewData & { provider?: { id: number; name: string; type: string; location?: { city: string; province: string } } })[];
+}
+
+export async function getMyProfile(): Promise<UserProfile> {
+  const { data } = await api.get<{ success: boolean; data: UserProfile }>('/auth/perfil');
+  return data.data;
+}
+
+export async function updateMyProfile(fields: {
+  name?: string;
+  phone?: string | null;
+  avatar_url?: string | null;
+  city?: string | null;
+  province?: string | null;
+}): Promise<UserProfile> {
+  const { data } = await api.put<{ success: boolean; data: UserProfile }>('/auth/perfil', fields);
+  return data.data;
+}
+
+export async function getPublicProfile(userId: number): Promise<UserProfile> {
+  const { data } = await api.get<{ success: boolean; data: UserProfile }>(`/auth/users/${userId}`);
+  return data.data;
+}
+
 // --- Review types ---
 
 export interface ReviewData {
@@ -71,6 +103,13 @@ export interface ReviewData {
   actual_time: number | null;
   created_at: string;
   user: { id: number; name: string; email: string };
+}
+
+// --- Tag types ---
+
+export interface Tag {
+  id: number;
+  name: string;
 }
 
 // --- Provider types & functions ---
@@ -97,6 +136,7 @@ export interface Provider {
     longitude: number | null;
   };
   reviews?: ReviewData[];
+  tags?: Tag[];
 }
 
 interface ProvidersResponse {
@@ -108,6 +148,16 @@ interface ProvidersResponse {
 interface ProviderResponse {
   success: boolean;
   data: Provider;
+}
+
+interface TagsResponse {
+  success: boolean;
+  data: Tag[];
+}
+
+export async function getMyProviders(): Promise<Provider[]> {
+  const { data } = await api.get<ProvidersResponse>('/providers/mine');
+  return data.data;
 }
 
 export async function getProviders(params?: {
@@ -122,6 +172,13 @@ export async function getProviders(params?: {
 
 export async function getProviderById(id: number): Promise<Provider> {
   const { data } = await api.get<ProviderResponse>(`/providers/${id}`);
+  return data.data;
+}
+
+// --- Tag functions ---
+
+export async function getTags(): Promise<Tag[]> {
+  const { data } = await api.get<TagsResponse>('/providers/tags');
   return data.data;
 }
 
@@ -141,6 +198,13 @@ export async function createReview(
     actual_time: actual_time || null,
   });
   return data.data;
+}
+
+// --- Password functions ---
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<{ success: boolean; mensaje: string }> {
+  const { data } = await api.put('/auth/cambiar-contrasena', { currentPassword, newPassword });
+  return data;
 }
 
 export default api;

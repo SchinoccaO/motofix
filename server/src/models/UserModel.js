@@ -37,6 +37,22 @@ User.init(
       type: DataTypes.STRING(255),
       allowNull: false
     },
+    phone: {
+      type: DataTypes.STRING(30),
+      allowNull: true
+    },
+    avatar_url: {
+      type: DataTypes.STRING(500),
+      allowNull: true
+    },
+    city: {
+      type: DataTypes.STRING(100),
+      allowNull: true
+    },
+    province: {
+      type: DataTypes.STRING(100),
+      allowNull: true
+    },
     role: {
       type: DataTypes.ENUM('user', 'admin'),
       allowNull: false,

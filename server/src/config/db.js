@@ -15,11 +15,13 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 // Cargamos las variables de entorno (como DB_USER, DB_PASSWORD, etc.)
-dotenv.config();
-
 // ===== CREAMOS LA CONEXIÓN A LA BASE DE DATOS =====
 // Ruta al certificado CA de TiDB Cloud
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Aseguramos que dotenv cargue el .env del directorio server/
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+
 const caPath = path.resolve(__dirname, '../../isrgrootx1.pem');
 
 // Usamos DATABASE_URL para conectar a TiDB Cloud

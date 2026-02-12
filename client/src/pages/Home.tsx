@@ -4,6 +4,7 @@ import Icon from '../components/Icon'
 import Logo from '../components/Logo'
 import Footer from '../components/Footer'
 import { getStoredUser, logout, type AuthUser } from '../services/api'
+import UserAvatar from '../components/UserAvatar'
 
 export default function Home() {
     const [user, setUser] = useState<AuthUser | null>(null)
@@ -46,7 +47,7 @@ export default function Home() {
                         </div>
                         {user ? (
                             <div className="flex items-center gap-4">
-                                <span className="text-sm font-medium text-[#181611]">{user.name}</span>
+                                <UserAvatar user={user} />
                                 <button
                                     onClick={handleLogout}
                                     className="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 border border-gray-300 hover:bg-gray-100 transition-colors text-[#181611] text-sm font-bold"

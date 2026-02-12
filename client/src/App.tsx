@@ -15,6 +15,9 @@ import BuscarTalleres from "./pages/BuscarTalleres"; // Página de búsqueda de 
 import TallerProfile from "./pages/TallerProfile"; // Perfil de un taller específico
 import RegistroTaller from "./pages/RegistroTaller"; // Formulario para registrar taller
 import ResenaForm from "./pages/ResenaForm"; // Formulario para dejar reseña
+import PerfilPublico from "./pages/PerfilPublico"; // Perfil público de usuario
+import MiPerfil from "./pages/MiPerfil"; // Mi perfil (privado, editable)
+import Seguridad from "./pages/Seguridad"; // Centro de seguridad (contraseña, teléfono)
 import "./App.css";
 
 // ─── COMPONENTE PRINCIPAL ────────────────────────────────────────────────────
@@ -31,6 +34,9 @@ function App(): JSX.Element {
       <Route path="/taller/:id" element={<TallerProfile />} />
       <Route path="/registro-taller" element={<RegistroTaller />} />
       <Route path="/taller/:id/resena" element={<ResenaForm />} />
+      <Route path="/mi-perfil" element={<MiPerfil />} />
+      <Route path="/mi-perfil/seguridad" element={<Seguridad />} />
+      <Route path="/usuario/:id" element={<PerfilPublico />} />
     </Routes>
     </>
   );

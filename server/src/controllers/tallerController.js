@@ -1,6 +1,35 @@
-import { Provider, Location, Review, User } from '../models/index.js';
+import { Provider, Location, Review, User, Tag, ProviderTag } from '../models/index.js';
 import { Op } from 'sequelize';
 import sequelize from '../config/db.js';
+
+/**
+ * Obtener mis providers (del usuario logueado)
+ */
+export const getMyProviders = async (req, res) => {
+    try {
+        const providers = await Provider.findAll({
+            where: { owner_id: req.usuario.id },
+            include: [
+                { model: Location, as: 'location' },
+                { model: Tag, as: 'tags', attributes: ['id', 'name'], through: { attributes: [] } }
+            ],
+            order: [['created_at', 'DESC']]
+        });
+
+        res.json({
+            success: true,
+            count: providers.length,
+            data: providers
+        });
+    } catch (error) {
+        console.error('Error al obtener mis providers:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al obtener mis providers',
+            message: error.message
+        });
+    }
+};
 
 /**
  * Obtener todos los providers con filtros opcionales
@@ -24,8 +53,7 @@ export const getProviders = async (req, res) => {
             locationWhere.city = { [Op.like]: `%${city}%` };
         }
 
-        // Búsqueda global: busca en name, description, y location (city, province, address)
-        // Usa raw query para encontrar IDs con normalización de acentos
+        // Búsqueda global: busca en name, description, location y tags
         if (search) {
             const norm = (col) =>
                 `LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(${col},'á','a'),'é','e'),'í','i'),'ó','o'),'ú','u'))`;
@@ -40,12 +68,15 @@ export const getProviders = async (req, res) => {
                     `${norm('p.description')} LIKE '%${escaped}%' OR ` +
                     `${norm('l.city')} LIKE '%${escaped}%' OR ` +
                     `${norm('l.province')} LIKE '%${escaped}%' OR ` +
-                    `${norm('l.address')} LIKE '%${escaped}%')`;
+                    `${norm('l.address')} LIKE '%${escaped}%' OR ` +
+                    `${norm('t.name')} LIKE '%${escaped}%')`;
             });
 
             const [matchingIds] = await sequelize.query(
                 `SELECT DISTINCT p.id FROM providers p ` +
                 `LEFT JOIN locations l ON l.provider_id = p.id ` +
+                `LEFT JOIN provider_tags pt ON pt.provider_id = p.id ` +
+                `LEFT JOIN tags t ON t.id = pt.tag_id ` +
                 `WHERE ${termConditions.join(' AND ')}`
             );
 
@@ -63,6 +94,12 @@ export const getProviders = async (req, res) => {
                     model: Location,
                     as: 'location',
                     ...(city ? { where: locationWhere } : {})
+                },
+                {
+                    model: Tag,
+                    as: 'tags',
+                    attributes: ['id', 'name'],
+                    through: { attributes: [] }
                 }
             ],
             order: [
@@ -87,7 +124,7 @@ export const getProviders = async (req, res) => {
 };
 
 /**
- * Obtener un provider por ID con sus reviews
+ * Obtener un provider por ID con sus reviews y tags
  */
 export const getProviderById = async (req, res) => {
     try {
@@ -110,6 +147,12 @@ export const getProviderById = async (req, res) => {
                         }
                     ],
                     order: [['created_at', 'DESC']]
+                },
+                {
+                    model: Tag,
+                    as: 'tags',
+                    attributes: ['id', 'name'],
+                    through: { attributes: [] }
                 }
             ]
         });
@@ -152,7 +195,8 @@ export const createProvider = async (req, res) => {
             province,
             country,
             latitude,
-            longitude
+            longitude,
+            tags
         } = req.body;
 
         const provider = await Provider.create({
@@ -177,8 +221,22 @@ export const createProvider = async (req, res) => {
             });
         }
 
+        // Asociar tags si se proporcionaron
+        if (tags && Array.isArray(tags) && tags.length > 0) {
+            const tagRecords = await Promise.all(
+                tags.map(tagName =>
+                    Tag.findOrCreate({ where: { name: tagName.trim() } })
+                )
+            );
+            const tagInstances = tagRecords.map(([tag]) => tag);
+            await provider.setTags(tagInstances);
+        }
+
         const result = await Provider.findByPk(provider.id, {
-            include: [{ model: Location, as: 'location' }]
+            include: [
+                { model: Location, as: 'location' },
+                { model: Tag, as: 'tags', attributes: ['id', 'name'], through: { attributes: [] } }
+            ]
         });
 
         res.status(201).json({
@@ -227,7 +285,8 @@ export const updateProvider = async (req, res) => {
             email,
             website,
             photo_url,
-            is_active
+            is_active,
+            tags
         } = req.body;
 
         await provider.update({
@@ -241,10 +300,28 @@ export const updateProvider = async (req, res) => {
             is_active
         });
 
+        // Actualizar tags si se proporcionaron
+        if (tags && Array.isArray(tags)) {
+            const tagRecords = await Promise.all(
+                tags.map(tagName =>
+                    Tag.findOrCreate({ where: { name: tagName.trim() } })
+                )
+            );
+            const tagInstances = tagRecords.map(([tag]) => tag);
+            await provider.setTags(tagInstances);
+        }
+
+        const result = await Provider.findByPk(id, {
+            include: [
+                { model: Location, as: 'location' },
+                { model: Tag, as: 'tags', attributes: ['id', 'name'], through: { attributes: [] } }
+            ]
+        });
+
         res.json({
             success: true,
             message: 'Provider actualizado exitosamente',
-            data: provider
+            data: result
         });
     } catch (error) {
         console.error('Error al actualizar provider:', error);
@@ -363,6 +440,136 @@ export const deleteProvider = async (req, res) => {
         res.status(500).json({
             success: false,
             error: 'Error al eliminar provider',
+            message: error.message
+        });
+    }
+};
+
+/**
+ * Obtener todos los tags disponibles
+ */
+export const getTags = async (req, res) => {
+    try {
+        const tags = await Tag.findAll({
+            attributes: ['id', 'name'],
+            order: [['name', 'ASC']]
+        });
+
+        res.json({
+            success: true,
+            data: tags
+        });
+    } catch (error) {
+        console.error('Error al obtener tags:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al obtener tags',
+            message: error.message
+        });
+    }
+};
+
+/**
+ * Agregar tags a un provider (solo owner o admin)
+ */
+export const addTagsToProvider = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { tags } = req.body;
+
+        if (!tags || !Array.isArray(tags) || tags.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Debes proporcionar un array de tags'
+            });
+        }
+
+        const provider = await Provider.findByPk(id);
+        if (!provider) {
+            return res.status(404).json({
+                success: false,
+                error: 'Provider no encontrado'
+            });
+        }
+
+        if (provider.owner_id !== req.usuario.id && req.usuario.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                error: 'No tenés permiso para modificar este provider'
+            });
+        }
+
+        const tagRecords = await Promise.all(
+            tags.map(tagName =>
+                Tag.findOrCreate({ where: { name: tagName.trim() } })
+            )
+        );
+        const tagInstances = tagRecords.map(([tag]) => tag);
+        await provider.addTags(tagInstances);
+
+        const result = await Provider.findByPk(id, {
+            include: [
+                { model: Tag, as: 'tags', attributes: ['id', 'name'], through: { attributes: [] } }
+            ]
+        });
+
+        res.json({
+            success: true,
+            message: 'Tags agregados exitosamente',
+            data: result.tags
+        });
+    } catch (error) {
+        console.error('Error al agregar tags:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al agregar tags',
+            message: error.message
+        });
+    }
+};
+
+/**
+ * Quitar un tag de un provider (solo owner o admin)
+ */
+export const removeTagFromProvider = async (req, res) => {
+    try {
+        const { id, tagId } = req.params;
+
+        const provider = await Provider.findByPk(id);
+        if (!provider) {
+            return res.status(404).json({
+                success: false,
+                error: 'Provider no encontrado'
+            });
+        }
+
+        if (provider.owner_id !== req.usuario.id && req.usuario.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                error: 'No tenés permiso para modificar este provider'
+            });
+        }
+
+        await ProviderTag.destroy({
+            where: { provider_id: id, tag_id: tagId }
+        });
+
+        const result = await Provider.findByPk(id, {
+            include: [
+                { model: Tag, as: 'tags', attributes: ['id', 'name'], through: { attributes: [] } }
+            ]
+        });
+
+        res.json({
+            success: true,
+            message: 'Tag eliminado exitosamente',
+            data: result.tags
+        });
+    } catch (error) {
+        console.error('Error al eliminar tag:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al eliminar tag',
             message: error.message
         });
     }

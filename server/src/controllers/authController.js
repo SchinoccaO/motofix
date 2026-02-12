@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { User } from '../models/index.js';
+import { User, Review, Provider, Location } from '../models/index.js';
 
 const generarToken = (usuario) => {
     return jwt.sign(
@@ -100,11 +100,27 @@ export const login = async (req, res) => {
 
 export const obtenerPerfil = async (req, res) => {
     try {
-        const usuario = await User.findByPk(req.usuario.id);
+        const usuario = await User.findByPk(req.usuario.id, {
+            include: [
+                {
+                    model: Review,
+                    as: 'reviews',
+                    include: [
+                        {
+                            model: Provider,
+                            as: 'provider',
+                            attributes: ['id', 'name', 'type'],
+                            include: [{ model: Location, as: 'location', attributes: ['city', 'province'] }]
+                        }
+                    ],
+                    order: [['created_at', 'DESC']]
+                }
+            ]
+        });
         if (!usuario) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
-        res.json(usuario);
+        res.json({ success: true, data: usuario });
     } catch (error) {
         console.error('Error al obtener perfil:', error);
         res.status(500).json({ error: 'Error al obtener perfil' });
@@ -113,7 +129,7 @@ export const obtenerPerfil = async (req, res) => {
 
 export const actualizarPerfil = async (req, res) => {
     try {
-        const { name } = req.body;
+        const { name, phone, avatar_url, city, province } = req.body;
 
         const usuario = await User.findByPk(req.usuario.id);
 
@@ -121,16 +137,87 @@ export const actualizarPerfil = async (req, res) => {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
 
-        if (name) usuario.name = name;
+        if (name !== undefined) usuario.name = name;
+        if (phone !== undefined) usuario.phone = phone;
+        if (avatar_url !== undefined) usuario.avatar_url = avatar_url;
+        if (city !== undefined) usuario.city = city;
+        if (province !== undefined) usuario.province = province;
 
         await usuario.save();
 
         res.json({
+            success: true,
             mensaje: 'Perfil actualizado exitosamente',
-            usuario
+            data: usuario
         });
     } catch (error) {
         console.error('Error al actualizar perfil:', error);
         res.status(500).json({ error: 'Error al actualizar perfil' });
+    }
+};
+
+export const cambiarContrasena = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ error: 'La contraseña actual y la nueva son obligatorias' });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 8 caracteres' });
+        }
+
+        const usuario = await User.findByPk(req.usuario.id);
+        if (!usuario) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        const passwordValida = await usuario.compararPassword(currentPassword);
+        if (!passwordValida) {
+            return res.status(401).json({ error: 'La contraseña actual es incorrecta' });
+        }
+
+        usuario.password_hash = newPassword;
+        await usuario.save();
+
+        res.json({ success: true, mensaje: 'Contraseña actualizada exitosamente' });
+    } catch (error) {
+        console.error('Error al cambiar contraseña:', error);
+        res.status(500).json({ error: 'Error al cambiar la contraseña' });
+    }
+};
+
+export const obtenerPerfilPublico = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const usuario = await User.findByPk(id, {
+            attributes: ['id', 'name', 'avatar_url', 'city', 'province', 'created_at'],
+            include: [
+                {
+                    model: Review,
+                    as: 'reviews',
+                    include: [
+                        {
+                            model: Provider,
+                            as: 'provider',
+                            attributes: ['id', 'name', 'type'],
+                            include: [{ model: Location, as: 'location', attributes: ['city', 'province'] }]
+                        }
+                    ],
+                    order: [['created_at', 'DESC']]
+                }
+            ]
+        });
+
+        if (!usuario) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        res.json({ success: true, data: usuario });
+    } catch (error) {
+        console.error('Error al obtener perfil publico:', error);
+        res.status(500).json({ error: 'Error al obtener perfil' });
     }
 };

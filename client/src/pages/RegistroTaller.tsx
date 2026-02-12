@@ -1,8 +1,16 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Logo from '../components/Logo'
 import Footer from '../components/Footer'
+import { getStoredUser, type AuthUser } from '../services/api'
+import UserAvatar from '../components/UserAvatar'
 
 export default function RegistroTaller() {
+  const [user, setUser] = useState<AuthUser | null>(null)
+
+  useEffect(() => {
+    setUser(getStoredUser())
+  }, [])
   return (
     <div className="font-display bg-background-light dark:bg-background-dark text-[#181611] dark:text-white transition-colors duration-200 min-h-screen"> 
       {/* Simple Navbar */}
@@ -13,13 +21,16 @@ export default function RegistroTaller() {
               <Logo />
               <h2 className="text-[#181611] dark:text-white text-xl font-bold leading-tight tracking-tight">MotoFIX</h2>
             </Link>
-            <Link
-              to="/"
-              className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-primary transition-colors"
-            >
-              <span className="material-symbols-outlined text-lg">arrow_back</span>
-              Volver
-            </Link>
+            <div className="flex items-center gap-4">
+              {user && <UserAvatar user={user} />}
+              <Link
+                to="/"
+                className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-primary transition-colors"
+              >
+                <span className="material-symbols-outlined text-lg">arrow_back</span>
+                Volver
+              </Link>
+            </div>
           </div>
         </div>
       </header>

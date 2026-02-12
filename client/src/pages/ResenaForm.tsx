@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom'
 import Logo from '../components/Logo'
 import Footer from '../components/Footer'
 import { getStoredUser, getProviderById, createReview, logout, type AuthUser, type Provider } from '../services/api'
+import UserAvatar from '../components/UserAvatar'
 
 export default function ResenaForm() {
   const { id } = useParams<{ id: string }>()
@@ -144,7 +145,7 @@ export default function ResenaForm() {
               <h2 className="text-[#181611] dark:text-white text-xl font-bold leading-tight tracking-tight">MotoFIX</h2>
             </Link>
             <div className="flex items-center gap-4">
-              <span className="text-sm font-medium">{user.name}</span>
+              <UserAvatar user={user} />
               <button
                 onClick={handleLogout}
                 className="text-sm font-bold px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"

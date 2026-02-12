@@ -3,6 +3,8 @@ import Provider from './ProviderModel.js';
 import Location from './LocationModel.js';
 import Review from './ReviewModel.js';
 import ReviewReply from './ReviewReplyModel.js';
+import Tag from './TagModel.js';
+import ProviderTag from './ProviderTagModel.js';
 
 // User 1-N Provider (owner)
 User.hasMany(Provider, {
@@ -70,4 +72,19 @@ ReviewReply.belongsTo(User, {
   as: 'user'
 });
 
-export { User, Provider, Location, Review, ReviewReply };
+// Provider M-N Tag
+Provider.belongsToMany(Tag, {
+  through: ProviderTag,
+  foreignKey: 'provider_id',
+  otherKey: 'tag_id',
+  as: 'tags'
+});
+
+Tag.belongsToMany(Provider, {
+  through: ProviderTag,
+  foreignKey: 'tag_id',
+  otherKey: 'provider_id',
+  as: 'providers'
+});
+
+export { User, Provider, Location, Review, ReviewReply, Tag, ProviderTag };

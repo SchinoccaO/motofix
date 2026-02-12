@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import Logo from "../components/Logo";
 import Footer from "../components/Footer";
 import { getProviders, getStoredUser, logout, type Provider, type AuthUser } from "../services/api";
+import UserAvatar from "../components/UserAvatar";
 
 const TYPE_LABELS: Record<string, string> = {
   shop: "Taller",
@@ -177,7 +178,7 @@ export default function BuscarTalleres() {
             </div>
             {user ? (
               <div className="flex items-center gap-4">
-                <span className="text-sm font-medium">{user.name}</span>
+                <UserAvatar user={user} />
                 <button
                   onClick={handleLogout}
                   className="text-sm font-bold px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
