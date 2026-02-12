@@ -16,6 +16,7 @@ pnpm-lock.yaml
 .env.local
 .env.development
 .env.production
+!client/.env.production
 .env.test
 server/.env
 server/.env.local
