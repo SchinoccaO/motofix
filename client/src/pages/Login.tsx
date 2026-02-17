@@ -21,8 +21,7 @@ export default function Login() {
     setError("");
     setGoogleLoading(true);
     try {
-      const data = await googleLogin(credentialResponse.credential);
-      alert("¡Bienvenido, " + data.usuario.name + "!");
+      await googleLogin(credentialResponse.credential);
       navigate("/talleres");
     } catch (err: any) {
       const msg = err?.response?.data?.error || "Error al iniciar sesión con Google.";
@@ -46,8 +45,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const data = await loginUser(formData.email, formData.password);
-      alert("¡Bienvenido de nuevo, " + data.usuario.name + "!");
+      await loginUser(formData.email, formData.password);
       navigate("/talleres");
     } catch (err: any) {
       const msg = err?.response?.data?.error
@@ -178,16 +176,6 @@ export default function Login() {
           </Link>
         </p>
 
-        <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-xs font-semibold text-blue-800 mb-2">
-            Datos de prueba (si existen en tu BD):
-          </p>
-          <p className="text-xs text-blue-700">
-            Email: juan@mail.com
-            <br />
-            Contraseña: 123456
-          </p>
-        </div>
       </div>
       </div>
 

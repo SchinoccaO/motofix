@@ -22,8 +22,7 @@ export default function Register() {
     setError("");
     setGoogleLoading(true);
     try {
-      const data = await googleLogin(credentialResponse.credential);
-      alert("¡Registro exitoso! Bienvenido " + data.usuario.name);
+      await googleLogin(credentialResponse.credential);
       navigate("/talleres");
     } catch (err: any) {
       const msg = err?.response?.data?.error || "Error al registrarse con Google.";
@@ -47,8 +46,7 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const data = await registerUser(formData.name, formData.email, formData.password);
-      alert("¡Registro exitoso! Bienvenido " + data.usuario.name);
+      await registerUser(formData.name, formData.email, formData.password);
       navigate("/talleres");
     } catch (err: any) {
       const msg = err?.response?.data?.error

@@ -2,11 +2,18 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { getStoredToken, getStoredUser, changePassword, type AuthUser } from "../services/api";
+import { getStoredToken, getStoredUser, getMyProfile, updateMyProfile, changePassword } from "../services/api";
+
+const PROVINCIAS = [
+  "", "Buenos Aires", "CABA", "Catamarca", "Chaco", "Chubut", "Cordoba",
+  "Corrientes", "Entre Rios", "Formosa", "Jujuy", "La Pampa", "La Rioja",
+  "Mendoza", "Misiones", "Neuquen", "Rio Negro", "Salta", "San Juan",
+  "San Luis", "Santa Cruz", "Santa Fe", "Santiago del Estero",
+  "Tierra del Fuego", "Tucuman",
+];
 
 export default function Seguridad() {
   const navigate = useNavigate();
-  const [user, setUser] = useState<AuthUser | null>(null);
 
   // Password form
   const [currentPassword, setCurrentPassword] = useState("");
@@ -14,13 +21,19 @@ export default function Seguridad() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
 
   // Phone form
   const [phone, setPhone] = useState("");
 
+  // Location form
+  const [city, setCity] = useState("");
+  const [province, setProvince] = useState("");
+  const [loadingProfile, setLoadingProfile] = useState(true);
+
   // State
   const [saving, setSaving] = useState(false);
+  const [savingContact, setSavingContact] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,8 +44,16 @@ export default function Seguridad() {
       return;
     }
     const u = getStoredUser();
-    setUser(u);
     setPhone(u?.phone || "");
+
+    getMyProfile()
+      .then((prof) => {
+        setPhone(prof.phone || "");
+        setCity(prof.city || "");
+        setProvince(prof.province || "");
+      })
+      .catch(() => {})
+      .finally(() => setLoadingProfile(false));
   }, []);
 
   // Password validation
@@ -67,37 +88,51 @@ export default function Seguridad() {
     setError(null);
   };
 
+  const handleContactSave = async () => {
+    setSavingContact(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const updated = await updateMyProfile({
+        phone: phone || null,
+        city: city || null,
+        province: province || null,
+      });
+      const storedUser = getStoredUser();
+      if (storedUser) {
+        if (updated.phone !== undefined) storedUser.phone = updated.phone;
+        if (updated.city !== undefined) storedUser.city = updated.city;
+        if (updated.province !== undefined) storedUser.province = updated.province;
+        localStorage.setItem("usuario", JSON.stringify(storedUser));
+      }
+      setSuccess("Datos de contacto actualizados correctamente");
+    } catch {
+      setError("Error al guardar los datos de contacto");
+    } finally {
+      setSavingContact(false);
+    }
+  };
+
   return (
     <div className="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display text-[#181611] dark:text-gray-100">
       <Navbar activePage="seguridad" />
 
-      <main className="flex-grow py-10 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto">
+      <main className="flex-grow py-8 sm:py-10 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
           {/* Page Header */}
-          <div className="mb-8 md:flex md:items-center md:justify-between">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center text-sm text-[#887f63] dark:text-gray-400 mb-2">
-                <Link to="/mi-perfil" className="hover:text-primary transition-colors flex items-center">
-                  <span className="material-symbols-outlined text-base mr-1">arrow_back</span>
-                  Volver a Mi Perfil
-                </Link>
-                <span className="mx-2">/</span>
-                <span className="material-symbols-outlined text-base mr-1">security</span>
-                <span>Seguridad de la cuenta</span>
-              </div>
-              <h2 className="text-3xl font-bold leading-tight text-[#181611] dark:text-white sm:text-4xl">
-                Verificacion y Credenciales
-              </h2>
-              <p className="mt-2 text-sm text-[#887f63] dark:text-gray-400 max-w-2xl">
-                Gestiona tu contraseña y metodos de verificacion. Estas acciones son criticas para mantener tu cuenta MotoYA segura.
-              </p>
+          <div className="mb-8">
+            <div className="flex items-center text-sm text-[#887f63] dark:text-gray-400 mb-2">
+              <Link to="/mi-perfil" className="hover:text-primary transition-colors flex items-center">
+                <span className="material-symbols-outlined text-base mr-1">arrow_back</span>
+                Volver a Mi Perfil
+              </Link>
             </div>
-            <div className="mt-4 flex md:mt-0 md:ml-4">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                <span className="w-2 h-2 mr-2 bg-green-500 rounded-full inline-block"></span>
-                Conexion Segura SSL
-              </span>
-            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold leading-tight text-[#181611] dark:text-white">
+              Centro de Seguridad
+            </h2>
+            <p className="mt-2 text-sm text-[#887f63] dark:text-gray-400">
+              Gestiona tu contraseña, telefono y ubicacion.
+            </p>
           </div>
 
           {/* Alerts */}
@@ -115,177 +150,167 @@ export default function Seguridad() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column: Password Change (2/3) */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Info Banner */}
-              <div className="bg-blue-50 border-l-4 border-blue-400 p-4 dark:bg-blue-900/20 dark:border-blue-500 rounded-r-lg">
-                <div className="flex">
-                  <span className="material-symbols-outlined text-blue-400 dark:text-blue-300 mr-3 flex-shrink-0">info</span>
-                  <p className="text-sm text-blue-700 dark:text-blue-200">
-                    Por tu seguridad, te enviaremos un correo de confirmacion cada vez que realices cambios importantes en esta seccion.
-                  </p>
+          {/* Password Card */}
+          <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 mb-6">
+            <div className="px-5 sm:px-6 py-5 border-b border-gray-100 dark:border-gray-700">
+              <h3 className="text-lg font-bold text-[#181611] dark:text-white flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-xl">lock_reset</span>
+                Cambio de Contraseña
+              </h3>
+            </div>
+
+            <div className="px-5 sm:px-6 py-6 space-y-6">
+              {/* Current Password */}
+              <div>
+                <label className="block text-sm font-medium text-[#5c584a] dark:text-gray-300" htmlFor="current-password">
+                  Contraseña actual
+                </label>
+                <div className="mt-1 relative">
+                  <input
+                    className="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-[#181611] dark:text-white focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm pl-3 pr-10 py-2.5"
+                    id="current-password"
+                    placeholder="Tu contraseña actual"
+                    type={showCurrent ? "text" : "password"}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrent(!showCurrent)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <span className="material-symbols-outlined text-sm">{showCurrent ? "visibility" : "visibility_off"}</span>
+                  </button>
+                </div>
+                <p className="mt-1 text-xs text-[#887f63] dark:text-gray-500">Necesaria para verificar tu identidad.</p>
+              </div>
+
+              <hr className="border-gray-100 dark:border-gray-700" />
+
+              {/* New Password Group */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-[#5c584a] dark:text-gray-300" htmlFor="new-password">
+                    Nueva contraseña
+                  </label>
+                  <div className="mt-1 relative">
+                    <input
+                      className="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-[#181611] dark:text-white focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm pl-3 pr-10 py-2.5"
+                      id="new-password"
+                      type={showNew ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNew(!showNew)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    >
+                      <span className="material-symbols-outlined text-sm">{showNew ? "visibility" : "visibility_off"}</span>
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[#5c584a] dark:text-gray-300" htmlFor="confirm-password">
+                    Confirmar nueva contraseña
+                  </label>
+                  <div className="mt-1 relative">
+                    <input
+                      className="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-[#181611] dark:text-white focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm pl-3 pr-10 py-2.5"
+                      id="confirm-password"
+                      type={showConfirmPw ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPw(!showConfirmPw)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    >
+                      <span className="material-symbols-outlined text-sm">{showConfirmPw ? "visibility" : "visibility_off"}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              {/* Password Card */}
-              <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700">
-                <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-[#181611] dark:text-white flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-xl">lock_reset</span>
-                    Cambio de Contraseña
-                  </h3>
-                </div>
-
-                <div className="px-6 py-6 space-y-6">
-                  {/* Current Password */}
-                  <div>
-                    <label className="block text-sm font-medium text-[#5c584a] dark:text-gray-300" htmlFor="current-password">
-                      Contraseña actual
-                    </label>
-                    <div className="mt-1 relative">
-                      <input
-                        className="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-[#181611] dark:text-white focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm pl-3 pr-10 py-2.5"
-                        id="current-password"
-                        placeholder="Tu contraseña actual"
-                        type={showCurrent ? "text" : "password"}
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowCurrent(!showCurrent)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                      >
-                        <span className="material-symbols-outlined text-sm">{showCurrent ? "visibility" : "visibility_off"}</span>
-                      </button>
-                    </div>
-                    <p className="mt-1 text-xs text-[#887f63] dark:text-gray-500">Necesaria para verificar tu identidad.</p>
-                  </div>
-
-                  <hr className="border-gray-100 dark:border-gray-700" />
-
-                  {/* New Password Group */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-[#5c584a] dark:text-gray-300" htmlFor="new-password">
-                        Nueva contraseña
-                      </label>
-                      <div className="mt-1 relative">
-                        <input
-                          className="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-[#181611] dark:text-white focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm pl-3 pr-10 py-2.5"
-                          id="new-password"
-                          type={showNew ? "text" : "password"}
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowNew(!showNew)}
-                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                        >
-                          <span className="material-symbols-outlined text-sm">{showNew ? "visibility" : "visibility_off"}</span>
-                        </button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-[#5c584a] dark:text-gray-300" htmlFor="confirm-password">
-                        Confirmar nueva contraseña
-                      </label>
-                      <div className="mt-1 relative">
-                        <input
-                          className="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-[#181611] dark:text-white focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm pl-3 pr-10 py-2.5"
-                          id="confirm-password"
-                          type={showConfirm ? "text" : "password"}
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowConfirm(!showConfirm)}
-                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                        >
-                          <span className="material-symbols-outlined text-sm">{showConfirm ? "visibility" : "visibility_off"}</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Password Requirements */}
-                  <div className="bg-[#f8f7f6] dark:bg-gray-900/50 rounded-lg p-4">
-                    <h4 className="text-xs font-semibold text-[#887f63] dark:text-gray-400 uppercase tracking-wider mb-3">
-                      Requisitos de seguridad
-                    </h4>
-                    <ul className="space-y-2 text-sm text-[#5c584a] dark:text-gray-300">
-                      <li className="flex items-center gap-2">
-                        <span className={`material-symbols-outlined text-sm ${hasMinLength ? "text-green-500" : "text-gray-400"}`}>
-                          {hasMinLength ? "check_circle" : "radio_button_unchecked"}
-                        </span>
-                        <span>Minimo 8 caracteres</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className={`material-symbols-outlined text-sm ${hasNumberOrSymbol ? "text-green-500" : "text-gray-400"}`}>
-                          {hasNumberOrSymbol ? "check_circle" : "radio_button_unchecked"}
-                        </span>
-                        <span>Al menos un numero o un simbolo</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className={`material-symbols-outlined text-sm ${passwordsMatch ? "text-green-500" : "text-gray-400"}`}>
-                          {passwordsMatch ? "check_circle" : "radio_button_unchecked"}
-                        </span>
-                        <span>Las contraseñas coinciden</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-
-                {/* Password Card Footer */}
-                <div className="px-6 py-4 bg-[#f8f7f6] dark:bg-gray-900/30 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={handlePasswordCancel}
-                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-sm font-medium text-[#5c584a] dark:text-gray-200 bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handlePasswordSubmit}
-                    disabled={!canSubmitPassword || saving}
-                    className="px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-bold text-[#181611] bg-primary hover:bg-[#d6aa28] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-                  >
-                    {saving ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#181611]"></div>
-                        Actualizando...
-                      </>
-                    ) : (
-                      "Actualizar Contraseña"
-                    )}
-                  </button>
-                </div>
+              {/* Password Requirements */}
+              <div className="bg-[#f8f7f6] dark:bg-gray-900/50 rounded-lg p-4">
+                <h4 className="text-xs font-semibold text-[#887f63] dark:text-gray-400 uppercase tracking-wider mb-3">
+                  Requisitos de seguridad
+                </h4>
+                <ul className="space-y-2 text-sm text-[#5c584a] dark:text-gray-300">
+                  <li className="flex items-center gap-2">
+                    <span className={`material-symbols-outlined text-sm ${hasMinLength ? "text-green-500" : "text-gray-400"}`}>
+                      {hasMinLength ? "check_circle" : "radio_button_unchecked"}
+                    </span>
+                    <span>Minimo 8 caracteres</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className={`material-symbols-outlined text-sm ${hasNumberOrSymbol ? "text-green-500" : "text-gray-400"}`}>
+                      {hasNumberOrSymbol ? "check_circle" : "radio_button_unchecked"}
+                    </span>
+                    <span>Al menos un numero o un simbolo</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className={`material-symbols-outlined text-sm ${passwordsMatch ? "text-green-500" : "text-gray-400"}`}>
+                      {passwordsMatch ? "check_circle" : "radio_button_unchecked"}
+                    </span>
+                    <span>Las contraseñas coinciden</span>
+                  </li>
+                </ul>
               </div>
             </div>
 
-            {/* Right Column: Phone Verification (1/3) */}
-            <div className="lg:col-span-1">
-              <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 sticky top-24">
-                <div className="h-2 bg-primary w-full"></div>
-                <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-700">
-                  <h3 className="text-lg font-bold text-[#181611] dark:text-white flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-xl">phonelink_lock</span>
-                    Verificacion de Telefono
-                  </h3>
-                </div>
+            {/* Password Card Footer */}
+            <div className="px-5 sm:px-6 py-4 bg-[#f8f7f6] dark:bg-gray-900/30 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={handlePasswordCancel}
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-sm font-medium text-[#5c584a] dark:text-gray-200 bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handlePasswordSubmit}
+                disabled={!canSubmitPassword || saving}
+                className="px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-bold text-[#181611] bg-primary hover:bg-[#d6aa28] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+              >
+                {saving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#181611]"></div>
+                    Actualizando...
+                  </>
+                ) : (
+                  "Actualizar Contraseña"
+                )}
+              </button>
+            </div>
+          </div>
 
-                <div className="px-6 py-6 space-y-6">
-                  <p className="text-sm text-[#887f63] dark:text-gray-400">
-                    Vincula tu numero de telefono para recibir alertas y recuperar tu cuenta si pierdes el acceso.
-                  </p>
+          {/* Contact Data Card (Phone + City + Province) */}
+          <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 mb-6">
+            <div className="px-5 sm:px-6 py-5 border-b border-gray-100 dark:border-gray-700">
+              <h3 className="text-lg font-bold text-[#181611] dark:text-white flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-xl">contact_phone</span>
+                Datos de Contacto
+              </h3>
+              <p className="text-sm text-[#887f63] dark:text-gray-400 mt-1">
+                Modifica tu telefono y ubicacion. El email no se puede cambiar.
+              </p>
+            </div>
 
+            {loadingProfile ? (
+              <div className="flex items-center justify-center py-10">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              <>
+                <div className="px-5 sm:px-6 py-6 space-y-6">
+                  {/* Phone */}
                   <div>
-                    <label className="block text-sm font-medium text-[#5c584a] dark:text-gray-300" htmlFor="phone-verify">
-                      Numero de movil
+                    <label className="block text-sm font-medium text-[#5c584a] dark:text-gray-300" htmlFor="phone-edit">
+                      Telefono Movil
                     </label>
                     <div className="mt-1 flex rounded-lg shadow-sm">
                       <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-[#887f63] dark:text-gray-400 text-sm">
@@ -293,7 +318,7 @@ export default function Seguridad() {
                       </span>
                       <input
                         className="flex-1 min-w-0 block w-full px-3 py-2.5 rounded-none rounded-r-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-[#181611] dark:text-white focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm"
-                        id="phone-verify"
+                        id="phone-edit"
                         placeholder="351 123 4567"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
@@ -301,40 +326,76 @@ export default function Seguridad() {
                     </div>
                   </div>
 
-                  {user?.phone && (
-                    <div className="bg-yellow-50 dark:bg-yellow-900/10 rounded-lg p-3 flex gap-3 items-start">
-                      <span className="material-symbols-outlined text-primary text-sm mt-0.5">warning</span>
-                      <p className="text-xs text-yellow-800 dark:text-yellow-200">
-                        El numero terminado en **{user.phone.slice(-2)} no esta verificado.
-                      </p>
+                  {/* City + Province */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-[#5c584a] dark:text-gray-300" htmlFor="city-edit">
+                        Ciudad
+                      </label>
+                      <div className="mt-1">
+                        <input
+                          className="focus:ring-1 focus:ring-primary focus:border-primary block w-full sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 dark:text-white py-2.5 px-3"
+                          id="city-edit"
+                          placeholder="Ej: Cordoba"
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
+                        />
+                      </div>
                     </div>
-                  )}
 
+                    <div>
+                      <label className="block text-sm font-medium text-[#5c584a] dark:text-gray-300" htmlFor="province-edit">
+                        Provincia
+                      </label>
+                      <div className="mt-1">
+                        <select
+                          className="focus:ring-1 focus:ring-primary focus:border-primary block w-full sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 dark:text-white py-2.5 px-3"
+                          id="province-edit"
+                          value={province}
+                          onChange={(e) => setProvince(e.target.value)}
+                        >
+                          <option value="">Seleccionar provincia</option>
+                          {PROVINCIAS.filter(Boolean).map((p) => (
+                            <option key={p} value={p}>{p}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contact Card Footer */}
+                <div className="px-5 sm:px-6 py-4 bg-[#f8f7f6] dark:bg-gray-900/30 border-t border-gray-100 dark:border-gray-700 flex justify-end">
                   <button
                     type="button"
-                    className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-[#181611] bg-primary hover:bg-[#d6aa28] transition-all"
+                    onClick={handleContactSave}
+                    disabled={savingContact}
+                    className="px-5 py-2 border border-transparent rounded-lg shadow-sm text-sm font-bold text-[#181611] bg-primary hover:bg-[#d6aa28] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                   >
-                    Enviar codigo de verificacion
+                    {savingContact ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#181611]"></div>
+                        Guardando...
+                      </>
+                    ) : (
+                      "Guardar Datos"
+                    )}
                   </button>
-
-                  <p className="text-center text-xs text-[#887f63] dark:text-gray-500">
-                    Se enviara un SMS con un codigo de 6 digitos. Proximamente disponible.
-                  </p>
                 </div>
-              </div>
+              </>
+            )}
+          </div>
 
-              {/* Help Card */}
-              <div className="mt-6 bg-[#f8f7f6] dark:bg-gray-800/40 rounded-xl p-5 border border-gray-100 dark:border-gray-700">
-                <h4 className="text-sm font-semibold text-[#181611] dark:text-white mb-2">Necesitas ayuda?</h4>
-                <p className="text-xs text-[#887f63] dark:text-gray-400 mb-4">
-                  Si tenes problemas para recibir el codigo o no reconoces algun cambio, contacta soporte inmediatamente.
-                </p>
-                <span className="text-xs font-medium text-primary flex items-center gap-1 cursor-pointer hover:underline">
-                  Contactar Soporte MotoYA
-                  <span className="material-symbols-outlined text-xs">arrow_forward</span>
-                </span>
-              </div>
-            </div>
+          {/* Help Card */}
+          <div className="bg-[#f8f7f6] dark:bg-gray-800/40 rounded-xl p-5 border border-gray-100 dark:border-gray-700">
+            <h4 className="text-sm font-semibold text-[#181611] dark:text-white mb-2">Necesitas ayuda?</h4>
+            <p className="text-xs text-[#887f63] dark:text-gray-400 mb-4">
+              Si tenes problemas con tu cuenta o no reconoces algun cambio, contacta soporte inmediatamente.
+            </p>
+            <span className="text-xs font-medium text-primary flex items-center gap-1 cursor-pointer hover:underline">
+              Contactar Soporte MotoYA
+              <span className="material-symbols-outlined text-xs">arrow_forward</span>
+            </span>
           </div>
         </div>
       </main>

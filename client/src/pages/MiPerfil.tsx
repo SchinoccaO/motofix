@@ -5,9 +5,7 @@ import Footer from "../components/Footer";
 import {
   getMyProfile,
   getMyProviders,
-  getStoredUser,
   getStoredToken,
-  updateMyProfile,
   type UserProfile,
   type Provider,
 } from "../services/api";
@@ -45,14 +43,6 @@ function timeAgo(dateStr: string): string {
   return `Hace ${Math.floor(days / 365)} anos`;
 }
 
-const PROVINCIAS = [
-  "", "Buenos Aires", "CABA", "Catamarca", "Chaco", "Chubut", "Cordoba",
-  "Corrientes", "Entre Rios", "Formosa", "Jujuy", "La Pampa", "La Rioja",
-  "Mendoza", "Misiones", "Neuquen", "Rio Negro", "Salta", "San Juan",
-  "San Luis", "Santa Cruz", "Santa Fe", "Santiago del Estero",
-  "Tierra del Fuego", "Tucuman",
-];
-
 const TYPE_LABELS: Record<string, string> = {
   shop: "Taller",
   mechanic: "Mecanico",
@@ -65,17 +55,6 @@ export default function MiPerfil() {
   const [myProviders, setMyProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Form state
-  const [formName, setFormName] = useState("");
-  const [formPhone, setFormPhone] = useState("");
-  const [formCity, setFormCity] = useState("");
-  const [formProvince, setFormProvince] = useState("");
-
-  // Confirmation state
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
     const token = getStoredToken();
@@ -95,61 +74,10 @@ export default function MiPerfil() {
       ]);
       setProfile(prof);
       setMyProviders(provs);
-      setFormName(prof.name || "");
-      setFormPhone(prof.phone || "");
-      setFormCity(prof.city || "");
-      setFormProvince(prof.province || "");
     } catch {
       setError("No se pudo cargar el perfil");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const hasChanges = profile && (
-    formName !== (profile.name || "") ||
-    formPhone !== (profile.phone || "") ||
-    formCity !== (profile.city || "") ||
-    formProvince !== (profile.province || "")
-  );
-
-  const handleSaveClick = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!hasChanges) return;
-    setShowConfirm(true);
-  };
-
-  const handleConfirmSave = async () => {
-    setSaving(true);
-    try {
-      const updated = await updateMyProfile({
-        name: formName,
-        phone: formPhone || null,
-        city: formCity || null,
-        province: formProvince || null,
-      });
-      setProfile({ ...profile!, ...updated });
-      const storedUser = getStoredUser();
-      if (storedUser) {
-        storedUser.name = formName;
-        localStorage.setItem("usuario", JSON.stringify(storedUser));
-      }
-      setShowConfirm(false);
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
-    } catch {
-      setError("Error al guardar cambios");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleCancel = () => {
-    if (profile) {
-      setFormName(profile.name || "");
-      setFormPhone(profile.phone || "");
-      setFormCity(profile.city || "");
-      setFormProvince(profile.province || "");
     }
   };
 
@@ -163,7 +91,6 @@ export default function MiPerfil() {
     <div className="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display text-[#181611] dark:text-gray-100">
       <Navbar activePage="mi-perfil" />
 
-      {/* Main */}
       <main className="flex-grow container mx-auto px-4 py-8 sm:px-6 lg:px-8 max-w-4xl">
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -178,92 +105,74 @@ export default function MiPerfil() {
           </div>
         )}
 
-        {saveSuccess && (
-          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 text-center mb-6 flex items-center justify-center gap-2">
-            <span className="material-symbols-outlined text-green-600 text-xl">check_circle</span>
-            <p className="text-green-700 dark:text-green-400 font-medium text-sm">Perfil actualizado correctamente</p>
-          </div>
-        )}
-
         {profile && !loading && (
-          <form onSubmit={handleSaveClick}>
+          <>
             {/* Header Card: Banner + Avatar + Name + Stats */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mb-6">
               {/* Banner */}
-              <div className="h-32 bg-gradient-to-r from-[#181611] to-[#5c584a] dark:from-[#111] dark:to-[#3a3830] relative">
+              <div className="h-28 sm:h-32 bg-gradient-to-r from-[#181611] to-[#5c584a] dark:from-[#111] dark:to-[#3a3830] relative">
                 <div className="absolute inset-0 bg-primary/10"></div>
               </div>
 
-              {/* Avatar + Name area */}
-              <div className="px-6 pb-8 relative">
-                {/* Avatar */}
-                <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 sm:left-10 sm:translate-x-0 group cursor-pointer">
+              {/* Avatar + Info */}
+              <div className="px-4 sm:px-6 pb-6 relative flex flex-col items-center sm:items-start">
+                {/* Avatar - centered on mobile, left on desktop */}
+                <div className="-mt-14 sm:-mt-16 mb-4 relative z-10">
                   <div
-                    className="relative w-32 h-32 rounded-full border-4 border-white dark:border-gray-800 overflow-hidden shadow-md flex items-center justify-center"
+                    className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-white dark:border-gray-800 overflow-hidden shadow-md flex items-center justify-center"
                     style={{ backgroundColor: profile.avatar_url ? undefined : getColor(profile.name) }}
                   >
                     {profile.avatar_url ? (
-                      <img alt={profile.name} className="w-full h-full object-cover transition-opacity group-hover:opacity-75" src={profile.avatar_url} />
+                      <img alt={profile.name} className="w-full h-full object-cover" src={profile.avatar_url} />
                     ) : (
-                      <span className="text-white font-bold text-4xl transition-opacity group-hover:opacity-75">{getInitials(formName || profile.name)}</span>
+                      <span className="text-white font-bold text-4xl">{getInitials(profile.name)}</span>
                     )}
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <span className="material-symbols-outlined text-white text-2xl">camera_alt</span>
-                    </div>
                   </div>
                 </div>
 
-                {/* Name + Badge + Stats */}
-                <div className="mt-24 sm:mt-4 sm:ml-40">
-                  <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
-                    {/* Name input */}
-                    <div className="w-full sm:max-w-md">
-                      <label className="block text-sm font-medium text-[#887f63] dark:text-gray-400 mb-1">Nombre Completo</label>
-                      <input
-                        className="block w-full rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm bg-white dark:bg-gray-900 dark:text-white px-3 py-2"
-                        value={formName}
-                        onChange={(e) => setFormName(e.target.value)}
-                        placeholder="Tu nombre completo"
-                      />
+                {/* Name + Badge + Member Since */}
+                <div className="text-center sm:text-left w-full">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-[#181611] dark:text-white leading-tight">
+                    {profile.name}
+                  </h1>
 
-                      {/* Badge + Member Since */}
-                      <div className="mt-4 flex flex-wrap items-center gap-4">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/20 text-yellow-700 dark:text-primary border border-primary/30 cursor-default">
-                          <span className="material-symbols-outlined text-sm mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
-                          Miembro Verificado
-                        </span>
-                        {profile.created_at && (
-                          <p className="text-sm text-[#887f63] dark:text-gray-400 flex items-center">
-                            <span className="material-symbols-outlined text-sm mr-1 text-gray-400">calendar_today</span>
-                            Miembro desde {formatMemberSince(profile.created_at)}
-                          </p>
-                        )}
-                      </div>
+                  <div className="mt-3 flex flex-wrap items-center justify-center sm:justify-start gap-3">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/20 text-yellow-700 dark:text-primary border border-primary/30">
+                      <span className="material-symbols-outlined text-sm mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
+                      Miembro Verificado
+                    </span>
+                    {profile.created_at && (
+                      <p className="text-sm text-[#887f63] dark:text-gray-400 flex items-center">
+                        <span className="material-symbols-outlined text-sm mr-1 text-gray-400">calendar_today</span>
+                        Miembro desde {formatMemberSince(profile.created_at)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Stats */}
+                <div className="mt-6 w-full border-t border-gray-100 dark:border-gray-700 pt-4">
+                  <div className="grid grid-cols-2 divide-x divide-gray-100 dark:divide-gray-700">
+                    <div className="text-center px-4">
+                      <span className="block text-2xl font-bold text-[#181611] dark:text-white">{reviewCount}</span>
+                      <span className="text-xs font-medium text-[#887f63] dark:text-gray-400 uppercase tracking-wide">Opiniones</span>
                     </div>
-
-                    {/* Stats */}
-                    <div className="flex gap-6 justify-center sm:justify-end opacity-75">
-                      <div className="text-center">
-                        <span className="block text-xl font-bold text-[#181611] dark:text-white">{reviewCount}</span>
-                        <span className="text-xs font-medium text-[#887f63] dark:text-gray-400 uppercase tracking-wide">Opiniones</span>
+                    <div className="text-center px-4">
+                      <div className="flex items-center justify-center gap-1">
+                        <span className="text-2xl font-bold text-[#181611] dark:text-white">{avgRating}</span>
+                        <span className="material-symbols-outlined text-primary text-base" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                       </div>
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-0.5">
-                          <span className="text-xl font-bold text-[#181611] dark:text-white">{avgRating}</span>
-                          <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                        </div>
-                        <span className="text-xs font-medium text-[#887f63] dark:text-gray-400 uppercase tracking-wide">Media</span>
-                      </div>
+                      <span className="text-xs font-medium text-[#887f63] dark:text-gray-400 uppercase tracking-wide">Media</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Privacy footer */}
-              <div className="bg-[#f8f7f6] dark:bg-gray-900/50 px-6 py-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+              <div className="bg-[#f8f7f6] dark:bg-gray-900/50 px-4 sm:px-6 py-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
                 <p className="text-xs text-[#887f63] dark:text-gray-400 flex items-center">
                   <span className="material-symbols-outlined text-sm mr-2 text-primary">visibility</span>
-                  Estas editando tu perfil. Los campos privados no seran visibles para otros usuarios.
+                  Perfil con privacidad protegida
                 </p>
                 <Link to={`/usuario/${profile.id}`} className="text-xs text-primary font-medium hover:underline whitespace-nowrap ml-4">
                   Ver perfil publico
@@ -271,78 +180,56 @@ export default function MiPerfil() {
               </div>
             </div>
 
-            {/* Contact Data (Private) */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 mb-6">
+            {/* Contact Info (read-only) */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 sm:p-6 mb-6">
               <h2 className="text-lg font-bold text-[#181611] dark:text-white mb-1 flex items-center">
                 <span className="material-symbols-outlined mr-2 text-gray-400">lock</span>
-                Datos de Contacto (Privado)
+                Datos de Contacto
               </h2>
-              <p className="text-sm text-[#887f63] dark:text-gray-400 mb-6 ml-8">
-                Esta informacion solo la usaremos para contactarte sobre tus servicios en MotoYA.
+              <p className="text-sm text-[#887f63] dark:text-gray-400 mb-5 ml-8">
+                Para modificar estos datos, ingresa al Centro de Seguridad.
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 ml-0 md:ml-8">
-                {/* Phone */}
-                <div>
-                  <label className="block text-sm font-medium text-[#5c584a] dark:text-gray-300" htmlFor="phone">Telefono Movil</label>
-                  <div className="mt-1 relative rounded-lg shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-[#887f63] sm:text-sm">+54</span>
-                    </div>
-                    <input
-                      className="focus:ring-1 focus:ring-primary focus:border-primary block w-full pl-12 sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 dark:text-white py-2"
-                      id="phone"
-                      placeholder="351 123 4567"
-                      value={formPhone}
-                      onChange={(e) => setFormPhone(e.target.value)}
-                    />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 ml-0 sm:ml-8">
+                {/* Email */}
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-[#f8f7f6] dark:bg-gray-900/50">
+                  <span className="material-symbols-outlined text-gray-400 text-xl">email</span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-[#887f63] dark:text-gray-400">Email</p>
+                    <p className="text-sm font-medium text-[#181611] dark:text-white truncate">{profile.email}</p>
                   </div>
                 </div>
 
-                {/* Email (locked) */}
-                <div>
-                  <label className="block text-sm font-medium text-[#5c584a] dark:text-gray-300" htmlFor="email">Email</label>
-                  <div className="mt-1">
-                    <input
-                      className="block w-full sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-900 text-gray-500 dark:text-gray-400 cursor-not-allowed py-2 px-3"
-                      disabled
-                      id="email"
-                      type="email"
-                      value={profile.email}
-                    />
-                    <p className="mt-1 text-xs text-gray-400">El email no se puede cambiar directamente.</p>
+                {/* Phone */}
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-[#f8f7f6] dark:bg-gray-900/50">
+                  <span className="material-symbols-outlined text-gray-400 text-xl">phone</span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-[#887f63] dark:text-gray-400">Telefono</p>
+                    <p className="text-sm font-medium text-[#181611] dark:text-white">
+                      {profile.phone ? `+54 ${profile.phone}` : "No registrado"}
+                    </p>
                   </div>
                 </div>
 
                 {/* City */}
-                <div>
-                  <label className="block text-sm font-medium text-[#5c584a] dark:text-gray-300" htmlFor="city">Ciudad</label>
-                  <div className="mt-1">
-                    <input
-                      className="focus:ring-1 focus:ring-primary focus:border-primary block w-full sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 dark:text-white py-2 px-3"
-                      id="city"
-                      placeholder="Ej: Cordoba"
-                      value={formCity}
-                      onChange={(e) => setFormCity(e.target.value)}
-                    />
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-[#f8f7f6] dark:bg-gray-900/50">
+                  <span className="material-symbols-outlined text-gray-400 text-xl">location_city</span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-[#887f63] dark:text-gray-400">Ciudad</p>
+                    <p className="text-sm font-medium text-[#181611] dark:text-white">
+                      {profile.city || "No registrada"}
+                    </p>
                   </div>
                 </div>
 
                 {/* Province */}
-                <div>
-                  <label className="block text-sm font-medium text-[#5c584a] dark:text-gray-300" htmlFor="province">Provincia</label>
-                  <div className="mt-1">
-                    <select
-                      className="focus:ring-1 focus:ring-primary focus:border-primary block w-full sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 dark:text-white py-2 px-3"
-                      id="province"
-                      value={formProvince}
-                      onChange={(e) => setFormProvince(e.target.value)}
-                    >
-                      <option value="">Seleccionar provincia</option>
-                      {PROVINCIAS.filter(Boolean).map((p) => (
-                        <option key={p} value={p}>{p}</option>
-                      ))}
-                    </select>
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-[#f8f7f6] dark:bg-gray-900/50">
+                  <span className="material-symbols-outlined text-gray-400 text-xl">map</span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-[#887f63] dark:text-gray-400">Provincia</p>
+                    <p className="text-sm font-medium text-[#181611] dark:text-white">
+                      {profile.province || "No registrada"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -361,7 +248,7 @@ export default function MiPerfil() {
                   <h3 className="font-bold text-sm text-[#181611] dark:text-white group-hover:text-primary transition-colors">
                     Centro de Seguridad
                   </h3>
-                  <p className="text-xs text-[#887f63] dark:text-gray-400">Cambiar contraseña y verificacion de telefono</p>
+                  <p className="text-xs text-[#887f63] dark:text-gray-400">Cambiar contraseña, telefono, ciudad y provincia</p>
                 </div>
               </div>
               <span className="material-symbols-outlined text-gray-400 group-hover:text-primary text-[20px]">chevron_right</span>
@@ -369,7 +256,7 @@ export default function MiPerfil() {
 
             {/* Mis Negocios (if any) */}
             {myProviders.length > 0 && (
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 mb-6">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 sm:p-6 mb-6">
                 <h2 className="text-lg font-bold text-[#181611] dark:text-white mb-4 flex items-center">
                   <span className="material-symbols-outlined mr-2 text-primary">storefront</span>
                   Mis Negocios
@@ -406,26 +293,8 @@ export default function MiPerfil() {
               </div>
             )}
 
-            {/* Save / Cancel Buttons */}
-            <div className="flex justify-end gap-3 mb-10 sticky bottom-4 z-40 bg-background-light dark:bg-background-dark py-4 border-t border-gray-200 dark:border-gray-800 md:static md:bg-transparent md:border-0 md:py-0">
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-sm font-medium text-[#5c584a] dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={!hasChanges}
-                className="inline-flex justify-center px-5 py-2 border border-transparent text-sm font-bold rounded-lg shadow-sm text-[#181611] bg-primary hover:bg-[#d6aa28] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Guardar Cambios
-              </button>
-            </div>
-
             {/* Review History (read-only) */}
-            <div className="mt-8 opacity-75">
+            <div className="mt-8">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-[#181611] dark:text-white flex items-center">
                   <span className="material-symbols-outlined mr-2 text-primary">rate_review</span>
@@ -449,15 +318,15 @@ export default function MiPerfil() {
               {reviews.length > 0 && (
                 <div className="space-y-4">
                   {reviews.map((review) => (
-                    <div key={review.id} className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+                    <div key={review.id} className="bg-white dark:bg-gray-800 rounded-lg p-5 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-700">
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           {review.provider ? (
-                            <Link to={`/taller/${review.provider.id}`} className="font-bold text-lg text-[#181611] dark:text-white hover:text-primary transition-colors">
+                            <Link to={`/taller/${review.provider.id}`} className="font-bold text-base sm:text-lg text-[#181611] dark:text-white hover:text-primary transition-colors">
                               {review.provider.name}
                             </Link>
                           ) : (
-                            <span className="font-bold text-lg text-gray-400">Negocio eliminado</span>
+                            <span className="font-bold text-base sm:text-lg text-gray-400">Negocio eliminado</span>
                           )}
                           <div className="flex text-primary mt-1">
                             {[1, 2, 3, 4, 5].map((star) => (
@@ -482,81 +351,9 @@ export default function MiPerfil() {
                 </div>
               )}
             </div>
-          </form>
+          </>
         )}
       </main>
-
-      {/* Confirmation Modal */}
-      {showConfirm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 max-w-md w-full p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                <span className="material-symbols-outlined text-primary">shield</span>
-              </div>
-              <div>
-                <h3 className="font-bold text-lg">Confirmar cambios</h3>
-                <p className="text-xs text-[#887f63] dark:text-gray-400">Revisa antes de guardar</p>
-              </div>
-            </div>
-
-            <div className="space-y-2 mb-6 bg-[#f8f7f6] dark:bg-gray-900 rounded-lg p-4">
-              {formName !== (profile?.name || "") && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-[#887f63] dark:text-gray-400">Nombre</span>
-                  <span className="font-medium">{formName}</span>
-                </div>
-              )}
-              {formPhone !== (profile?.phone || "") && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-[#887f63] dark:text-gray-400">Telefono</span>
-                  <span className="font-medium">{formPhone || "\u2014"}</span>
-                </div>
-              )}
-              {formCity !== (profile?.city || "") && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-[#887f63] dark:text-gray-400">Ciudad</span>
-                  <span className="font-medium">{formCity || "\u2014"}</span>
-                </div>
-              )}
-              {formProvince !== (profile?.province || "") && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-[#887f63] dark:text-gray-400">Provincia</span>
-                  <span className="font-medium">{formProvince || "\u2014"}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setShowConfirm(false)}
-                className="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmSave}
-                disabled={saving}
-                className="flex-1 bg-primary hover:bg-[#d6aa28] text-[#181611] font-bold text-sm px-4 py-2.5 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {saving ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#181611]"></div>
-                    Guardando...
-                  </>
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined text-[18px]">check</span>
-                    Confirmar
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <Footer />
     </div>
