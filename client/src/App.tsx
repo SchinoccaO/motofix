@@ -18,6 +18,17 @@ import ResenaForm from "./pages/ResenaForm"; // Formulario para dejar reseña
 import PerfilPublico from "./pages/PerfilPublico"; // Perfil público de usuario
 import MiPerfil from "./pages/MiPerfil"; // Mi perfil (privado, editable)
 import Seguridad from "./pages/Seguridad"; // Centro de seguridad (contraseña, teléfono)
+
+// Páginas del footer - Compañía
+import SobreNosotros from "./pages/SobreNosotros";
+import Carreras from "./pages/Carreras";
+import Blog from "./pages/Blog";
+
+// Páginas del footer - Soporte
+import Ayuda from "./pages/Ayuda";
+import Terminos from "./pages/Terminos";
+import Privacidad from "./pages/Privacidad";
+
 import "./App.css";
 
 // ─── COMPONENTE PRINCIPAL ────────────────────────────────────────────────────
@@ -37,6 +48,16 @@ function App(): JSX.Element {
       <Route path="/mi-perfil" element={<MiPerfil />} />
       <Route path="/mi-perfil/seguridad" element={<Seguridad />} />
       <Route path="/usuario/:id" element={<PerfilPublico />} />
+
+      {/* Páginas del footer - Compañía */}
+      <Route path="/sobre-nosotros" element={<SobreNosotros />} />
+      <Route path="/carreras" element={<Carreras />} />
+      <Route path="/blog" element={<Blog />} />
+
+      {/* Páginas del footer - Soporte */}
+      <Route path="/ayuda" element={<Ayuda />} />
+      <Route path="/terminos" element={<Terminos />} />
+      <Route path="/privacidad" element={<Privacidad />} />
     </Routes>
     </>
   );

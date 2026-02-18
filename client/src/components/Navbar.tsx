@@ -77,7 +77,7 @@ export default function Navbar({ activePage }: NavbarProps) {
         {/* Right: Nav links + User section + Hamburger */}
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="hidden lg:flex items-center gap-6 mr-4">
-            <Link to="/talleres" className={linkClass("talleres")}>Talleres</Link>
+            <Link to="/talleres" className={linkClass("talleres")}>Talleres y Repuestos</Link>
             <Link to="/registro-taller" className={linkClass("registro-taller")}>Registrar taller</Link>
           </div>
           {user ? (
@@ -129,7 +129,7 @@ export default function Navbar({ activePage }: NavbarProps) {
       {menuOpen && (
         <div className="lg:hidden border-t border-[#f4f3f0] dark:border-gray-800 bg-white dark:bg-background-dark px-4 py-2 shadow-lg">
           <Link to="/talleres" className={mobileLinkClass("talleres")} onClick={() => setMenuOpen(false)}>
-            Talleres
+            Talleres y Repuestos
           </Link>
           <Link to="/registro-taller" className={mobileLinkClass("registro-taller")} onClick={() => setMenuOpen(false)}>
             Registrar taller
