@@ -136,7 +136,7 @@ export const obtenerPerfil = async (req, res) => {
 
 export const actualizarPerfil = async (req, res) => {
     try {
-        const { name, phone, avatar_url, city, province } = req.body;
+        const { phone, avatar_url, city, province } = req.body;
 
         const usuario = await User.findByPk(req.usuario.id);
 
@@ -144,7 +144,7 @@ export const actualizarPerfil = async (req, res) => {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
 
-        if (name !== undefined) usuario.name = name;
+        // name is NOT editable after registration
         if (phone !== undefined) usuario.phone = phone;
         if (avatar_url !== undefined) usuario.avatar_url = avatar_url;
         if (city !== undefined) usuario.city = city;

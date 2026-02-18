@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Logo from "./Logo";
 
 export default function Footer() {
@@ -19,47 +20,47 @@ export default function Footer() {
             <h4 className="font-bold text-[#181611] dark:text-white">
               Compañía
             </h4>
-            <a
+            <Link
               className="text-gray-600 dark:text-gray-400 hover:text-primary text-sm"
-              href="#"
+              to="/sobre-nosotros"
             >
               Sobre nosotros
-            </a>
-            <a
+            </Link>
+            <Link
               className="text-gray-600 dark:text-gray-400 hover:text-primary text-sm"
-              href="#"
+              to="/carreras"
             >
               Carreras
-            </a>
-            <a
+            </Link>
+            <Link
               className="text-gray-600 dark:text-gray-400 hover:text-primary text-sm"
-              href="#"
+              to="/blog"
             >
               Blog
-            </a>
+            </Link>
           </div>
           <div className="flex flex-col gap-2">
             <h4 className="font-bold text-[#181611] dark:text-white">
               Soporte
             </h4>
-            <a
+            <Link
               className="text-gray-600 dark:text-gray-400 hover:text-primary text-sm"
-              href="#"
+              to="/ayuda"
             >
               Ayuda
-            </a>
-            <a
+            </Link>
+            <Link
               className="text-gray-600 dark:text-gray-400 hover:text-primary text-sm"
-              href="#"
+              to="/terminos"
             >
               Términos y condiciones
-            </a>
-            <a
+            </Link>
+            <Link
               className="text-gray-600 dark:text-gray-400 hover:text-primary text-sm"
-              href="#"
+              to="/privacidad"
             >
               Privacidad
-            </a>
+            </Link>
           </div>
           <div className="flex flex-col gap-2">
             <h4 className="font-bold text-[#181611] dark:text-white">
