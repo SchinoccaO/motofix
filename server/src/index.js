@@ -22,8 +22,8 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin && process.env.NODE_ENV === 'development') return callback(null, true);
-    if (!origin) return callback(new Error('Not allowed by CORS'));
+    // Permitir requests sin origin (server-to-server, Render health checks, etc.)
+    if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
     console.warn(`CORS blocked origin: ${origin}`);
     callback(new Error('Not allowed by CORS'));
