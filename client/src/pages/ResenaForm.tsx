@@ -135,7 +135,7 @@ export default function ResenaForm() {
           )}
 
           {!loading && provider && (
-            <main className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-[#f4f3f0] dark:border-[#3f3b2e] overflow-hidden">
+            <main className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-[#f4f3f0] dark:border-input-border-dark overflow-hidden">
               {/* PageHeading */}
               <div className="p-6 md:p-8 pb-4">
                 <div className="flex flex-col gap-2">
@@ -192,7 +192,7 @@ export default function ResenaForm() {
                   </div>
                 </div>
 
-                <div className="border-t border-gray-100 dark:border-gray-800 mx-8 my-2"></div>
+                <div className="border-t border-gray-100 dark:border-elevated-dark mx-8 my-2"></div>
 
                 {/* Comments Section */}
                 <div className="px-6 md:px-8 py-4 pb-6">
@@ -201,7 +201,7 @@ export default function ResenaForm() {
                   </h2>
                   <div className="relative">
                     <textarea
-                      className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-card-dark text-gray-900 dark:text-white shadow-sm focus:border-primary focus:ring-primary text-sm p-3 resize-y min-h-[120px]"
+                      className="w-full rounded-lg border-gray-300 dark:border-input-border-dark bg-white dark:bg-card-dark text-gray-900 dark:text-white shadow-sm focus:border-primary focus:ring-primary text-sm p-3 resize-y min-h-[120px]"
                       placeholder="Conta mas detalles sobre el servicio, la atencion y el precio..."
                       rows={6}
                       value={comment}
@@ -212,7 +212,7 @@ export default function ResenaForm() {
                 </div>
 
                 {/* Footer Actions */}
-                <div className="px-6 md:px-8 py-6 bg-gray-50 dark:bg-[#252015] border-t border-[#f4f3f0] dark:border-[#3f3b2e] flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
+                <div className="px-6 md:px-8 py-6 bg-gray-50 dark:bg-surface-dark border-t border-[#f4f3f0] dark:border-input-border-dark flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
                   <Link
                     to={`/taller/${id}`}
                     className="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-4 py-2"

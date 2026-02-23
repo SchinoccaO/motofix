@@ -59,17 +59,17 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-background-dark flex flex-col">
       {/* Navbar simple: Logo + Volver */}
-      <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white">
+      <nav className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-elevated-dark bg-white dark:bg-background-dark">
         <div className="px-4 md:px-8 lg:px-12 py-3 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <Logo size={32} />
-            <span className="text-xl font-bold text-gray-900">MotoFIX</span>
+            <span className="text-xl font-bold text-gray-900 dark:text-white">MotoFIX</span>
           </Link>
           <Link
             to="/"
-            className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-primary transition-colors"
+            className="flex items-center gap-1 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-primary transition-colors"
           >
             <span className="material-symbols-outlined text-lg">arrow_back</span>
             Volver
@@ -78,23 +78,23 @@ export default function Register() {
       </nav>
 
       <div className="flex-1 flex items-center justify-center py-12 px-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+      <div className="max-w-md w-full bg-white dark:bg-card-dark rounded-lg shadow-lg p-8">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Crear Cuenta</h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Crear Cuenta</h2>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Únete a la comunidad motera
           </p>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-400 rounded">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Nombre Completo
             </label>
             <input
@@ -103,13 +103,13 @@ export default function Register() {
               value={formData.name}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-input-border-dark rounded-lg bg-white dark:bg-elevated-dark text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
               placeholder="Juan Pérez"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Email
             </label>
             <input
@@ -118,13 +118,13 @@ export default function Register() {
               value={formData.email}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-input-border-dark rounded-lg bg-white dark:bg-elevated-dark text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
               placeholder="tu@email.com"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Contraseña
             </label>
             <input
@@ -134,7 +134,7 @@ export default function Register() {
               onChange={handleChange}
               required
               minLength={8}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-input-border-dark rounded-lg bg-white dark:bg-elevated-dark text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
               placeholder="Min 8 caracteres, mayúscula, minúscula y número"
             />
           </div>
@@ -151,16 +151,16 @@ export default function Register() {
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+              <div className="w-full border-t border-gray-300 dark:border-input-border-dark" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">O registrate con</span>
+              <span className="px-2 bg-white dark:bg-card-dark text-gray-500 dark:text-gray-400">O registrate con</span>
             </div>
           </div>
 
           <div className="mt-4 flex justify-center">
             {googleLoading ? (
-              <p className="text-sm text-gray-500">Conectando con Google...</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Conectando con Google...</p>
             ) : (
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
@@ -174,11 +174,11 @@ export default function Register() {
           </div>
         </div>
 
-        <p className="mt-6 text-center text-sm text-gray-600">
+        <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
           ¿Ya tienes cuenta?{" "}
           <Link
             to="/login"
-            className="text-yellow-600 hover:text-yellow-700 font-medium"
+            className="text-yellow-600 hover:text-yellow-700 dark:text-yellow-500 dark:hover:text-yellow-400 font-medium"
           >
             Inicia sesión aquí
           </Link>

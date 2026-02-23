@@ -267,7 +267,7 @@ export default function TallerProfile() {
                   </div>
                 )}
 
-                <hr className="border-gray-200 dark:border-gray-800" />
+                <hr className="border-gray-200 dark:border-elevated-dark" />
 
                 {/* Reviews Section */}
                 <div id="reviews">
@@ -290,7 +290,7 @@ export default function TallerProfile() {
 
                   {/* Inline Review Form */}
                   {showReviewForm && (
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 mb-8">
+                    <div className="bg-white dark:bg-card-dark p-6 rounded-xl border border-gray-100 dark:border-input-border-dark mb-8">
                       <h4 className="font-bold text-lg mb-4">Tu resena para {provider.name}</h4>
 
                       {reviewError && (
@@ -341,7 +341,7 @@ export default function TallerProfile() {
                         <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Comentario</p>
                         <div className="relative">
                           <textarea
-                            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-sm p-3 resize-y min-h-[100px] focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
+                            className="w-full rounded-lg border border-gray-300 dark:border-input-border-dark bg-white dark:bg-elevated-dark text-gray-900 dark:text-white text-sm p-3 resize-y min-h-[100px] focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
                             placeholder="Conta tu experiencia..."
                             rows={4}
                             value={reviewComment}
@@ -360,7 +360,7 @@ export default function TallerProfile() {
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {/* Estimated */}
-                          <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                          <div className="bg-gray-50 dark:bg-elevated-dark rounded-lg p-3 border border-gray-200 dark:border-input-border-dark">
                             <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-1">
                               <span className="material-symbols-outlined text-sm">schedule</span>
                               Tiempo estimado
@@ -370,7 +370,7 @@ export default function TallerProfile() {
                                 <select
                                   value={estDays}
                                   onChange={(e) => setEstDays(Number(e.target.value))}
-                                  className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm py-1.5 px-2 focus:border-primary focus:outline-none"
+                                  className="w-full rounded border border-gray-300 dark:border-input-border-dark bg-white dark:bg-card-dark text-sm py-1.5 px-2 focus:border-primary focus:outline-none"
                                 >
                                   {Array.from({ length: 31 }, (_, i) => (
                                     <option key={i} value={i}>{i} {i === 1 ? "dia" : "dias"}</option>
@@ -381,7 +381,7 @@ export default function TallerProfile() {
                                 <select
                                   value={estHours}
                                   onChange={(e) => setEstHours(Number(e.target.value))}
-                                  className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm py-1.5 px-2 focus:border-primary focus:outline-none"
+                                  className="w-full rounded border border-gray-300 dark:border-input-border-dark bg-white dark:bg-card-dark text-sm py-1.5 px-2 focus:border-primary focus:outline-none"
                                 >
                                   {Array.from({ length: 24 }, (_, i) => (
                                     <option key={i} value={i}>{i} {i === 1 ? "hora" : "horas"}</option>
@@ -391,7 +391,7 @@ export default function TallerProfile() {
                             </div>
                           </div>
                           {/* Actual */}
-                          <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                          <div className="bg-gray-50 dark:bg-elevated-dark rounded-lg p-3 border border-gray-200 dark:border-input-border-dark">
                             <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-1">
                               <span className="material-symbols-outlined text-sm">timer</span>
                               Tiempo real
@@ -401,7 +401,7 @@ export default function TallerProfile() {
                                 <select
                                   value={actDays}
                                   onChange={(e) => setActDays(Number(e.target.value))}
-                                  className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm py-1.5 px-2 focus:border-primary focus:outline-none"
+                                  className="w-full rounded border border-gray-300 dark:border-input-border-dark bg-white dark:bg-card-dark text-sm py-1.5 px-2 focus:border-primary focus:outline-none"
                                 >
                                   {Array.from({ length: 31 }, (_, i) => (
                                     <option key={i} value={i}>{i} {i === 1 ? "dia" : "dias"}</option>
@@ -412,7 +412,7 @@ export default function TallerProfile() {
                                 <select
                                   value={actHours}
                                   onChange={(e) => setActHours(Number(e.target.value))}
-                                  className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm py-1.5 px-2 focus:border-primary focus:outline-none"
+                                  className="w-full rounded border border-gray-300 dark:border-input-border-dark bg-white dark:bg-card-dark text-sm py-1.5 px-2 focus:border-primary focus:outline-none"
                                 >
                                   {Array.from({ length: 24 }, (_, i) => (
                                     <option key={i} value={i}>{i} {i === 1 ? "hora" : "horas"}</option>
@@ -459,7 +459,7 @@ export default function TallerProfile() {
 
                   {/* Ratings Summary */}
                   {totalReviews > 0 && (
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 mb-8">
+                    <div className="bg-white dark:bg-card-dark p-6 rounded-xl border border-gray-100 dark:border-input-border-dark mb-8">
                       <div className="flex flex-col md:flex-row gap-8 items-center">
                         <div className="flex flex-col items-center justify-center min-w-[140px]">
                           <span className="text-6xl font-black text-text-main dark:text-white">
@@ -490,7 +490,7 @@ export default function TallerProfile() {
                             return (
                               <div key={stars} className="flex items-center gap-3 text-sm">
                                 <span className="font-bold w-3">{stars}</span>
-                                <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                <div className="flex-1 h-2 bg-gray-200 dark:bg-elevated-dark rounded-full overflow-hidden">
                                   <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }}></div>
                                 </div>
                                 <span className="text-text-secondary w-8 text-right">{pct}%</span>
@@ -504,7 +504,7 @@ export default function TallerProfile() {
 
                   {/* Individual Reviews */}
                   {totalReviews === 0 && !showReviewForm && (
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-12 text-center">
+                    <div className="bg-gray-50 dark:bg-card-dark rounded-xl p-12 text-center">
                       <span className="material-symbols-outlined text-gray-400 text-5xl mb-3 block">chat_bubble</span>
                       <h4 className="font-bold text-lg mb-1">Aun no hay resenas</h4>
                       <p className="text-gray-500 dark:text-gray-400 text-sm">
@@ -516,7 +516,7 @@ export default function TallerProfile() {
                   {totalReviews > 0 && (
                     <div className="space-y-6">
                       {reviews.map((review: ReviewData) => (
-                        <div key={review.id} className="border-b border-gray-100 dark:border-gray-800 pb-6">
+                        <div key={review.id} className="border-b border-gray-100 dark:border-elevated-dark pb-6">
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center gap-3">
                               <div
@@ -564,13 +564,13 @@ export default function TallerProfile() {
               <div className="lg:col-span-1">
                 <div className="sticky top-24 space-y-6">
                   {/* Contact Card */}
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
+                  <div className="bg-white dark:bg-card-dark rounded-xl shadow-lg border border-gray-100 dark:border-input-border-dark overflow-hidden">
                     <div className="p-6">
                       <h3 className="font-bold text-lg mb-4">Contacto</h3>
                       <div className="space-y-4 mb-6">
                         {provider.location && (
                           <div className="flex items-start gap-3">
-                            <div className="mt-1 bg-gray-100 dark:bg-gray-700 p-1.5 rounded text-gray-600 dark:text-gray-300">
+                            <div className="mt-1 bg-gray-100 dark:bg-elevated-dark p-1.5 rounded text-gray-600 dark:text-gray-300">
                               <span className="material-symbols-outlined text-sm">location_on</span>
                             </div>
                             <div>
@@ -583,7 +583,7 @@ export default function TallerProfile() {
                         )}
                         {provider.phone && (
                           <div className="flex items-start gap-3">
-                            <div className="mt-1 bg-gray-100 dark:bg-gray-700 p-1.5 rounded text-gray-600 dark:text-gray-300">
+                            <div className="mt-1 bg-gray-100 dark:bg-elevated-dark p-1.5 rounded text-gray-600 dark:text-gray-300">
                               <span className="material-symbols-outlined text-sm">call</span>
                             </div>
                             <div>
@@ -594,7 +594,7 @@ export default function TallerProfile() {
                         )}
                         {provider.email && (
                           <div className="flex items-start gap-3">
-                            <div className="mt-1 bg-gray-100 dark:bg-gray-700 p-1.5 rounded text-gray-600 dark:text-gray-300">
+                            <div className="mt-1 bg-gray-100 dark:bg-elevated-dark p-1.5 rounded text-gray-600 dark:text-gray-300">
                               <span className="material-symbols-outlined text-sm">mail</span>
                             </div>
                             <div>
@@ -605,7 +605,7 @@ export default function TallerProfile() {
                         )}
                         {provider.website && (
                           <div className="flex items-start gap-3">
-                            <div className="mt-1 bg-gray-100 dark:bg-gray-700 p-1.5 rounded text-gray-600 dark:text-gray-300">
+                            <div className="mt-1 bg-gray-100 dark:bg-elevated-dark p-1.5 rounded text-gray-600 dark:text-gray-300">
                               <span className="material-symbols-outlined text-sm">language</span>
                             </div>
                             <div>
@@ -635,7 +635,7 @@ export default function TallerProfile() {
                           </a>
                           <a
                             href={`tel:${provider.phone}`}
-                            className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-text-main dark:text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                            className="w-full bg-gray-100 dark:bg-elevated-dark hover:bg-gray-200 dark:hover:bg-elevated-dark text-text-main dark:text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                           >
                             <span className="material-symbols-outlined text-xl">call</span>
                             Llamar

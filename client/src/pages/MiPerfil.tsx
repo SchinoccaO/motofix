@@ -108,7 +108,7 @@ export default function MiPerfil() {
         {profile && !loading && (
           <>
             {/* Header Card: Banner + Avatar + Name + Stats */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mb-6">
+            <div className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-gray-100 dark:border-input-border-dark overflow-hidden mb-6">
               {/* Banner */}
               <div className="h-28 sm:h-32 bg-gradient-to-r from-[#181611] to-[#5c584a] dark:from-[#111] dark:to-[#3a3830] relative">
                 <div className="absolute inset-0 bg-primary/10"></div>
@@ -119,7 +119,7 @@ export default function MiPerfil() {
                 {/* Avatar - centered on mobile, left on desktop */}
                 <div className="-mt-14 sm:-mt-16 mb-4 relative z-10">
                   <div
-                    className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-white dark:border-gray-800 overflow-hidden shadow-md flex items-center justify-center"
+                    className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-white dark:border-elevated-dark overflow-hidden shadow-md flex items-center justify-center"
                     style={{ backgroundColor: profile.avatar_url ? undefined : getColor(profile.name) }}
                   >
                     {profile.avatar_url ? (
@@ -151,7 +151,7 @@ export default function MiPerfil() {
                 </div>
 
                 {/* Stats */}
-                <div className="mt-6 w-full border-t border-gray-100 dark:border-gray-700 pt-4">
+                <div className="mt-6 w-full border-t border-gray-100 dark:border-input-border-dark pt-4">
                   <div className="grid grid-cols-2 divide-x divide-gray-100 dark:divide-gray-700">
                     <div className="text-center px-4">
                       <span className="block text-2xl font-bold text-[#181611] dark:text-white">{reviewCount}</span>
@@ -169,7 +169,7 @@ export default function MiPerfil() {
               </div>
 
               {/* Privacy footer */}
-              <div className="bg-[#f8f7f6] dark:bg-gray-900/50 px-4 sm:px-6 py-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+              <div className="bg-[#f8f7f6] dark:bg-surface-dark px-4 sm:px-6 py-3 border-t border-gray-100 dark:border-input-border-dark flex items-center justify-between">
                 <p className="text-xs text-[#887f63] dark:text-gray-400 flex items-center">
                   <span className="material-symbols-outlined text-sm mr-2 text-primary">visibility</span>
                   Perfil con privacidad protegida
@@ -181,7 +181,7 @@ export default function MiPerfil() {
             </div>
 
             {/* Contact Info (read-only) */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 sm:p-6 mb-6">
+            <div className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-gray-100 dark:border-input-border-dark p-5 sm:p-6 mb-6">
               <h2 className="text-lg font-bold text-[#181611] dark:text-white mb-1 flex items-center">
                 <span className="material-symbols-outlined mr-2 text-gray-400">lock</span>
                 Datos de Contacto
@@ -192,7 +192,7 @@ export default function MiPerfil() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 ml-0 sm:ml-8">
                 {/* Email */}
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-[#f8f7f6] dark:bg-gray-900/50">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-[#f8f7f6] dark:bg-surface-dark">
                   <span className="material-symbols-outlined text-gray-400 text-xl">email</span>
                   <div className="min-w-0">
                     <p className="text-xs font-medium text-[#887f63] dark:text-gray-400">Email</p>
@@ -201,7 +201,7 @@ export default function MiPerfil() {
                 </div>
 
                 {/* Phone */}
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-[#f8f7f6] dark:bg-gray-900/50">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-[#f8f7f6] dark:bg-surface-dark">
                   <span className="material-symbols-outlined text-gray-400 text-xl">phone</span>
                   <div className="min-w-0">
                     <p className="text-xs font-medium text-[#887f63] dark:text-gray-400">Telefono</p>
@@ -212,7 +212,7 @@ export default function MiPerfil() {
                 </div>
 
                 {/* City */}
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-[#f8f7f6] dark:bg-gray-900/50">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-[#f8f7f6] dark:bg-surface-dark">
                   <span className="material-symbols-outlined text-gray-400 text-xl">location_city</span>
                   <div className="min-w-0">
                     <p className="text-xs font-medium text-[#887f63] dark:text-gray-400">Ciudad</p>
@@ -223,7 +223,7 @@ export default function MiPerfil() {
                 </div>
 
                 {/* Province */}
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-[#f8f7f6] dark:bg-gray-900/50">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-[#f8f7f6] dark:bg-surface-dark">
                   <span className="material-symbols-outlined text-gray-400 text-xl">map</span>
                   <div className="min-w-0">
                     <p className="text-xs font-medium text-[#887f63] dark:text-gray-400">Provincia</p>
@@ -238,7 +238,7 @@ export default function MiPerfil() {
             {/* Security Link */}
             <Link
               to="/mi-perfil/seguridad"
-              className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 mb-6 group hover:border-primary/50 transition-all"
+              className="flex items-center justify-between bg-white dark:bg-card-dark rounded-xl shadow-sm border border-gray-100 dark:border-input-border-dark p-5 mb-6 group hover:border-primary/50 transition-all"
             >
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-lg bg-red-50 dark:bg-red-900/20 flex items-center justify-center flex-shrink-0">
@@ -256,7 +256,7 @@ export default function MiPerfil() {
 
             {/* Mis Negocios (if any) */}
             {myProviders.length > 0 && (
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 sm:p-6 mb-6">
+              <div className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-gray-100 dark:border-input-border-dark p-5 sm:p-6 mb-6">
                 <h2 className="text-lg font-bold text-[#181611] dark:text-white mb-4 flex items-center">
                   <span className="material-symbols-outlined mr-2 text-primary">storefront</span>
                   Mis Negocios
@@ -266,7 +266,7 @@ export default function MiPerfil() {
                     <Link
                       key={prov.id}
                       to={`/taller/${prov.id}`}
-                      className="flex items-center gap-4 p-3 rounded-lg border border-gray-100 dark:border-gray-700 hover:border-primary/50 hover:shadow-sm transition-all group"
+                      className="flex items-center gap-4 p-3 rounded-lg border border-gray-100 dark:border-input-border-dark hover:border-primary/50 hover:shadow-sm transition-all group"
                     >
                       <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                         <span className="material-symbols-outlined text-primary">
@@ -300,14 +300,14 @@ export default function MiPerfil() {
                   <span className="material-symbols-outlined mr-2 text-primary">rate_review</span>
                   Historial de Opiniones
                 </h2>
-                <span className="text-xs text-[#887f63] dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full border border-gray-200 dark:border-gray-700 flex items-center">
+                <span className="text-xs text-[#887f63] dark:text-gray-400 bg-gray-100 dark:bg-card-dark px-3 py-1 rounded-full border border-gray-200 dark:border-input-border-dark flex items-center">
                   <span className="material-symbols-outlined text-xs mr-1">info</span>
                   Las resenas no son editables
                 </span>
               </div>
 
               {reviews.length === 0 && (
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-100 dark:border-gray-700">
+                <div className="bg-white dark:bg-card-dark rounded-xl p-12 text-center border border-gray-100 dark:border-input-border-dark">
                   <span className="material-symbols-outlined text-gray-400 text-5xl mb-3 block">chat_bubble</span>
                   <h3 className="font-bold text-lg mb-1">Sin opiniones todavia</h3>
                   <p className="text-[#887f63] dark:text-gray-400 text-sm">Todavia no dejaste ninguna resena.</p>
@@ -318,7 +318,7 @@ export default function MiPerfil() {
               {reviews.length > 0 && (
                 <div className="space-y-4">
                   {reviews.map((review) => (
-                    <div key={review.id} className="bg-white dark:bg-gray-800 rounded-lg p-5 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+                    <div key={review.id} className="bg-white dark:bg-card-dark rounded-lg p-5 sm:p-6 shadow-sm border border-gray-100 dark:border-input-border-dark">
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           {review.provider ? (

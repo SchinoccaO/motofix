@@ -92,7 +92,7 @@ export default function PerfilPublico() {
         {profile && !loading && (
           <>
             {/* Profile Card */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mb-6">
+            <div className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-gray-100 dark:border-input-border-dark overflow-hidden mb-6">
               {/* Banner */}
               <div className="h-24 sm:h-32 bg-gradient-to-r from-[#181611] to-[#5c584a] relative">
                 <div className="absolute inset-0 bg-primary/10"></div>
@@ -101,7 +101,7 @@ export default function PerfilPublico() {
               {/* Avatar + Info */}
               <div className="px-4 pb-6 relative flex flex-col items-center">
                 <div className="-mt-12 mb-4 relative z-10">
-                  <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white dark:border-gray-800 overflow-hidden shadow-md flex items-center justify-center"
+                  <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white dark:border-card-dark overflow-hidden shadow-md flex items-center justify-center"
                     style={{ backgroundColor: profile.avatar_url ? undefined : getColor(profile.name) }}
                   >
                     {profile.avatar_url ? (
@@ -131,7 +131,7 @@ export default function PerfilPublico() {
                 </div>
 
                 {/* Stats */}
-                <div className="mt-6 w-full border-t border-gray-100 dark:border-gray-700 pt-4">
+                <div className="mt-6 w-full border-t border-gray-100 dark:border-input-border-dark pt-4">
                   <div className="grid grid-cols-2 divide-x divide-gray-100 dark:divide-gray-700">
                     <div className="text-center px-4">
                       <span className="block text-2xl font-bold text-[#181611] dark:text-white">{reviewCount}</span>
@@ -149,7 +149,7 @@ export default function PerfilPublico() {
               </div>
 
               {/* Privacy footer */}
-              <div className="bg-[#f8f7f6] dark:bg-gray-900/50 px-4 py-3 border-t border-gray-100 dark:border-gray-700 text-center">
+              <div className="bg-[#f8f7f6] dark:bg-surface-dark px-4 py-3 border-t border-gray-100 dark:border-input-border-dark text-center">
                 <p className="text-xs text-[#887f63] dark:text-gray-400 flex items-center justify-center">
                   <span className="material-symbols-outlined text-sm mr-2">privacy_tip</span>
                   Perfil con privacidad protegida
@@ -165,7 +165,7 @@ export default function PerfilPublico() {
               </h2>
 
               {reviews.length === 0 && (
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-100 dark:border-gray-700">
+                <div className="bg-white dark:bg-card-dark rounded-xl p-12 text-center border border-gray-100 dark:border-input-border-dark">
                   <span className="material-symbols-outlined text-gray-400 text-5xl mb-3 block">chat_bubble</span>
                   <h3 className="font-bold text-lg mb-1">Sin opiniones todavia</h3>
                   <p className="text-[#887f63] dark:text-gray-400 text-sm">Este usuario aun no dejo resenas.</p>
@@ -175,7 +175,7 @@ export default function PerfilPublico() {
               {reviews.length > 0 && (
                 <div className="space-y-4">
                   {reviews.map((review) => (
-                    <div key={review.id} className="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+                    <div key={review.id} className="bg-white dark:bg-card-dark rounded-lg p-5 shadow-sm border border-gray-100 dark:border-input-border-dark">
                       <div className="flex flex-col gap-2">
                         <div className="flex justify-between items-start w-full">
                           {review.provider ? (

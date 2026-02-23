@@ -34,7 +34,7 @@ export default function Ayuda() {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-background-light text-[#181611] font-display">
+    <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark text-[#181611] dark:text-gray-200 font-display">
       <Navbar />
 
       <main className="flex-1 py-10">
@@ -48,7 +48,7 @@ export default function Ayuda() {
             <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-3">
               Centro de ayuda
             </h1>
-            <p className="text-gray-500 text-base max-w-2xl">
+            <p className="text-gray-500 dark:text-gray-400 text-base max-w-2xl">
               {/* EDITAR: Cambiá esta descripción introductoria */}
               ¿Tenés dudas? Encontrá respuestas a las preguntas más frecuentes o contactanos.
             </p>
@@ -58,7 +58,7 @@ export default function Ayuda() {
               SECCIÓN: PREGUNTAS FRECUENTES (FAQ)
               Las preguntas se editan en el array "faqs" de arriba.
               ══════════════════════════════════════════════════════════════ */}
-          <section className="bg-white dark:bg-card-dark rounded-xl p-6 md:p-10 mb-8 shadow-sm border border-[#f4f3f0] dark:border-gray-800">
+          <section className="bg-white dark:bg-card-dark rounded-xl p-6 md:p-10 mb-8 shadow-sm border border-[#f4f3f0] dark:border-elevated-dark">
             <h2 className="text-xl font-bold mb-6">Preguntas frecuentes</h2>
             <div className="flex flex-col divide-y divide-[#f4f3f0] dark:divide-gray-700">
               {faqs.map((faq, index) => (
@@ -73,7 +73,7 @@ export default function Ayuda() {
                     </span>
                   </button>
                   {openIndex === index && (
-                    <p className="text-gray-500 text-sm mt-3 leading-relaxed">
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mt-3 leading-relaxed">
                       {faq.answer}
                     </p>
                   )}
@@ -88,9 +88,9 @@ export default function Ayuda() {
               Nota: Este formulario es solo visual (front-end).
               Necesitás conectarlo a tu backend o servicio de email.
               ══════════════════════════════════════════════════════════════ */}
-          <section className="bg-white dark:bg-card-dark rounded-xl p-6 md:p-10 shadow-sm border border-[#f4f3f0] dark:border-gray-800">
+          <section className="bg-white dark:bg-card-dark rounded-xl p-6 md:p-10 shadow-sm border border-[#f4f3f0] dark:border-elevated-dark">
             <h2 className="text-xl font-bold mb-6">¿No encontraste lo que buscabas?</h2>
-            <p className="text-gray-500 text-sm mb-6">
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
               {/* EDITAR: Cambiá este texto */}
               Escribinos y te respondemos a la brevedad.
             </p>

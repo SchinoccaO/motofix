@@ -8,7 +8,7 @@ export default function RegistroTaller() {
 
       <div className="layout-container flex h-full grow flex-col">
         <div className="px-4 md:px-20 lg:px-40 flex flex-1 justify-center py-10">
-          <div className="layout-content-container flex flex-col max-w-[800px] flex-1 bg-white dark:bg-[#1a170e] rounded-xl shadow-sm border border-[#f4f3f0] dark:border-[#3a352a] overflow-hidden">
+          <div className="layout-content-container flex flex-col max-w-[800px] flex-1 bg-white dark:bg-card-dark rounded-xl shadow-sm border border-[#f4f3f0] dark:border-input-border-dark overflow-hidden">
             {/* Page Heading */}
             <div className="p-8 pb-4">
               <div className="flex flex-col gap-3">
@@ -31,7 +31,7 @@ export default function RegistroTaller() {
                   {/* Radio Card 1 */}
                   <label className="flex-1 cursor-pointer relative">
                     <input className="peer sr-only" name="business_type" type="radio" value="taller" defaultChecked />
-                    <div className="p-4 rounded-xl border-2 border-transparent bg-[#f4f3f0] dark:bg-[#2a261a] hover:bg-gray-200 dark:hover:bg-[#332f22] peer-checked:border-primary peer-checked:bg-primary/5 transition-all flex flex-col items-center gap-2 text-center h-full justify-center">
+                    <div className="p-4 rounded-xl border-2 border-transparent bg-[#f4f3f0] dark:bg-elevated-dark hover:bg-gray-200 dark:hover:bg-elevated-dark peer-checked:border-primary peer-checked:bg-primary/5 transition-all flex flex-col items-center gap-2 text-center h-full justify-center">
                       <span className="material-symbols-outlined text-3xl text-[#887f63] dark:text-gray-400">build</span>
                       <span className="text-sm font-medium text-[#181611] dark:text-gray-200">Taller Mecánico</span>
                     </div>
@@ -42,7 +42,7 @@ export default function RegistroTaller() {
                   {/* Radio Card 2 */}
                   <label className="flex-1 cursor-pointer relative">
                     <input className="peer sr-only" name="business_type" type="radio" value="mecanico" />
-                    <div className="p-4 rounded-xl border-2 border-transparent bg-[#f4f3f0] dark:bg-[#2a261a] hover:bg-gray-200 dark:hover:bg-[#332f22] peer-checked:border-primary peer-checked:bg-primary/5 transition-all flex flex-col items-center gap-2 text-center h-full justify-center">
+                    <div className="p-4 rounded-xl border-2 border-transparent bg-[#f4f3f0] dark:bg-elevated-dark hover:bg-gray-200 dark:hover:bg-elevated-dark peer-checked:border-primary peer-checked:bg-primary/5 transition-all flex flex-col items-center gap-2 text-center h-full justify-center">
                       <span className="material-symbols-outlined text-3xl text-[#887f63] dark:text-gray-400">person</span>
                       <span className="text-sm font-medium text-[#181611] dark:text-gray-200">Mecánico Indep.</span>
                     </div>
@@ -53,7 +53,7 @@ export default function RegistroTaller() {
                   {/* Radio Card 3 */}
                   <label className="flex-1 cursor-pointer relative">
                     <input className="peer sr-only" name="business_type" type="radio" value="repuestos" />
-                    <div className="p-4 rounded-xl border-2 border-transparent bg-[#f4f3f0] dark:bg-[#2a261a] hover:bg-gray-200 dark:hover:bg-[#332f22] peer-checked:border-primary peer-checked:bg-primary/5 transition-all flex flex-col items-center gap-2 text-center h-full justify-center">
+                    <div className="p-4 rounded-xl border-2 border-transparent bg-[#f4f3f0] dark:bg-elevated-dark hover:bg-gray-200 dark:hover:bg-elevated-dark peer-checked:border-primary peer-checked:bg-primary/5 transition-all flex flex-col items-center gap-2 text-center h-full justify-center">
                       <span className="material-symbols-outlined text-3xl text-[#887f63] dark:text-gray-400">store</span>
                       <span className="text-sm font-medium text-[#181611] dark:text-gray-200">Casa de Repuestos</span>
                     </div>
@@ -64,7 +64,7 @@ export default function RegistroTaller() {
                 </div>
               </div>
 
-              <div className="w-full h-px bg-[#f4f3f0] dark:bg-[#2a261a] my-2"></div>
+              <div className="w-full h-px bg-[#f4f3f0] dark:bg-elevated-dark my-2"></div>
 
               {/* Section: Datos Básicos */}
               <div className="grid gap-6">
@@ -75,7 +75,7 @@ export default function RegistroTaller() {
                   <div className="flex flex-col gap-2">
                     <label className="text-sm font-medium text-[#181611] dark:text-gray-300">Nombre del Negocio</label>
                     <input
-                      className="w-full rounded-lg border border-[#dbdce0] dark:border-[#3a352a] bg-white dark:bg-[#2a261a] px-4 py-3 text-sm text-[#181611] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-gray-400"
+                      className="w-full rounded-lg border border-[#dbdce0] dark:border-input-border-dark bg-white dark:bg-elevated-dark px-4 py-3 text-sm text-[#181611] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-gray-400"
                       placeholder="Ej. MotoTaller Express"
                       type="text"
                     />
@@ -83,7 +83,7 @@ export default function RegistroTaller() {
                   <div className="flex flex-col gap-2">
                     <label className="text-sm font-medium text-[#181611] dark:text-gray-300">Teléfono de Contacto</label>
                     <input
-                      className="w-full rounded-lg border border-[#dbdce0] dark:border-[#3a352a] bg-white dark:bg-[#2a261a] px-4 py-3 text-sm text-[#181611] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-gray-400"
+                      className="w-full rounded-lg border border-[#dbdce0] dark:border-input-border-dark bg-white dark:bg-elevated-dark px-4 py-3 text-sm text-[#181611] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-gray-400"
                       placeholder="+54 11 1234 5678"
                       type="tel"
                     />
@@ -93,7 +93,7 @@ export default function RegistroTaller() {
                   <label className="text-sm font-medium text-[#181611] dark:text-gray-300">Dirección Completa</label>
                   <div className="relative">
                     <input
-                      className="w-full rounded-lg border border-[#dbdce0] dark:border-[#3a352a] bg-white dark:bg-[#2a261a] pl-4 pr-10 py-3 text-sm text-[#181611] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-gray-400"
+                      className="w-full rounded-lg border border-[#dbdce0] dark:border-input-border-dark bg-white dark:bg-elevated-dark pl-4 pr-10 py-3 text-sm text-[#181611] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-gray-400"
                       placeholder="Calle, Número, Ciudad, Provincia"
                       type="text"
                     />
@@ -105,14 +105,14 @@ export default function RegistroTaller() {
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-[#181611] dark:text-gray-300">Correo Electrónico</label>
                   <input
-                    className="w-full rounded-lg border border-[#dbdce0] dark:border-[#3a352a] bg-white dark:bg-[#2a261a] px-4 py-3 text-sm text-[#181611] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-gray-400"
+                    className="w-full rounded-lg border border-[#dbdce0] dark:border-input-border-dark bg-white dark:bg-elevated-dark px-4 py-3 text-sm text-[#181611] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-gray-400"
                     placeholder="contacto@tuempresa.com"
                     type="email"
                   />
                 </div>
               </div>
 
-              <div className="w-full h-px bg-[#f4f3f0] dark:bg-[#2a261a] my-2"></div>
+              <div className="w-full h-px bg-[#f4f3f0] dark:bg-elevated-dark my-2"></div>
 
               {/* Section: Detalles y Horarios */}
               <div className="grid gap-6">
@@ -122,38 +122,38 @@ export default function RegistroTaller() {
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-[#181611] dark:text-gray-300">Descripción del Negocio</label>
                   <textarea
-                    className="w-full rounded-lg border border-[#dbdce0] dark:border-[#3a352a] bg-white dark:bg-[#2a261a] px-4 py-3 text-sm text-[#181611] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-gray-400 resize-y min-h-[120px]"
+                    className="w-full rounded-lg border border-[#dbdce0] dark:border-input-border-dark bg-white dark:bg-elevated-dark px-4 py-3 text-sm text-[#181611] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-gray-400 resize-y min-h-[120px]"
                     placeholder="Describe brevemente tus servicios, especialidades y años de experiencia..."
                     rows={6}
                   />
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-2 p-4 rounded-lg bg-[#f8f7f6] dark:bg-[#211d11] border border-[#f4f3f0] dark:border-[#3a352a]">
+                  <div className="flex flex-col gap-2 p-4 rounded-lg bg-[#f8f7f6] dark:bg-surface-dark border border-[#f4f3f0] dark:border-input-border-dark">
                     <span className="text-sm font-semibold text-[#181611] dark:text-white flex items-center gap-2">
                       <span className="material-symbols-outlined text-lg">calendar_today</span> Lunes a Viernes
                     </span>
                     <div className="flex gap-2 items-center mt-2">
                       <input
-                        className="flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#2a261a] p-2 text-sm dark:text-white"
+                        className="flex-1 rounded-md border border-gray-300 dark:border-input-border-dark bg-white dark:bg-elevated-dark p-2 text-sm dark:text-white"
                         type="time"
                         defaultValue="09:00"
                       />
                       <span className="text-gray-400">-</span>
                       <input
-                        className="flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#2a261a] p-2 text-sm dark:text-white"
+                        className="flex-1 rounded-md border border-gray-300 dark:border-input-border-dark bg-white dark:bg-elevated-dark p-2 text-sm dark:text-white"
                         type="time"
                         defaultValue="18:00"
                       />
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2 p-4 rounded-lg bg-[#f8f7f6] dark:bg-[#211d11] border border-[#f4f3f0] dark:border-[#3a352a]">
+                  <div className="flex flex-col gap-2 p-4 rounded-lg bg-[#f8f7f6] dark:bg-surface-dark border border-[#f4f3f0] dark:border-input-border-dark">
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-semibold text-[#181611] dark:text-white flex items-center gap-2">
                         <span className="material-symbols-outlined text-lg">weekend</span> Sábados
                       </span>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
-                          className="rounded text-primary focus:ring-primary bg-white dark:bg-[#2a261a] border-gray-300 dark:border-gray-600"
+                          className="rounded text-primary focus:ring-primary bg-white dark:bg-elevated-dark border-gray-300 dark:border-input-border-dark"
                           type="checkbox"
                           defaultChecked
                         />
@@ -162,13 +162,13 @@ export default function RegistroTaller() {
                     </div>
                     <div className="flex gap-2 items-center mt-2">
                       <input
-                        className="flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#2a261a] p-2 text-sm dark:text-white"
+                        className="flex-1 rounded-md border border-gray-300 dark:border-input-border-dark bg-white dark:bg-elevated-dark p-2 text-sm dark:text-white"
                         type="time"
                         defaultValue="09:00"
                       />
                       <span className="text-gray-400">-</span>
                       <input
-                        className="flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#2a261a] p-2 text-sm dark:text-white"
+                        className="flex-1 rounded-md border border-gray-300 dark:border-input-border-dark bg-white dark:bg-elevated-dark p-2 text-sm dark:text-white"
                         type="time"
                         defaultValue="13:00"
                       />
@@ -177,15 +177,15 @@ export default function RegistroTaller() {
                 </div>
               </div>
 
-              <div className="w-full h-px bg-[#f4f3f0] dark:bg-[#2a261a] my-2"></div>
+              <div className="w-full h-px bg-[#f4f3f0] dark:bg-elevated-dark my-2"></div>
 
               {/* Section: Fotos */}
               <div>
                 <h3 className="text-[#181611] dark:text-white tracking-light text-xl font-bold leading-tight mb-4">
                   Fotos del Local
                 </h3>
-                <div className="border-2 border-dashed border-[#dbdce0] dark:border-[#3a352a] rounded-xl p-8 flex flex-col items-center justify-center bg-[#f8f7f6] dark:bg-[#211d11] hover:bg-[#f4f3f0] dark:hover:bg-[#2a261a] transition-colors cursor-pointer group">
-                  <div className="size-12 rounded-full bg-white dark:bg-[#2a261a] shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <div className="border-2 border-dashed border-[#dbdce0] dark:border-input-border-dark rounded-xl p-8 flex flex-col items-center justify-center bg-[#f8f7f6] dark:bg-surface-dark hover:bg-[#f4f3f0] dark:hover:bg-elevated-dark transition-colors cursor-pointer group">
+                  <div className="size-12 rounded-full bg-white dark:bg-elevated-dark shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                     <span className="material-symbols-outlined text-2xl text-primary">add_a_photo</span>
                   </div>
                   <p className="text-sm font-medium text-[#181611] dark:text-white mb-1">
@@ -201,7 +201,7 @@ export default function RegistroTaller() {
               <div className="pt-4">
                 <label className="flex items-start gap-3 mb-6 cursor-pointer">
                   <input
-                    className="mt-1 rounded border-gray-300 text-primary focus:ring-primary bg-white dark:bg-[#2a261a]"
+                    className="mt-1 rounded border-gray-300 text-primary focus:ring-primary bg-white dark:bg-elevated-dark"
                     type="checkbox"
                   />
                   <span className="text-sm text-[#887f63] dark:text-gray-400 leading-normal">

@@ -24,11 +24,28 @@ export default function Navbar({ activePage }: NavbarProps) {
   const location = useLocation();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [dark, setDark] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const stored = localStorage.getItem("theme");
+    if (stored) return stored === "dark";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setUser(getStoredUser());
   }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (dark) {
+      root.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      root.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [dark]);
 
   // Close menu on route change
   useEffect(() => {
@@ -64,7 +81,7 @@ export default function Navbar({ activePage }: NavbarProps) {
       : "block py-3 text-sm font-medium hover:text-primary transition-colors";
 
   return (
-    <nav ref={menuRef} className="bg-white dark:bg-background-dark border-b border-[#f4f3f0] dark:border-gray-800 sticky top-0 z-50">
+    <nav ref={menuRef} className="bg-white dark:bg-background-dark border-b border-[#f4f3f0] dark:border-elevated-dark sticky top-0 z-50">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
         {/* Left: Logo + Links */}
         <div className="flex items-center">
@@ -99,14 +116,14 @@ export default function Navbar({ activePage }: NavbarProps) {
               </Link>
               <button
                 onClick={handleLogout}
-                className="hidden sm:inline-flex text-sm font-bold px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="hidden sm:inline-flex text-sm font-bold px-4 py-2 rounded-lg border border-gray-300 dark:border-input-border-dark hover:bg-gray-100 dark:hover:bg-elevated-dark transition-colors"
               >
                 Cerrar sesion
               </button>
             </>
           ) : (
             <div className="hidden sm:flex items-center gap-3">
-              <Link to="/login" className="text-sm font-bold px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+              <Link to="/login" className="text-sm font-bold px-4 py-2 rounded-lg border border-gray-300 dark:border-input-border-dark hover:bg-gray-100 dark:hover:bg-elevated-dark transition-colors">
                 Ingresar
               </Link>
               <Link to="/register" className="text-sm font-bold px-4 py-2 rounded-lg bg-primary hover:bg-[#d6aa28] text-[#181611] transition-colors">
@@ -114,10 +131,18 @@ export default function Navbar({ activePage }: NavbarProps) {
               </Link>
             </div>
           )}
+          {/* Dark mode toggle */}
+          <button
+            onClick={() => setDark(!dark)}
+            className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-elevated-dark hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+            aria-label={dark ? "Modo claro" : "Modo oscuro"}
+          >
+            <span className="material-symbols-outlined text-[20px]">{dark ? "light_mode" : "dark_mode"}</span>
+          </button>
           {/* Hamburger - always visible on mobile */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-elevated-dark transition-colors"
             aria-label="Menu"
           >
             <span className="material-symbols-outlined text-[24px]">{menuOpen ? "close" : "menu"}</span>
@@ -127,7 +152,7 @@ export default function Navbar({ activePage }: NavbarProps) {
 
       {/* Mobile dropdown menu */}
       {menuOpen && (
-        <div className="lg:hidden border-t border-[#f4f3f0] dark:border-gray-800 bg-white dark:bg-background-dark px-4 py-2 shadow-lg">
+        <div className="lg:hidden border-t border-[#f4f3f0] dark:border-elevated-dark bg-white dark:bg-background-dark px-4 py-2 shadow-lg">
           <Link to="/talleres" className={mobileLinkClass("talleres")} onClick={() => setMenuOpen(false)}>
             Talleres y Repuestos
           </Link>
@@ -139,7 +164,7 @@ export default function Navbar({ activePage }: NavbarProps) {
               <Link to="/mi-perfil" className={mobileLinkClass("mi-perfil")} onClick={() => setMenuOpen(false)}>
                 Mi Perfil
               </Link>
-              <div className="border-t border-[#f4f3f0] dark:border-gray-800 mt-1 pt-1">
+              <div className="border-t border-[#f4f3f0] dark:border-elevated-dark mt-1 pt-1">
                 <button
                   onClick={() => { setMenuOpen(false); handleLogout(); }}
                   className="block w-full text-left py-3 text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
@@ -149,10 +174,10 @@ export default function Navbar({ activePage }: NavbarProps) {
               </div>
             </>
           ) : (
-            <div className="border-t border-[#f4f3f0] dark:border-gray-800 mt-1 pt-3 pb-2 flex flex-col gap-2 sm:hidden">
+            <div className="border-t border-[#f4f3f0] dark:border-elevated-dark mt-1 pt-3 pb-2 flex flex-col gap-2 sm:hidden">
               <Link
                 to="/login"
-                className="block text-center text-sm font-bold px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="block text-center text-sm font-bold px-4 py-2.5 rounded-lg border border-gray-300 dark:border-input-border-dark hover:bg-gray-100 dark:hover:bg-elevated-dark transition-colors"
                 onClick={() => setMenuOpen(false)}
               >
                 Ingresar

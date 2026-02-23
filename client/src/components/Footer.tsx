@@ -3,7 +3,7 @@ import Logo from "./Logo";
 
 export default function Footer() {
   return (
-    <footer className="bg-white dark:bg-gray-900 border-t border-[#f4f3f0] dark:border-gray-800">
+    <footer className="bg-white dark:bg-surface-dark border-t border-[#f4f3f0] dark:border-elevated-dark">
       <div className="max-w-[1280px] mx-auto px-4 md:px-10 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="flex flex-col gap-4">
@@ -26,13 +26,7 @@ export default function Footer() {
             >
               Sobre nosotros
             </Link>
-            <Link
-              className="text-gray-600 dark:text-gray-400 hover:text-primary text-sm"
-              to="/carreras"
-            >
-              Carreras
-            </Link>
-            <Link
+<Link
               className="text-gray-600 dark:text-gray-400 hover:text-primary text-sm"
               to="/blog"
             >
@@ -100,7 +94,7 @@ export default function Footer() {
             </div>
           </div>
         </div>
-        <div className="mt-12 border-t border-gray-100 dark:border-gray-800 pt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+        <div className="mt-12 border-t border-gray-100 dark:border-elevated-dark pt-8 text-center text-sm text-gray-500 dark:text-gray-400">
           <p>© 2026 MotoFIX. Todos los derechos reservados.</p>
         </div>
       </div>

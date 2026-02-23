@@ -151,8 +151,8 @@ export default function Seguridad() {
           )}
 
           {/* Password Card */}
-          <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 mb-6">
-            <div className="px-5 sm:px-6 py-5 border-b border-gray-100 dark:border-gray-700">
+          <div className="bg-white dark:bg-card-dark shadow-sm rounded-xl overflow-hidden border border-gray-100 dark:border-input-border-dark mb-6">
+            <div className="px-5 sm:px-6 py-5 border-b border-gray-100 dark:border-input-border-dark">
               <h3 className="text-lg font-bold text-[#181611] dark:text-white flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary text-xl">lock_reset</span>
                 Cambio de Contraseña
@@ -167,7 +167,7 @@ export default function Seguridad() {
                 </label>
                 <div className="mt-1 relative">
                   <input
-                    className="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-[#181611] dark:text-white focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm pl-3 pr-10 py-2.5"
+                    className="block w-full rounded-lg border border-gray-300 dark:border-input-border-dark bg-white dark:bg-elevated-dark text-[#181611] dark:text-white focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm pl-3 pr-10 py-2.5"
                     id="current-password"
                     placeholder="Tu contraseña actual"
                     type={showCurrent ? "text" : "password"}
@@ -185,7 +185,7 @@ export default function Seguridad() {
                 <p className="mt-1 text-xs text-[#887f63] dark:text-gray-500">Necesaria para verificar tu identidad.</p>
               </div>
 
-              <hr className="border-gray-100 dark:border-gray-700" />
+              <hr className="border-gray-100 dark:border-input-border-dark" />
 
               {/* New Password Group */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -195,7 +195,7 @@ export default function Seguridad() {
                   </label>
                   <div className="mt-1 relative">
                     <input
-                      className="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-[#181611] dark:text-white focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm pl-3 pr-10 py-2.5"
+                      className="block w-full rounded-lg border border-gray-300 dark:border-input-border-dark bg-white dark:bg-elevated-dark text-[#181611] dark:text-white focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm pl-3 pr-10 py-2.5"
                       id="new-password"
                       type={showNew ? "text" : "password"}
                       value={newPassword}
@@ -216,7 +216,7 @@ export default function Seguridad() {
                   </label>
                   <div className="mt-1 relative">
                     <input
-                      className="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-[#181611] dark:text-white focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm pl-3 pr-10 py-2.5"
+                      className="block w-full rounded-lg border border-gray-300 dark:border-input-border-dark bg-white dark:bg-elevated-dark text-[#181611] dark:text-white focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm pl-3 pr-10 py-2.5"
                       id="confirm-password"
                       type={showConfirmPw ? "text" : "password"}
                       value={confirmPassword}
@@ -234,7 +234,7 @@ export default function Seguridad() {
               </div>
 
               {/* Password Requirements */}
-              <div className="bg-[#f8f7f6] dark:bg-gray-900/50 rounded-lg p-4">
+              <div className="bg-[#f8f7f6] dark:bg-elevated-dark/50 rounded-lg p-4">
                 <h4 className="text-xs font-semibold text-[#887f63] dark:text-gray-400 uppercase tracking-wider mb-3">
                   Requisitos de seguridad
                 </h4>
@@ -262,11 +262,11 @@ export default function Seguridad() {
             </div>
 
             {/* Password Card Footer */}
-            <div className="px-5 sm:px-6 py-4 bg-[#f8f7f6] dark:bg-gray-900/30 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3">
+            <div className="px-5 sm:px-6 py-4 bg-[#f8f7f6] dark:bg-elevated-dark/30 border-t border-gray-100 dark:border-input-border-dark flex justify-end gap-3">
               <button
                 type="button"
                 onClick={handlePasswordCancel}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-sm font-medium text-[#5c584a] dark:text-gray-200 bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                className="px-4 py-2 border border-gray-300 dark:border-input-border-dark rounded-lg shadow-sm text-sm font-medium text-[#5c584a] dark:text-gray-200 bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-elevated-dark transition-colors"
               >
                 Cancelar
               </button>
@@ -289,8 +289,8 @@ export default function Seguridad() {
           </div>
 
           {/* Contact Data Card (Phone + City + Province) */}
-          <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 mb-6">
-            <div className="px-5 sm:px-6 py-5 border-b border-gray-100 dark:border-gray-700">
+          <div className="bg-white dark:bg-card-dark shadow-sm rounded-xl overflow-hidden border border-gray-100 dark:border-input-border-dark mb-6">
+            <div className="px-5 sm:px-6 py-5 border-b border-gray-100 dark:border-input-border-dark">
               <h3 className="text-lg font-bold text-[#181611] dark:text-white flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary text-xl">contact_phone</span>
                 Datos de Contacto
@@ -313,11 +313,11 @@ export default function Seguridad() {
                       Telefono Movil
                     </label>
                     <div className="mt-1 flex rounded-lg shadow-sm">
-                      <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-[#887f63] dark:text-gray-400 text-sm">
+                      <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-300 dark:border-input-border-dark bg-gray-50 dark:bg-elevated-dark text-[#887f63] dark:text-gray-400 text-sm">
                         +54
                       </span>
                       <input
-                        className="flex-1 min-w-0 block w-full px-3 py-2.5 rounded-none rounded-r-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-[#181611] dark:text-white focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm"
+                        className="flex-1 min-w-0 block w-full px-3 py-2.5 rounded-none rounded-r-lg border border-gray-300 dark:border-input-border-dark bg-white dark:bg-elevated-dark text-[#181611] dark:text-white focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm"
                         id="phone-edit"
                         placeholder="351 123 4567"
                         value={phone}
@@ -334,7 +334,7 @@ export default function Seguridad() {
                       </label>
                       <div className="mt-1">
                         <input
-                          className="focus:ring-1 focus:ring-primary focus:border-primary block w-full sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 dark:text-white py-2.5 px-3"
+                          className="focus:ring-1 focus:ring-primary focus:border-primary block w-full sm:text-sm border border-gray-300 dark:border-input-border-dark rounded-lg bg-white dark:bg-elevated-dark dark:text-white py-2.5 px-3"
                           id="city-edit"
                           placeholder="Ej: Cordoba"
                           value={city}
@@ -349,7 +349,7 @@ export default function Seguridad() {
                       </label>
                       <div className="mt-1">
                         <select
-                          className="focus:ring-1 focus:ring-primary focus:border-primary block w-full sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 dark:text-white py-2.5 px-3"
+                          className="focus:ring-1 focus:ring-primary focus:border-primary block w-full sm:text-sm border border-gray-300 dark:border-input-border-dark rounded-lg bg-white dark:bg-elevated-dark dark:text-white py-2.5 px-3"
                           id="province-edit"
                           value={province}
                           onChange={(e) => setProvince(e.target.value)}
@@ -365,7 +365,7 @@ export default function Seguridad() {
                 </div>
 
                 {/* Contact Card Footer */}
-                <div className="px-5 sm:px-6 py-4 bg-[#f8f7f6] dark:bg-gray-900/30 border-t border-gray-100 dark:border-gray-700 flex justify-end">
+                <div className="px-5 sm:px-6 py-4 bg-[#f8f7f6] dark:bg-elevated-dark/30 border-t border-gray-100 dark:border-input-border-dark flex justify-end">
                   <button
                     type="button"
                     onClick={handleContactSave}
@@ -387,7 +387,7 @@ export default function Seguridad() {
           </div>
 
           {/* Help Card */}
-          <div className="bg-[#f8f7f6] dark:bg-gray-800/40 rounded-xl p-5 border border-gray-100 dark:border-gray-700">
+          <div className="bg-[#f8f7f6] dark:bg-card-dark/40 rounded-xl p-5 border border-gray-100 dark:border-input-border-dark">
             <h4 className="text-sm font-semibold text-[#181611] dark:text-white mb-2">Necesitas ayuda?</h4>
             <p className="text-xs text-[#887f63] dark:text-gray-400 mb-4">
               Si tenes problemas con tu cuenta o no reconoces algun cambio, contacta soporte inmediatamente.

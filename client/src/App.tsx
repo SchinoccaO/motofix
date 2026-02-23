@@ -21,7 +21,6 @@ import Seguridad from "./pages/Seguridad"; // Centro de seguridad (contraseña, 
 
 // Páginas del footer - Compañía
 import SobreNosotros from "./pages/SobreNosotros";
-import Carreras from "./pages/Carreras";
 import Blog from "./pages/Blog";
 
 // Páginas del footer - Soporte
@@ -51,7 +50,6 @@ function App(): JSX.Element {
 
       {/* Páginas del footer - Compañía */}
       <Route path="/sobre-nosotros" element={<SobreNosotros />} />
-      <Route path="/carreras" element={<Carreras />} />
       <Route path="/blog" element={<Blog />} />
 
       {/* Páginas del footer - Soporte */}

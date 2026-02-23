@@ -136,7 +136,7 @@ export default function BuscarTalleres() {
               <span className="material-symbols-outlined text-gray-400">search</span>
             </span>
             <input
-              className="block w-full rounded-lg border-none bg-[#f4f3f0] dark:bg-gray-800 py-3 pl-10 pr-3 text-sm placeholder-gray-500 focus:ring-2 focus:ring-primary focus:outline-none"
+              className="block w-full rounded-lg border-none bg-[#f4f3f0] dark:bg-card-dark dark:text-white py-3 pl-10 pr-3 text-sm placeholder-gray-500 focus:ring-2 focus:ring-primary focus:outline-none"
               placeholder="Buscar talleres o repuestos..."
               type="text"
               value={searchTerm}
@@ -166,7 +166,7 @@ export default function BuscarTalleres() {
             {/* Left Arrow */}
             <button
               onClick={() => scrollBrands("left")}
-              className="absolute left-0 top-[32px] -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-600 flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 -translate-x-2"
+              className="absolute left-0 top-[32px] -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white dark:bg-card-dark shadow-lg border border-gray-200 dark:border-input-border-dark flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 hover:bg-gray-50 dark:hover:bg-elevated-dark -translate-x-2"
             >
               <span className="material-symbols-outlined text-[18px]">chevron_left</span>
             </button>
@@ -191,8 +191,8 @@ export default function BuscarTalleres() {
                   <div
                     className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 ${
                       selectedBrand === brand.name
-                        ? "shadow-lg ring-2 ring-offset-2 bg-white dark:bg-gray-700"
-                        : "bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:shadow-md"
+                        ? "shadow-lg ring-2 ring-offset-2 bg-white dark:bg-elevated-dark"
+                        : "bg-white dark:bg-card-dark border border-gray-100 dark:border-input-border-dark hover:shadow-md"
                     }`}
                     style={
                       selectedBrand === brand.name
@@ -233,7 +233,7 @@ export default function BuscarTalleres() {
               ))}
               {/* "Más" button */}
               <div className="flex flex-col items-center gap-2 min-w-[80px] cursor-pointer group/more">
-                <div className="w-16 h-16 rounded-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 flex items-center justify-center group-hover/more:border-primary group-hover/more:shadow-md transition-all">
+                <div className="w-16 h-16 rounded-full bg-white dark:bg-card-dark border border-gray-100 dark:border-input-border-dark flex items-center justify-center group-hover/more:border-primary group-hover/more:shadow-md transition-all">
                   <span className="material-symbols-outlined text-gray-400 group-hover/more:text-primary transition-colors">
                     add
                   </span>
@@ -245,7 +245,7 @@ export default function BuscarTalleres() {
             {/* Right Arrow */}
             <button
               onClick={() => scrollBrands("right")}
-              className="absolute right-0 top-[32px] -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-600 flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 translate-x-2"
+              className="absolute right-0 top-[32px] -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white dark:bg-card-dark shadow-lg border border-gray-200 dark:border-input-border-dark flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 hover:bg-gray-50 dark:hover:bg-elevated-dark translate-x-2"
             >
               <span className="material-symbols-outlined text-[18px]">chevron_right</span>
             </button>
@@ -269,20 +269,20 @@ export default function BuscarTalleres() {
         </div>
 
         {/* Filters Bar */}
-        <div className="flex items-center gap-3 overflow-x-auto pb-6 no-scrollbar border-b border-gray-100 dark:border-gray-800 mb-8">
+        <div className="flex items-center gap-3 overflow-x-auto pb-6 no-scrollbar border-b border-gray-100 dark:border-elevated-dark mb-8">
           <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-[#181611] font-semibold text-sm shadow-sm transition-all hover:bg-[#c09923]">
             <span className="material-symbols-outlined text-[18px]">
               location_on
             </span>
             Cerca de mi
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm font-medium hover:border-primary transition-all">
+          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white dark:bg-card-dark border border-gray-200 dark:border-input-border-dark text-sm font-medium hover:border-primary transition-all">
             Abierto ahora
             <span className="material-symbols-outlined text-[18px]">
               expand_more
             </span>
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm font-medium hover:border-primary transition-all">
+          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white dark:bg-card-dark border border-gray-200 dark:border-input-border-dark text-sm font-medium hover:border-primary transition-all">
             Mas valorados
             <span className="material-symbols-outlined text-[18px]">
               expand_more
@@ -295,7 +295,7 @@ export default function BuscarTalleres() {
           {/* Mobile filter toggle */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="lg:hidden flex items-center justify-center gap-2 w-full py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-medium hover:border-primary transition-colors"
+            className="lg:hidden flex items-center justify-center gap-2 w-full py-2.5 rounded-lg border border-gray-200 dark:border-input-border-dark bg-white dark:bg-card-dark text-sm font-medium hover:border-primary transition-colors"
           >
             <span className="material-symbols-outlined text-[18px]">tune</span>
             {showFilters ? "Ocultar filtros" : "Mostrar filtros"}
@@ -303,7 +303,7 @@ export default function BuscarTalleres() {
 
           {/* Sidebar Filters */}
           <aside className={`w-full lg:w-64 shrink-0 space-y-6 ${showFilters ? "block" : "hidden lg:block"}`}>
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+            <div className="bg-white dark:bg-card-dark p-6 rounded-xl border border-gray-100 dark:border-input-border-dark shadow-sm">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-bold text-lg">Filtros</h3>
                 <button
@@ -339,7 +339,7 @@ export default function BuscarTalleres() {
                         className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
                           typeFilter === option.value
                             ? "border-primary bg-primary"
-                            : "border-gray-300 dark:border-gray-600 group-hover:border-primary"
+                            : "border-gray-300 dark:border-input-border-dark group-hover:border-primary"
                         }`}
                       >
                         {typeFilter === option.value && (
@@ -374,7 +374,7 @@ export default function BuscarTalleres() {
                     >
                       <input
                         defaultChecked={idx === 0}
-                        className="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 text-primary focus:ring-primary rounded-full cursor-pointer"
+                        className="w-5 h-5 border-2 border-gray-300 dark:border-input-border-dark text-primary focus:ring-primary rounded-full cursor-pointer"
                         name="rating"
                         type="radio"
                       />
@@ -388,8 +388,8 @@ export default function BuscarTalleres() {
             </div>
 
             {/* Map Preview */}
-            <div className="rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 h-48 relative group cursor-pointer">
-              <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700"></div>
+            <div className="rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-input-border-dark h-48 relative group cursor-pointer">
+              <div className="absolute inset-0 bg-gray-200 dark:bg-elevated-dark"></div>
               <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center text-white">
                 <span className="material-symbols-outlined text-3xl mb-1">
                   map
@@ -419,7 +419,7 @@ export default function BuscarTalleres() {
             )}
 
             {!loading && !error && providers.length === 0 && (
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-12 text-center">
+              <div className="bg-gray-50 dark:bg-card-dark rounded-xl p-12 text-center">
                 <span className="material-symbols-outlined text-gray-400 text-5xl mb-3 block">
                   search_off
                 </span>
@@ -438,9 +438,9 @@ export default function BuscarTalleres() {
                   <Link
                     key={provider.id}
                     to={`/taller/${provider.id}`}
-                    className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all group"
+                    className="bg-white dark:bg-card-dark rounded-xl overflow-hidden border border-gray-100 dark:border-input-border-dark shadow-sm hover:shadow-md transition-all group"
                   >
-                    <div className="h-48 relative overflow-hidden bg-gray-200 dark:bg-gray-700">
+                    <div className="h-48 relative overflow-hidden bg-gray-200 dark:bg-elevated-dark">
                       <img
                         src={
                           provider.type === 'shop'
@@ -496,7 +496,7 @@ export default function BuscarTalleres() {
                           {provider.description}
                         </p>
                       )}
-                      <div className="flex flex-wrap gap-4 text-xs text-gray-500 dark:text-gray-400 mb-6 border-y border-gray-50 dark:border-gray-700 py-3">
+                      <div className="flex flex-wrap gap-4 text-xs text-gray-500 dark:text-gray-400 mb-6 border-y border-gray-50 dark:border-input-border-dark py-3">
                         {provider.location && (
                           <div className="flex items-center gap-1.5">
                             <span className="material-symbols-outlined text-[16px]">
@@ -520,7 +520,7 @@ export default function BuscarTalleres() {
                           Ver Perfil
                         </div>
                         <button
-                          className="p-2.5 rounded-lg bg-[#f4f3f0] dark:bg-gray-700 text-[#181611] dark:text-gray-100 hover:bg-gray-200 transition-colors"
+                          className="p-2.5 rounded-lg bg-[#f4f3f0] dark:bg-elevated-dark text-[#181611] dark:text-gray-100 hover:bg-gray-200 transition-colors"
                           onClick={(e) => e.preventDefault()}
                         >
                           <span className="material-symbols-outlined text-[20px]">

@@ -3,7 +3,7 @@ import Footer from '../components/Footer'
 
 export default function Privacidad() {
   return (
-    <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-background-light text-[#181611] font-display">
+    <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark text-[#181611] dark:text-gray-200 font-display">
       <Navbar />
 
       <main className="flex-1 py-10">
@@ -18,10 +18,10 @@ export default function Privacidad() {
               Política de privacidad
             </h1>
             {/* EDITAR: Cambiá la fecha de última actualización */}
-            <p className="text-gray-500 text-sm">Última actualización: 17 de febrero de 2026</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Última actualización: 17 de febrero de 2026</p>
           </div>
 
-          <div className="bg-white dark:bg-card-dark rounded-xl p-6 md:p-10 shadow-sm border border-[#f4f3f0] dark:border-gray-800">
+          <div className="bg-white dark:bg-card-dark rounded-xl p-6 md:p-10 shadow-sm border border-[#f4f3f0] dark:border-elevated-dark">
             <div className="prose prose-sm max-w-none text-gray-600 dark:text-gray-400 space-y-6">
 
               {/* ══════════════════════════════════════════════════════════════
