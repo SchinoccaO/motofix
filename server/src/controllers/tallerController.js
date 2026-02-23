@@ -25,8 +25,7 @@ export const getMyProviders = async (req, res) => {
         console.error('Error al obtener mis providers:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al obtener mis providers',
-            message: error.message
+            error: 'Error al obtener mis providers'
         });
     }
 };
@@ -58,18 +57,24 @@ export const getProviders = async (req, res) => {
             const norm = (col) =>
                 `LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(${col},'á','a'),'é','e'),'í','i'),'ó','o'),'ú','u'))`;
 
-            const searchTerms = search.trim().split(/\s+/);
-            const termConditions = searchTerms.map(term => {
-                const escaped = term.toLowerCase()
+            const searchTerms = search.trim().split(/\s+/).slice(0, 10);
+            const columns = [
+                'p.name', 'p.description',
+                'l.city', 'l.province', 'l.address',
+                't.name'
+            ];
+
+            const termConditions = searchTerms.map(() => {
+                const colMatches = columns.map(col => `${norm(col)} LIKE ?`).join(' OR ');
+                return `(${colMatches})`;
+            });
+
+            const replacements = searchTerms.flatMap(term => {
+                const normalized = term.toLowerCase()
                     .replace(/[áà]/g, 'a').replace(/[éè]/g, 'e')
                     .replace(/[íì]/g, 'i').replace(/[óò]/g, 'o')
-                    .replace(/[úù]/g, 'u').replace(/[%_\\]/g, '\\$&');
-                return `(${norm('p.name')} LIKE '%${escaped}%' OR ` +
-                    `${norm('p.description')} LIKE '%${escaped}%' OR ` +
-                    `${norm('l.city')} LIKE '%${escaped}%' OR ` +
-                    `${norm('l.province')} LIKE '%${escaped}%' OR ` +
-                    `${norm('l.address')} LIKE '%${escaped}%' OR ` +
-                    `${norm('t.name')} LIKE '%${escaped}%')`;
+                    .replace(/[úù]/g, 'u');
+                return columns.map(() => `%${normalized}%`);
             });
 
             const [matchingIds] = await sequelize.query(
@@ -77,7 +82,8 @@ export const getProviders = async (req, res) => {
                 `LEFT JOIN locations l ON l.provider_id = p.id ` +
                 `LEFT JOIN provider_tags pt ON pt.provider_id = p.id ` +
                 `LEFT JOIN tags t ON t.id = pt.tag_id ` +
-                `WHERE ${termConditions.join(' AND ')}`
+                `WHERE ${termConditions.join(' AND ')}`,
+                { replacements }
             );
 
             const ids = matchingIds.map(r => r.id);
@@ -117,8 +123,7 @@ export const getProviders = async (req, res) => {
         console.error('Error al obtener providers:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al obtener providers',
-            message: error.message
+            error: 'Error al obtener providers'
         });
     }
 };
@@ -172,8 +177,7 @@ export const getProviderById = async (req, res) => {
         console.error('Error al obtener provider:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al obtener provider',
-            message: error.message
+            error: 'Error al obtener provider'
         });
     }
 };
@@ -248,8 +252,7 @@ export const createProvider = async (req, res) => {
         console.error('Error al crear provider:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al crear provider',
-            message: error.message
+            error: 'Error al crear provider'
         });
     }
 };
@@ -327,8 +330,7 @@ export const updateProvider = async (req, res) => {
         console.error('Error al actualizar provider:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al actualizar provider',
-            message: error.message
+            error: 'Error al actualizar provider'
         });
     }
 };
@@ -341,25 +343,27 @@ export const createReview = async (req, res) => {
         const { id } = req.params;
         const { rating, comment, estimated_time, actual_time } = req.body;
 
-        if (!rating || !comment) {
-            return res.status(400).json({
-                success: false,
-                error: 'Rating y comentario son obligatorios'
-            });
-        }
-
-        if (rating < 1 || rating > 5) {
-            return res.status(400).json({
-                success: false,
-                error: 'El rating debe estar entre 1 y 5'
-            });
-        }
-
         const provider = await Provider.findByPk(id);
         if (!provider) {
             return res.status(404).json({
                 success: false,
                 error: 'Provider no encontrado'
+            });
+        }
+
+        // Cooldown: 1 hora entre reviews al mismo provider
+        const unaHoraAtras = new Date(Date.now() - 60 * 60 * 1000);
+        const reviewReciente = await Review.findOne({
+            where: {
+                user_id: req.usuario.id,
+                provider_id: id,
+                created_at: { [Op.gte]: unaHoraAtras }
+            }
+        });
+        if (reviewReciente) {
+            return res.status(429).json({
+                success: false,
+                error: 'Ya publicaste una reseña para este taller recientemente. Podés dejar otra después de 1 hora para garantizar que refleje una experiencia de servicio genuina.'
             });
         }
 
@@ -400,8 +404,7 @@ export const createReview = async (req, res) => {
         console.error('Error al crear review:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al crear review',
-            message: error.message
+            error: 'Error al crear review'
         });
     }
 };
@@ -439,8 +442,7 @@ export const deleteProvider = async (req, res) => {
         console.error('Error al eliminar provider:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al eliminar provider',
-            message: error.message
+            error: 'Error al eliminar provider'
         });
     }
 };
@@ -463,8 +465,7 @@ export const getTags = async (req, res) => {
         console.error('Error al obtener tags:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al obtener tags',
-            message: error.message
+            error: 'Error al obtener tags'
         });
     }
 };
@@ -522,8 +523,7 @@ export const addTagsToProvider = async (req, res) => {
         console.error('Error al agregar tags:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al agregar tags',
-            message: error.message
+            error: 'Error al agregar tags'
         });
     }
 };
@@ -569,8 +569,7 @@ export const removeTagFromProvider = async (req, res) => {
         console.error('Error al eliminar tag:', error);
         res.status(500).json({
             success: false,
-            error: 'Error al eliminar tag',
-            message: error.message
+            error: 'Error al eliminar tag'
         });
     }
 };

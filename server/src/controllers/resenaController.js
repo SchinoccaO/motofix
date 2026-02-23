@@ -30,7 +30,6 @@ export const getResenasByTaller = async (req, res) => {
         res.status(500).json({
             success: false,
             error: 'Error al obtener reseñas',
-            message: error.message
         });
     }
 };
@@ -139,7 +138,6 @@ export const createResena = async (req, res) => {
         res.status(500).json({
             success: false,
             error: 'Error al crear reseña',
-            message: error.message
         });
     }
 };
@@ -193,7 +191,6 @@ export const responderResena = async (req, res) => {
         res.status(500).json({
             success: false,
             error: 'Error al responder reseña',
-            message: error.message
         });
     }
 };
@@ -226,7 +223,6 @@ export const votarResena = async (req, res) => {
         res.status(500).json({
             success: false,
             error: 'Error al votar reseña',
-            message: error.message
         });
     }
 };
@@ -258,7 +254,6 @@ export const reportarResena = async (req, res) => {
         res.status(500).json({
             success: false,
             error: 'Error al reportar reseña',
-            message: error.message
         });
     }
 };

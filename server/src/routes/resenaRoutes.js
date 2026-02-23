@@ -20,7 +20,7 @@ router.get('/taller/:tallerId', getResenasByTaller);
  */
 router.post('/', verificarToken, createResena);
 router.put('/:id/responder', verificarToken, responderResena);
-router.post('/:id/votar', votarResena); // No requiere auth para votar
-router.post('/:id/reportar', reportarResena); // No requiere auth para reportar
+router.post('/:id/votar', verificarToken, votarResena);
+router.post('/:id/reportar', verificarToken, reportarResena);
 
 export default router;

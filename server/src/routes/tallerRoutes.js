@@ -12,6 +12,7 @@ import {
     removeTagFromProvider
 } from '../controllers/tallerController.js';
 import { verificarToken } from '../middlewares/auth.js';
+import { validateCreateProvider, validateCreateReview } from '../middlewares/validate.js';
 
 const router = express.Router();
 
@@ -26,12 +27,12 @@ router.get('/:id', getProviderById);
 /**
  * Rutas protegidas (requieren autenticacion)
  */
-router.post('/', verificarToken, createProvider);
-router.put('/:id', verificarToken, updateProvider);
+router.post('/', verificarToken, validateCreateProvider, createProvider);
+router.put('/:id', verificarToken, validateCreateProvider, updateProvider);
 router.delete('/:id', verificarToken, deleteProvider);
 
 // Reviews
-router.post('/:id/reviews', verificarToken, createReview);
+router.post('/:id/reviews', verificarToken, validateCreateReview, createReview);
 
 // Tags
 router.post('/:id/tags', verificarToken, addTagsToProvider);

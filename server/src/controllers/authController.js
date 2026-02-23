@@ -22,26 +22,9 @@ export const registrar = async (req, res) => {
     try {
         const { name, email, password } = req.body;
 
-        if (!name || !email || !password) {
-            return res.status(400).json({
-                error: 'Nombre, email y contraseña son obligatorios'
-            });
-        }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            return res.status(400).json({ error: 'Email inválido' });
-        }
-
-        if (password.length < 6) {
-            return res.status(400).json({
-                error: 'La contraseña debe tener al menos 6 caracteres'
-            });
-        }
-
         const usuarioExistente = await User.findOne({ where: { email } });
         if (usuarioExistente) {
-            return res.status(400).json({ error: 'Este email ya está registrado' });
+            return res.status(400).json({ error: 'No se pudo completar el registro. Verificá los datos o intentá iniciar sesión.' });
         }
 
         const nuevoUsuario = await User.create({
@@ -61,8 +44,7 @@ export const registrar = async (req, res) => {
     } catch (error) {
         console.error('Error en registro:', error);
         res.status(500).json({
-            error: 'Error al registrar usuario',
-            detalle: error.message
+            error: 'Error al registrar usuario'
         });
     }
 };
@@ -71,20 +53,12 @@ export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        if (!email || !password) {
-            return res.status(400).json({ error: 'Email y contraseña son obligatorios' });
-        }
-
         const usuario = await User.findOne({ where: { email } });
-        if (!usuario) {
-            return res.status(401).json({ error: 'Credenciales inválidas' });
-        }
 
-        if (usuario.auth_provider === 'google' && !usuario.password_hash) {
-            return res.status(401).json({ error: 'Esta cuenta usa Google. Iniciá sesión con el botón de Google.' });
-        }
+        const passwordValida = usuario && usuario.password_hash
+            ? await usuario.compararPassword(password)
+            : false;
 
-        const passwordValida = await usuario.compararPassword(password);
         if (!passwordValida) {
             return res.status(401).json({ error: 'Credenciales inválidas' });
         }
@@ -99,8 +73,7 @@ export const login = async (req, res) => {
     } catch (error) {
         console.error('Error en login:', error);
         res.status(500).json({
-            error: 'Error al iniciar sesión',
-            detalle: error.message
+            error: 'Error al iniciar sesión'
         });
     }
 };
@@ -167,14 +140,6 @@ export const cambiarContrasena = async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body;
 
-        if (!currentPassword || !newPassword) {
-            return res.status(400).json({ error: 'La contraseña actual y la nueva son obligatorias' });
-        }
-
-        if (newPassword.length < 8) {
-            return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 8 caracteres' });
-        }
-
         const usuario = await User.findByPk(req.usuario.id);
         if (!usuario) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
@@ -218,27 +183,26 @@ export const googleLogin = async (req, res) => {
         });
 
         if (!usuario) {
-            // Check if a local account exists with the same email
-            usuario = await User.findOne({ where: { email } });
+            const cuentaLocal = await User.findOne({ where: { email } });
 
-            if (usuario) {
-                // Link Google to existing local account
-                usuario.google_id = googleId;
-                if (!usuario.avatar_url && picture) {
-                    usuario.avatar_url = picture;
-                }
-                await usuario.save();
-            } else {
-                // Create new user from Google data
-                usuario = await User.create({
-                    name,
-                    email,
-                    google_id: googleId,
-                    auth_provider: 'google',
-                    avatar_url: picture || null,
-                    role: 'user'
+            if (cuentaLocal) {
+                // Existe una cuenta local con ese email - requiere verificación
+                return res.status(409).json({
+                    error: 'Ya existe una cuenta con este email. Iniciá sesión con tu contraseña para vincular Google.',
+                    requires_linking: true,
+                    email
                 });
             }
+
+            // No existe cuenta, crear nueva desde Google
+            usuario = await User.create({
+                name,
+                email,
+                google_id: googleId,
+                auth_provider: 'google',
+                avatar_url: picture || null,
+                role: 'user'
+            });
         }
 
         const token = generarToken(usuario);
@@ -251,9 +215,57 @@ export const googleLogin = async (req, res) => {
     } catch (error) {
         console.error('Error en Google login:', error);
         res.status(401).json({
-            error: 'Token de Google inválido',
-            detalle: error.message
+            error: 'Token de Google inválido'
         });
+    }
+};
+
+export const vincularGoogle = async (req, res) => {
+    try {
+        const { credential, password } = req.body;
+
+        if (!credential || !password) {
+            return res.status(400).json({ error: 'Token de Google y contraseña son obligatorios' });
+        }
+
+        const ticket = await googleClient.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+
+        const payload = ticket.getPayload();
+        const { sub: googleId, email, picture } = payload;
+
+        const usuario = await User.findOne({ where: { email } });
+        if (!usuario) {
+            return res.status(404).json({ error: 'Cuenta no encontrada' });
+        }
+
+        if (usuario.google_id) {
+            return res.status(400).json({ error: 'Esta cuenta ya tiene Google vinculado' });
+        }
+
+        const passwordValida = await usuario.compararPassword(password);
+        if (!passwordValida) {
+            return res.status(401).json({ error: 'Contraseña incorrecta' });
+        }
+
+        usuario.google_id = googleId;
+        if (!usuario.avatar_url && picture) {
+            usuario.avatar_url = picture;
+        }
+        await usuario.save();
+
+        const token = generarToken(usuario);
+
+        res.json({
+            mensaje: 'Google vinculado exitosamente',
+            usuario,
+            token
+        });
+    } catch (error) {
+        console.error('Error al vincular Google:', error);
+        res.status(401).json({ error: 'Token de Google inválido' });
     }
 };
 
