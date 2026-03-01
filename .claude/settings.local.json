@@ -26,7 +26,8 @@
       "Bash(gh run list:*)",
       "Bash(git fetch:*)",
       "Bash(npm run build:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(npm uninstall:*)"
     ]
   }
 }

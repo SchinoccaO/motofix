@@ -1,7 +1,11 @@
+import { useState } from 'react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import SelectorUbicacion, { type LocationData } from '../components/SelectorUbicacion'
 
 export default function RegistroTaller() {
+  const [location, setLocation] = useState<LocationData | null>(null)
+
   return (
     <div className="font-display bg-background-light dark:bg-background-dark text-[#181611] dark:text-white transition-colors duration-200 min-h-screen">
       <Navbar activePage="registro-taller" />
@@ -89,19 +93,7 @@ export default function RegistroTaller() {
                     />
                   </div>
                 </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-[#181611] dark:text-gray-300">Dirección Completa</label>
-                  <div className="relative">
-                    <input
-                      className="w-full rounded-lg border border-[#dbdce0] dark:border-input-border-dark bg-white dark:bg-elevated-dark pl-4 pr-10 py-3 text-sm text-[#181611] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-gray-400"
-                      placeholder="Calle, Número, Ciudad, Provincia"
-                      type="text"
-                    />
-                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                      location_on
-                    </span>
-                  </div>
-                </div>
+                <SelectorUbicacion onLocationChange={setLocation} />
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-[#181611] dark:text-gray-300">Correo Electrónico</label>
                   <input
@@ -212,7 +204,21 @@ export default function RegistroTaller() {
                     de MotoFIX.
                   </span>
                 </label>
-                <button className="w-full rounded-xl bg-primary hover:bg-[#d9ae2b] text-[#181611] text-base font-bold text-center py-4 px-6 transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-[0.99]">
+                {/* Feedback de coordenadas capturadas */}
+                {location && (
+                  <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg px-3 py-2 mb-2">
+                    <span className="material-symbols-outlined text-base shrink-0">check_circle</span>
+                    <span>
+                      Ubicación confirmada — lat: {location.lat.toFixed(6)}, lng: {location.lng.toFixed(6)}
+                    </span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={!location}
+                  className="w-full rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed text-[#181611] text-base font-bold text-center py-4 px-6 transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-[0.99]"
+                >
                   Registrar Mi Negocio
                 </button>
               </div>

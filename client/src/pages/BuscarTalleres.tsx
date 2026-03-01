@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -46,6 +46,7 @@ export default function BuscarTalleres() {
   const [dragScrollLeft, setDragScrollLeft] = useState(0);
   const [wasDragging, setWasDragging] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const navigate = useNavigate();
 
   const fetchProviders = async () => {
     try {
@@ -387,14 +388,26 @@ export default function BuscarTalleres() {
               </div>
             </div>
 
-            {/* Map Preview */}
-            <div className="rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-input-border-dark h-48 relative group cursor-pointer">
-              <div className="absolute inset-0 bg-gray-200 dark:bg-elevated-dark"></div>
-              <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center text-white">
-                <span className="material-symbols-outlined text-3xl mb-1">
-                  map
-                </span>
+            {/* Map Preview — tile estático de Córdoba */}
+            <div
+              onClick={() => navigate('/mapa')}
+              className="rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-input-border-dark h-48 relative group cursor-pointer hover:border-primary transition-colors"
+              aria-label="Ver mapa interactivo de talleres"
+            >
+              {/* Tile real de Córdoba (Carto Voyager z=12) */}
+              <div
+                className="absolute inset-0 bg-cover bg-center scale-105 group-hover:scale-110 transition-transform duration-500"
+                style={{ backgroundImage: 'url(https://a.basemaps.cartocdn.com/rastertiles/voyager/12/1317/2421.png)' }}
+              />
+              {/* Overlay degradado */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent group-hover:from-black/80 transition-colors" />
+              {/* CTA */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+                <div className="size-10 rounded-full bg-primary/90 flex items-center justify-center mb-2 shadow-lg group-hover:scale-110 transition-transform">
+                  <span className="material-symbols-outlined text-[#181611] text-xl">map</span>
+                </div>
                 <span className="font-bold text-sm">Ver en Mapa</span>
+                <span className="text-[11px] text-white/70 mt-0.5">Córdoba, Argentina</span>
               </div>
             </div>
           </aside>
@@ -540,8 +553,11 @@ export default function BuscarTalleres() {
       <Footer />
 
       {/* Mobile Map Button */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 lg:hidden">
-        <button className="bg-primary text-[#181611] font-bold px-6 py-3 rounded-full shadow-xl flex items-center gap-2 hover:scale-105 transition-transform">
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 lg:hidden z-50">
+        <button
+          onClick={() => navigate('/mapa')}
+          className="bg-primary text-[#181611] font-bold px-6 py-3 rounded-full shadow-xl flex items-center gap-2 hover:scale-105 transition-transform"
+        >
           <span className="material-symbols-outlined">map</span>
           Mapa
         </button>

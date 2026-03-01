@@ -12,6 +12,7 @@ import Home from "./pages/Home"; // Página principal/inicio
 import Login from "./pages/Login"; // Página de inicio de sesión
 import Register from "./pages/Register"; // Página de registro
 import BuscarTalleres from "./pages/BuscarTalleres"; // Página de búsqueda de talleres
+import MapaPage from "./pages/MapaPage";             // Mapa interactivo full screen
 import TallerProfile from "./pages/TallerProfile"; // Perfil de un taller específico
 import RegistroTaller from "./pages/RegistroTaller"; // Formulario para registrar taller
 import ResenaForm from "./pages/ResenaForm"; // Formulario para dejar reseña
@@ -41,6 +42,7 @@ function App(): JSX.Element {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/talleres" element={<BuscarTalleres />} />
+      <Route path="/mapa"     element={<MapaPage />} />
       <Route path="/taller/:id" element={<TallerProfile />} />
       <Route path="/registro-taller" element={<RegistroTaller />} />
       <Route path="/taller/:id/resena" element={<ResenaForm />} />

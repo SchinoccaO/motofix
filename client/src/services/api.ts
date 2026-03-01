@@ -162,6 +162,27 @@ interface TagsResponse {
   data: Tag[];
 }
 
+export interface CreateProviderPayload {
+  type: 'shop' | 'mechanic' | 'parts_store';
+  name: string;
+  description?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  address?: string;
+  city?: string;
+  province?: string;
+  country?: string;
+  latitude?: number;
+  longitude?: number;
+  tags?: string[];
+}
+
+export async function createProvider(payload: CreateProviderPayload): Promise<Provider> {
+  const { data } = await api.post<ProviderResponse>('/providers', payload);
+  return data.data;
+}
+
 export async function getMyProviders(): Promise<Provider[]> {
   const { data } = await api.get<ProvidersResponse>('/providers/mine');
   return data.data;

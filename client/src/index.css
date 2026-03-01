@@ -57,3 +57,49 @@
             0 4px 10px 0 rgba(0, 0, 0, 0.45);
     }
 }
+
+/* ─── Mapa interactivo (MapLibre GL JS) ───────────────────────────────── */
+
+/* Popup wrapper — dark mode */
+.dark .maplibregl-popup-content {
+    background-color: #22262E;
+    color: #E2E8F0;
+    border: 1px solid #2D3748;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65);
+    border-radius: 8px;
+}
+
+.dark .maplibregl-popup-tip {
+    border-top-color: #22262E;
+    border-bottom-color: #22262E;
+}
+
+.dark .maplibregl-popup-close-button {
+    color: #9CA3AF;
+}
+
+.dark .maplibregl-popup-close-button:hover {
+    color: #E2E8F0;
+    background: transparent;
+}
+
+/* Navigation controls — compact */
+.maplibregl-ctrl-group {
+    border-radius: 8px !important;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.dark .maplibregl-ctrl-group {
+    background: #22262E !important;
+    border-color: #2D3748 !important;
+}
+
+.dark .maplibregl-ctrl-group button {
+    background: #22262E;
+    color: #E2E8F0;
+}
+
+.dark .maplibregl-ctrl-group button:hover {
+    background: #2A303C;
+}
