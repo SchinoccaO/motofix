@@ -81,13 +81,13 @@ export default function Navbar({ activePage }: NavbarProps) {
       : "block py-3 text-sm font-medium hover:text-primary transition-colors";
 
   return (
-    <nav ref={menuRef} className="bg-white dark:bg-background-dark border-b border-[#f4f3f0] dark:border-elevated-dark sticky top-0 z-50">
+    <nav ref={menuRef} className="bg-white dark:bg-background-dark border-b border-[#d4d0c8] dark:border-elevated-dark sticky top-0 z-50">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
         {/* Left: Logo + Links */}
         <div className="flex items-center">
           <Link to="/" className="flex items-center gap-2 sm:gap-3">
             <Logo />
-            <h2 className="text-lg sm:text-xl font-bold tracking-tight">MotoFIX</h2>
+            <h2 className="text-lg sm:text-xl font-bold tracking-tight">Moto<span className="text-primary">FIX</span></h2>
           </Link>
         </div>
 
@@ -126,7 +126,7 @@ export default function Navbar({ activePage }: NavbarProps) {
               <Link to="/login" className="text-sm font-bold px-4 py-2 rounded-lg border border-gray-300 dark:border-input-border-dark hover:bg-gray-100 dark:hover:bg-elevated-dark transition-colors">
                 Ingresar
               </Link>
-              <Link to="/register" className="text-sm font-bold px-4 py-2 rounded-lg bg-primary hover:bg-[#d6aa28] text-[#181611] transition-colors">
+              <Link to="/register" className="text-sm font-bold px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-[#181611] transition-colors">
                 Registrarse
               </Link>
             </div>
@@ -184,7 +184,7 @@ export default function Navbar({ activePage }: NavbarProps) {
               </Link>
               <Link
                 to="/register"
-                className="block text-center text-sm font-bold px-4 py-2.5 rounded-lg bg-primary hover:bg-[#d6aa28] text-[#181611] transition-colors"
+                className="block text-center text-sm font-bold px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-[#181611] transition-colors"
                 onClick={() => setMenuOpen(false)}
               >
                 Registrarse

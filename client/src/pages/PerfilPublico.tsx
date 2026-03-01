@@ -116,13 +116,13 @@ export default function PerfilPublico() {
                   <h1 className="text-2xl sm:text-3xl font-bold text-[#181611] dark:text-white leading-tight">{profile.name}</h1>
                   <div className="mt-2 flex flex-col items-center gap-2">
                     {(profile.city || profile.province) && (
-                      <p className="text-sm text-[#887f63] dark:text-gray-400 flex items-center">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
                         <span className="material-symbols-outlined text-sm mr-1">location_on</span>
                         {[profile.city, profile.province].filter(Boolean).join(", ")}
                       </p>
                     )}
                     {profile.created_at && (
-                      <p className="text-sm text-[#887f63] dark:text-gray-400 flex items-center">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
                         <span className="material-symbols-outlined text-sm mr-1">calendar_today</span>
                         Miembro desde {formatMemberSince(profile.created_at)}
                       </p>
@@ -135,14 +135,14 @@ export default function PerfilPublico() {
                   <div className="grid grid-cols-2 divide-x divide-gray-100 dark:divide-gray-700">
                     <div className="text-center px-4">
                       <span className="block text-2xl font-bold text-[#181611] dark:text-white">{reviewCount}</span>
-                      <span className="text-xs font-medium text-[#887f63] dark:text-gray-400 uppercase tracking-wide">Opiniones</span>
+                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">Opiniones</span>
                     </div>
                     <div className="text-center px-4">
                       <div className="flex items-center justify-center gap-1">
                         <span className="text-2xl font-bold text-[#181611] dark:text-white">{avgRating}</span>
                         <span className="material-symbols-outlined text-primary text-base" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                       </div>
-                      <span className="text-xs font-medium text-[#887f63] dark:text-gray-400 uppercase tracking-wide">Media</span>
+                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">Media</span>
                     </div>
                   </div>
                 </div>
@@ -150,7 +150,7 @@ export default function PerfilPublico() {
 
               {/* Privacy footer */}
               <div className="bg-[#f8f7f6] dark:bg-surface-dark px-4 py-3 border-t border-gray-100 dark:border-input-border-dark text-center">
-                <p className="text-xs text-[#887f63] dark:text-gray-400 flex items-center justify-center">
+                <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center justify-center">
                   <span className="material-symbols-outlined text-sm mr-2">privacy_tip</span>
                   Perfil con privacidad protegida
                 </p>
@@ -168,7 +168,7 @@ export default function PerfilPublico() {
                 <div className="bg-white dark:bg-card-dark rounded-xl p-12 text-center border border-gray-100 dark:border-input-border-dark">
                   <span className="material-symbols-outlined text-gray-400 text-5xl mb-3 block">chat_bubble</span>
                   <h3 className="font-bold text-lg mb-1">Sin opiniones todavia</h3>
-                  <p className="text-[#887f63] dark:text-gray-400 text-sm">Este usuario aun no dejo resenas.</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">Este usuario aun no dejo resenas.</p>
                 </div>
               )}
 
@@ -185,7 +185,7 @@ export default function PerfilPublico() {
                           ) : (
                             <span className="font-bold text-base text-[#181611] dark:text-white line-clamp-1">Negocio eliminado</span>
                           )}
-                          <span className="text-xs text-[#887f63] dark:text-gray-500 whitespace-nowrap ml-2">{timeAgo(review.created_at)}</span>
+                          <span className="text-xs text-gray-600 dark:text-gray-500 whitespace-nowrap ml-2">{timeAgo(review.created_at)}</span>
                         </div>
 
                         {/* Provider badge */}
@@ -195,7 +195,7 @@ export default function PerfilPublico() {
                               {TYPE_LABELS[review.provider.type] || review.provider.type}
                             </span>
                             {review.provider.location && (
-                              <span className="text-xs text-[#887f63] dark:text-gray-400 flex items-center">
+                              <span className="text-xs text-gray-600 dark:text-gray-400 flex items-center">
                                 <span className="material-symbols-outlined text-[14px] mr-0.5">location_on</span>
                                 {review.provider.location.city}
                               </span>
@@ -219,7 +219,7 @@ export default function PerfilPublico() {
                           ))}
                         </div>
 
-                        <p className="text-[#5c584a] dark:text-gray-300 text-sm leading-relaxed">{review.comment}</p>
+                        <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">{review.comment}</p>
                       </div>
                     </div>
                   ))}

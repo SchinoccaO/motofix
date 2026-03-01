@@ -150,7 +150,7 @@ export default function BuscarTalleres() {
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1">
             Encuentra los mejores especialistas
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base">
+          <p className="text-gray-700 dark:text-gray-400 text-sm sm:text-base">
             {loading
               ? "Cargando negocios..."
               : `Explora ${providers.length} negocios de confianza.`}
@@ -159,7 +159,7 @@ export default function BuscarTalleres() {
 
         {/* Popular Brands */}
         <div className="mb-8">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-4">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-gray-600 mb-4">
             Marcas Populares
           </h3>
           <div className="relative group/carousel">
@@ -254,7 +254,7 @@ export default function BuscarTalleres() {
           {/* Selected brand indicator */}
           {selectedBrand && (
             <div className="mt-3 flex items-center gap-2">
-              <span className="text-xs text-gray-500">Filtrando por:</span>
+              <span className="text-xs text-gray-600">Filtrando por:</span>
               <span className="inline-flex items-center gap-1 bg-amber-50 dark:bg-amber-900/20 text-primary px-3 py-1 rounded-full text-xs font-bold">
                 {selectedBrand}
                 <button
@@ -270,7 +270,7 @@ export default function BuscarTalleres() {
 
         {/* Filters Bar */}
         <div className="flex items-center gap-3 overflow-x-auto pb-6 no-scrollbar border-b border-gray-100 dark:border-elevated-dark mb-8">
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-[#181611] font-semibold text-sm shadow-sm transition-all hover:bg-[#c09923]">
+          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-[#181611] font-semibold text-sm shadow-sm transition-all hover:bg-primary-hover">
             <span className="material-symbols-outlined text-[18px]">
               location_on
             </span>
@@ -320,7 +320,7 @@ export default function BuscarTalleres() {
 
               {/* Business Type Filter */}
               <div className="space-y-4 mb-8">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-600">
                   Tipo de Negocio
                 </h4>
                 <div className="space-y-2">
@@ -358,7 +358,7 @@ export default function BuscarTalleres() {
 
               {/* Rating Filter */}
               <div className="space-y-4 mb-8">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-600">
                   Calificacion Minima
                 </h4>
                 <div className="space-y-2">
@@ -426,7 +426,7 @@ export default function BuscarTalleres() {
                 <h3 className="font-bold text-lg mb-1">
                   No se encontraron resultados
                 </h3>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
+                <p className="text-gray-700 dark:text-gray-400 text-sm">
                   Intenta con otros filtros o terminos de busqueda.
                 </p>
               </div>
@@ -492,11 +492,11 @@ export default function BuscarTalleres() {
                         </div>
                       </div>
                       {provider.description && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">
+                        <p className="text-sm text-gray-700 dark:text-gray-400 mb-4 line-clamp-2">
                           {provider.description}
                         </p>
                       )}
-                      <div className="flex flex-wrap gap-4 text-xs text-gray-500 dark:text-gray-400 mb-6 border-y border-gray-50 dark:border-input-border-dark py-3">
+                      <div className="flex flex-wrap gap-4 text-xs text-gray-700 dark:text-gray-400 mb-6 border-y border-gray-200 dark:border-input-border-dark py-3">
                         {provider.location && (
                           <div className="flex items-center gap-1.5">
                             <span className="material-symbols-outlined text-[16px]">
@@ -516,7 +516,7 @@ export default function BuscarTalleres() {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <div className="flex-1 bg-primary text-[#181611] font-bold py-2.5 rounded-lg text-sm transition-all hover:bg-[#c09923] text-center cursor-pointer">
+                        <div className="flex-1 bg-primary text-[#181611] font-bold py-2.5 rounded-lg text-sm transition-all hover:bg-primary-hover text-center cursor-pointer">
                           Ver Perfil
                         </div>
                         <button

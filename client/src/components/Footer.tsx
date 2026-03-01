@@ -11,7 +11,7 @@ export default function Footer() {
               <Logo size={24} />
               <span className="text-xl font-bold">MotoFIX</span>
             </div>
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
+            <p className="text-gray-700 dark:text-gray-400 text-sm">
               La plataforma líder para conectar motociclistas con talleres de
               confianza.
             </p>
@@ -21,13 +21,13 @@ export default function Footer() {
               Compañía
             </h4>
             <Link
-              className="text-gray-600 dark:text-gray-400 hover:text-primary text-sm"
+              className="text-gray-700 dark:text-gray-400 hover:text-primary text-sm"
               to="/sobre-nosotros"
             >
               Sobre nosotros
             </Link>
 <Link
-              className="text-gray-600 dark:text-gray-400 hover:text-primary text-sm"
+              className="text-gray-700 dark:text-gray-400 hover:text-primary text-sm"
               to="/blog"
             >
               Blog
@@ -38,19 +38,19 @@ export default function Footer() {
               Soporte
             </h4>
             <Link
-              className="text-gray-600 dark:text-gray-400 hover:text-primary text-sm"
+              className="text-gray-700 dark:text-gray-400 hover:text-primary text-sm"
               to="/ayuda"
             >
               Ayuda
             </Link>
             <Link
-              className="text-gray-600 dark:text-gray-400 hover:text-primary text-sm"
+              className="text-gray-700 dark:text-gray-400 hover:text-primary text-sm"
               to="/terminos"
             >
               Términos y condiciones
             </Link>
             <Link
-              className="text-gray-600 dark:text-gray-400 hover:text-primary text-sm"
+              className="text-gray-700 dark:text-gray-400 hover:text-primary text-sm"
               to="/privacidad"
             >
               Privacidad
@@ -62,7 +62,7 @@ export default function Footer() {
             </h4>
             <div className="flex gap-4">
               <a
-                className="text-gray-400 hover:text-primary transition-colors"
+                className="text-gray-500 hover:text-primary transition-colors"
                 href="https://facebook.com"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -77,7 +77,7 @@ export default function Footer() {
                 </svg>
               </a>
               <a
-                className="text-gray-400 hover:text-primary transition-colors"
+                className="text-gray-500 hover:text-primary transition-colors"
                 href="https://instagram.com/motofix.official"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -94,7 +94,7 @@ export default function Footer() {
             </div>
           </div>
         </div>
-        <div className="mt-12 border-t border-gray-100 dark:border-elevated-dark pt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+        <div className="mt-12 border-t border-gray-200 dark:border-elevated-dark pt-8 text-center text-sm text-gray-700 dark:text-gray-400">
           <p>© 2026 MotoFIX. Todos los derechos reservados.</p>
         </div>
       </div>

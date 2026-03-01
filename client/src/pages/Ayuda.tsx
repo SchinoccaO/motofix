@@ -48,7 +48,7 @@ export default function Ayuda() {
             <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-3">
               Centro de ayuda
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 text-base max-w-2xl">
+            <p className="text-gray-700 dark:text-gray-400 text-base max-w-2xl">
               {/* EDITAR: Cambiá esta descripción introductoria */}
               ¿Tenés dudas? Encontrá respuestas a las preguntas más frecuentes o contactanos.
             </p>
@@ -73,7 +73,7 @@ export default function Ayuda() {
                     </span>
                   </button>
                   {openIndex === index && (
-                    <p className="text-gray-500 dark:text-gray-400 text-sm mt-3 leading-relaxed">
+                    <p className="text-gray-700 dark:text-gray-400 text-sm mt-3 leading-relaxed">
                       {faq.answer}
                     </p>
                   )}
@@ -90,7 +90,7 @@ export default function Ayuda() {
               ══════════════════════════════════════════════════════════════ */}
           <section className="bg-white dark:bg-card-dark rounded-xl p-6 md:p-10 shadow-sm border border-[#f4f3f0] dark:border-elevated-dark">
             <h2 className="text-xl font-bold mb-6">¿No encontraste lo que buscabas?</h2>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+            <p className="text-gray-700 dark:text-gray-400 text-sm mb-6">
               {/* EDITAR: Cambiá este texto */}
               Escribinos y te respondemos a la brevedad.
             </p>
@@ -123,7 +123,7 @@ export default function Ayuda() {
               {/* EDITAR: Conectá este botón a tu backend para enviar el formulario */}
               <button
                 type="submit"
-                className="self-start px-6 py-2.5 bg-primary hover:bg-[#d6aa28] text-[#181611] text-sm font-bold rounded-lg transition-colors"
+                className="self-start px-6 py-2.5 bg-primary hover:bg-primary-hover text-[#181611] text-sm font-bold rounded-lg transition-colors"
               >
                 Enviar mensaje
               </button>
