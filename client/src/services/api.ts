@@ -142,6 +142,7 @@ export interface Tag {
 
 export interface Provider {
   id: number;
+  owner_id?: number;
   type: 'shop' | 'mechanic' | 'parts_store';
   name: string;
   description: string | null;
@@ -152,6 +153,11 @@ export interface Provider {
   is_active: boolean;
   average_rating: number;
   total_reviews: number;
+  // Estado manual (override del horario): null=usar horario | true=abierto | false=cerrado
+  is_open_override?: boolean | null;
+  // Rate limiting de ediciones
+  profile_edit_count?: number;
+  pending_validation?: boolean;
   location?: {
     id: number;
     address: string;
@@ -204,11 +210,35 @@ export interface CreateProviderPayload {
   latitude?: number;
   longitude?: number;
   tags?: string[];
+  horarios?: Record<string, { abre: string; cierra: string } | null> | null;
+}
+
+export interface UpdateProviderPayload {
+  type?: string;
+  name?: string;
+  description?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  horarios?: Provider['horarios'];
 }
 
 export async function createProvider(payload: CreateProviderPayload): Promise<Provider> {
   const { data } = await api.post<ProviderResponse>('/providers', payload);
   return data.data;
+}
+
+export async function updateProvider(id: number, payload: UpdateProviderPayload): Promise<Provider> {
+  const { data } = await api.put<ProviderResponse>(`/providers/${id}`, payload);
+  return data.data;
+}
+
+export async function requestLocationChange(
+  id: number,
+  payload: { newLat: number; newLng: number; newAddress: string; newCity: string; newProvince: string }
+): Promise<{ success: boolean; message: string }> {
+  const { data } = await api.post(`/providers/${id}/request-location-change`, payload);
+  return data;
 }
 
 export async function getMyProviders(): Promise<Provider[]> {
@@ -228,6 +258,19 @@ export async function getProviders(params?: {
 
 export async function getProviderById(id: number): Promise<Provider> {
   const { data } = await api.get<ProviderResponse>(`/providers/${id}`);
+  return data.data;
+}
+
+// Cambiar estado manual abierto/cerrado (override del horario programado).
+// override: true=forzar abierto | false=forzar cerrado | null=volver al horario
+export async function updateProviderStatus(
+  id: number,
+  override: boolean | null,
+): Promise<{ is_open_override: boolean | null }> {
+  const { data } = await api.put<{ success: boolean; data: { is_open_override: boolean | null } }>(
+    `/providers/${id}/status`,
+    { override },
+  );
   return data.data;
 }
 

@@ -6,7 +6,6 @@
 
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter } from "react-router-dom"; // Permite navegación entre páginas sin recargar
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import App from "./App";
 import "./index.css"; // Estilos globales (Tailwind CSS)
@@ -32,10 +31,7 @@ ReactDOM.createRoot(rootElement).render(
   // (solo afecta desarrollo, no producción)
   <React.StrictMode>
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      {/* BrowserRouter: Habilita navegación tipo SPA (Single Page App) */}
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <App />
     </GoogleOAuthProvider>
   </React.StrictMode>,
 );

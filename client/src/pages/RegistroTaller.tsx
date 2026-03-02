@@ -1,11 +1,16 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, useNavigate, useLocation, useBlocker } from 'react-router-dom'
 import axios from 'axios'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import type { LocationData } from '../components/SelectorUbicacion'
 const SelectorUbicacion = lazy(() => import('../components/SelectorUbicacion'))
 import { createProvider, getStoredToken, getStoredUser } from '../services/api'
+import HorariosEditor, {
+  type HorariosForm,
+  horariosToBackend,
+  HORARIOS_INIT,
+} from '../components/HorariosEditor'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -65,6 +70,72 @@ const inputCls =
 
 const labelCls = 'text-sm font-medium text-[#181611] dark:text-gray-300'
 
+// ── Confirm Leave Dialog ──────────────────────────────────────────────────────
+
+function ConfirmLeaveDialog({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+      <div className="bg-white dark:bg-card-dark rounded-2xl shadow-xl p-6 max-w-sm w-full flex flex-col gap-4">
+        <div className="flex items-center gap-3">
+          <div className="size-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-xl text-amber-600 dark:text-amber-400">warning</span>
+          </div>
+          <div>
+            <p className="font-bold text-[#181611] dark:text-white">¿Salir sin guardar?</p>
+            <p className="text-sm text-[#887f63] dark:text-body-dark">Los datos que completaste se perderán.</p>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-2.5 px-4 rounded-lg border border-[#dbdce0] dark:border-input-border-dark text-sm font-semibold text-[#181611] dark:text-white hover:bg-gray-50 dark:hover:bg-elevated-dark transition-colors"
+          >
+            Seguir editando
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 py-2.5 px-4 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition-colors"
+          >
+            Sí, salir
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Success Overlay ───────────────────────────────────────────────────────────
+
+function SuccessOverlay({ onGoToProfile }: { onGoToProfile: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+      <div className="bg-white dark:bg-card-dark rounded-2xl shadow-xl p-8 max-w-sm w-full flex flex-col items-center gap-5 text-center">
+        <div className="size-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+          <span
+            className="material-symbols-outlined text-4xl text-green-600 dark:text-green-400"
+            style={{ fontVariationSettings: "'FILL' 1" }}
+          >
+            check_circle
+          </span>
+        </div>
+        <div className="flex flex-col gap-1">
+          <p className="text-2xl font-black text-[#181611] dark:text-white">¡Negocio registrado!</p>
+          <p className="text-sm text-[#887f63] dark:text-body-dark leading-relaxed">
+            Tu taller ya está visible en MotoFIX. Podés completar más datos desde tu perfil.
+          </p>
+        </div>
+        <button
+          onClick={onGoToProfile}
+          className="w-full rounded-xl bg-primary hover:bg-primary-hover text-[#181611] font-bold py-3 px-6 transition-colors flex items-center justify-center gap-2"
+        >
+          <span className="material-symbols-outlined text-lg">arrow_forward</span>
+          Ver mi perfil
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ── Auth Guard — Empty State ──────────────────────────────────────────────────
 
 function AuthGuard() {
@@ -116,11 +187,29 @@ export default function RegistroTaller() {
   const [phone,       setPhone]       = useState(() => getStoredUser()?.phone ?? '')
   const [email,       setEmail]       = useState(() => getStoredUser()?.email ?? '')
   const [description, setDescription] = useState('')
-  const [sabOpen,     setSabOpen]     = useState(true)
+  const [horarios,    setHorarios]    = useState<HorariosForm>(HORARIOS_INIT)
   const [location,    setLocation]    = useState<LocationData | null>(null)
   const [terms,       setTerms]       = useState(false)
   const [isLoading,   setIsLoading]   = useState(false)
   const [error,       setError]       = useState<string | null>(null)
+  // isDirty: true en cuanto el usuario toca cualquier campo
+  // savedId: id del provider recién creado (muestra el overlay de éxito)
+  const [isDirty,     setIsDirty]     = useState(false)
+  const [savedId,     setSavedId]     = useState<number | null>(null)
+
+  // Bloquea la navegación in-app si hay cambios sin guardar y aún no se guardó
+  const blocker = useBlocker(isDirty && savedId === null)
+
+  // Bloquea cierre/recarga del tab si hay cambios sin guardar
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (!isDirty || savedId !== null) return
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty, savedId])
 
   // Prellenar "Nombre y Apellido Profesional" al cambiar a tipo mecánico
   useEffect(() => {
@@ -128,6 +217,12 @@ export default function RegistroTaller() {
       setName(prev => prev === '' ? (getStoredUser()?.name ?? '') : prev)
     }
   }, [formType])
+
+  // Marca el form como sucio y actualiza la ubicación (SelectorUbicacion)
+  const handleLocationChange = (loc: typeof location) => {
+    setLocation(loc)
+    setIsDirty(true)
+  }
 
   // Guard temprano: si no hay sesión activa, mostrar empty state
   if (!isLoggedIn) return <AuthGuard />
@@ -170,8 +265,9 @@ export default function RegistroTaller() {
         country:     'Argentina',
         latitude:    location!.lat,
         longitude:   location!.lng,
+        horarios:    horariosToBackend(horarios),
       })
-      navigate(`/taller/${provider.id}`)
+      setSavedId(provider.id)
     } catch (err) {
       setError(extractApiError(err))
     } finally {
@@ -182,6 +278,19 @@ export default function RegistroTaller() {
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className="font-display bg-background-light dark:bg-background-dark text-[#181611] dark:text-white transition-colors duration-200 min-h-screen">
+
+      {/* Overlay de confirmación al salir con cambios sin guardar */}
+      {blocker.state === 'blocked' && (
+        <ConfirmLeaveDialog
+          onConfirm={() => blocker.proceed()}
+          onCancel={() => blocker.reset()}
+        />
+      )}
+
+      {/* Overlay de éxito tras guardar */}
+      {savedId !== null && (
+        <SuccessOverlay onGoToProfile={() => navigate(`/taller/${savedId}`)} />
+      )}
       <Navbar activePage="registro-taller" />
 
       <div className="layout-container flex h-full grow flex-col">
@@ -198,7 +307,12 @@ export default function RegistroTaller() {
               </p>
             </div>
 
-            <form className="flex flex-col gap-6 p-8 pt-4" onSubmit={handleSubmit} noValidate>
+            <form
+              className="flex flex-col gap-6 p-8 pt-4"
+              onSubmit={handleSubmit}
+              onChange={() => setIsDirty(true)}
+              noValidate
+            >
 
               {/* ── Tipo de Negocio ──────────────────────────────────────────── */}
               <div>
@@ -295,26 +409,23 @@ export default function RegistroTaller() {
                     <div className="h-64 md:h-80 rounded-xl bg-[#f4f3f0] dark:bg-elevated-dark animate-pulse" />
                   </div>
                 }>
-                  <SelectorUbicacion onLocationChange={setLocation} />
+                  <SelectorUbicacion onLocationChange={handleLocationChange} />
                 </Suspense>
 
-                {/* Feedback de coordenadas — verde si confirmado, amarillo si pendiente */}
-                {locationValid ? (
-                  <div className="flex items-center gap-2 text-xs text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg px-3 py-2 -mt-3">
-                    <span className="material-symbols-outlined text-base shrink-0">check_circle</span>
-                    <span>
-                      Ubicación confirmada en{' '}
-                      <strong>{location.city || 'coordenadas'}</strong>
-                      {location.province && location.province !== location.city && `, ${location.province}`}
-                      {' — '}lat {location.lat.toFixed(5)}, lng {location.lng.toFixed(5)}
+                {/* Confirmación compacta de ubicación */}
+                {locationValid && (
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-green-700 dark:text-green-400 -mt-1">
+                    <span
+                      className="material-symbols-outlined text-sm shrink-0"
+                      style={{ fontVariationSettings: "'FILL' 1" }}
+                    >
+                      check_circle
                     </span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg px-3 py-2 -mt-3">
-                    <span className="material-symbols-outlined text-base shrink-0">location_on</span>
-                    <span>Buscá tu dirección o mové el pin para confirmar la ubicación. <strong>Campo obligatorio.</strong></span>
+                    Ubicación confirmada
+                    {location.city ? ` — ${location.city}` : ''}
                   </div>
                 )}
+
               </div>
 
               <div className="w-full h-px bg-[#f4f3f0] dark:bg-elevated-dark" />
@@ -340,60 +451,7 @@ export default function RegistroTaller() {
                   />
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-2 p-4 rounded-lg bg-[#f8f7f6] dark:bg-surface-dark border border-[#f4f3f0] dark:border-input-border-dark">
-                    <span className="text-sm font-semibold text-[#181611] dark:text-white flex items-center gap-2">
-                      <span className="material-symbols-outlined text-lg">calendar_today</span>
-                      Lunes a Viernes
-                    </span>
-                    <div className="flex gap-2 items-center mt-2">
-                      <input
-                        className="flex-1 rounded-md border border-gray-300 dark:border-input-border-dark bg-white dark:bg-elevated-dark p-2 text-sm dark:text-white"
-                        type="time"
-                        defaultValue="09:00"
-                      />
-                      <span className="text-gray-400">–</span>
-                      <input
-                        className="flex-1 rounded-md border border-gray-300 dark:border-input-border-dark bg-white dark:bg-elevated-dark p-2 text-sm dark:text-white"
-                        type="time"
-                        defaultValue="18:00"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2 p-4 rounded-lg bg-[#f8f7f6] dark:bg-surface-dark border border-[#f4f3f0] dark:border-input-border-dark">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-semibold text-[#181611] dark:text-white flex items-center gap-2">
-                        <span className="material-symbols-outlined text-lg">weekend</span>
-                        Sábados
-                      </span>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          className="rounded text-primary focus:ring-primary bg-white dark:bg-elevated-dark border-gray-300 dark:border-input-border-dark"
-                          type="checkbox"
-                          checked={sabOpen}
-                          onChange={(e) => setSabOpen(e.target.checked)}
-                        />
-                        <span className="text-xs text-gray-500">Abierto</span>
-                      </label>
-                    </div>
-                    <div className="flex gap-2 items-center mt-2">
-                      <input
-                        className="flex-1 rounded-md border border-gray-300 dark:border-input-border-dark bg-white dark:bg-elevated-dark p-2 text-sm dark:text-white disabled:opacity-40"
-                        type="time"
-                        defaultValue="09:00"
-                        disabled={!sabOpen}
-                      />
-                      <span className="text-gray-400">–</span>
-                      <input
-                        className="flex-1 rounded-md border border-gray-300 dark:border-input-border-dark bg-white dark:bg-elevated-dark p-2 text-sm dark:text-white disabled:opacity-40"
-                        type="time"
-                        defaultValue="13:00"
-                        disabled={!sabOpen}
-                      />
-                    </div>
-                  </div>
-                </div>
+                <HorariosEditor value={horarios} onChange={setHorarios} />
               </div>
 
               <div className="w-full h-px bg-[#f4f3f0] dark:bg-elevated-dark" />
@@ -443,13 +501,6 @@ export default function RegistroTaller() {
                     <span className="material-symbols-outlined text-base shrink-0 mt-0.5">error</span>
                     <span>{error}</span>
                   </div>
-                )}
-
-                {/* Hint si el botón está bloqueado por la ubicación */}
-                {!locationValid && !error && (
-                  <p className="text-xs text-[#887f63] dark:text-gray-500 text-center mb-3">
-                    Completá todos los campos y confirmá la ubicación en el mapa para habilitar el botón.
-                  </p>
                 )}
 
                 <button

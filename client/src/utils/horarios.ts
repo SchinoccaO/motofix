@@ -101,9 +101,19 @@ export interface OpenStatus {
 
 /**
  * Compara la hora del sistema (en zona Argentina) con los horarios del negocio.
- * Retorna { open, opensAt? }.
+ * Acepta un segundo parámetro `override` para el estado manual:
+ *   true  → retorna siempre abierto (ignorar horario)
+ *   false → retorna siempre cerrado (ignorar horario)
+ *   null/undefined → usa el horario programado (comportamiento por defecto)
  */
-export function isOpenNow(horarios: Horarios | null | undefined): OpenStatus {
+export function isOpenNow(
+  horarios: Horarios | null | undefined,
+  override?: boolean | null,
+): OpenStatus {
+  // Override manual tiene prioridad absoluta sobre el horario
+  if (override === true)  return { open: true };
+  if (override === false) return { open: false };
+
   if (!horarios) return { open: false };
 
   const dia  = getDiaArgentina();

@@ -71,7 +71,36 @@ Provider.init(
       allowNull: true,
       defaultValue: null,
       comment: 'Horarios por día. Formato: { "lunes": { "abre": "09:00", "cierra": "18:00" }, "sabado": null, ... }'
-    }
+    },
+    // ── Estado manual abierto/cerrado ──────────────────────────────────────────
+    // null  → usar horario programado (comportamiento por defecto)
+    // true  → forzar ABIERTO (override de feriados, horarios especiales)
+    // false → forzar CERRADO (feriados, enfermedad, vacaciones)
+    is_open_override: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: null,
+      comment: 'null=usar horario, true=forzar abierto, false=forzar cerrado'
+    },
+    // ── Rate limiting de ediciones de perfil ────────────────────────────────────
+    // Máximo 2 ediciones cada 14 días sin validación manual.
+    profile_edit_count: {
+      type: DataTypes.TINYINT.UNSIGNED,
+      allowNull: false,
+      defaultValue: 0,
+    },
+    profile_edit_window_start: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null,
+      comment: 'Inicio de la ventana de 14 días para contar ediciones'
+    },
+    pending_validation: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'true = límite de ediciones alcanzado, esperando revisión manual'
+    },
   },
   {
     sequelize,
