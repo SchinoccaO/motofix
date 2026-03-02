@@ -10,18 +10,28 @@ import {
   type Provider,
   type ReviewData,
 } from "../services/api";
+import { isOpenNow, getHorariosSemana, getDiaArgentina } from "../utils/horarios";
 
+// Etiqueta legible del tipo de negocio (aparece como badge bajo el nombre)
 const TYPE_LABELS: Record<string, string> = {
   shop: "Taller Mecanico",
   mechanic: "Mecanico",
   parts_store: "Casa de Repuestos",
 };
 
+// 🔧 Fotos hero por tipo — reemplazar por imágenes reales cuando estén disponibles
 const HERO_IMAGES: Record<string, string> = {
   shop: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=1200&h=500&fit=crop",
   mechanic: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=1200&h=500&fit=crop",
   parts_store: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1200&h=500&fit=crop",
 };
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+// timeAgo     → convierte una fecha ISO a texto relativo ("Hace 2 dias", etc.)
+// StarRating  → 5 estrellas rellenas/vacías según el rating numérico
+// formatTime  → convierte horas enteras a texto legible ("2 dias y 3 horas")
+// getInitials → primeras 2 iniciales del nombre para el avatar de reseña
+// getColor    → color determinista por nombre (hash → paleta COLORS)
 
 function timeAgo(dateStr: string): string {
   const now = new Date();
@@ -74,6 +84,7 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
+// 🔧 Paleta de avatares — agregar o cambiar colores según el branding
 const COLORS = ["#E53E3E", "#DD6B20", "#38A169", "#3182CE", "#805AD5", "#D53F8C"];
 
 function getColor(name: string): string {
@@ -81,6 +92,14 @@ function getColor(name: string): string {
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
   return COLORS[Math.abs(hash) % COLORS.length];
 }
+
+// ─── Estado del componente ────────────────────────────────────────────────────
+// user          → usuario logueado (null si no hay sesión); redirige a /login al reseñar
+// provider      → datos completos del taller cargados por ID desde el backend
+// loading/error → control de estados de la request inicial
+// showReviewForm → toggle del formulario inline de reseña
+// reviewRating / reviewHover → estrellas seleccionadas y hover visual
+// estDays/estHours + actDays/actHours → tiempos del trabajo (opcionales en la reseña)
 
 export default function TallerProfile() {
   const { id } = useParams<{ id: string }>();
@@ -90,7 +109,7 @@ export default function TallerProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Inline review form state
+  // ── Estado del formulario de reseña inline ─────────────────────────────────
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewHover, setReviewHover] = useState(0);
@@ -187,7 +206,7 @@ export default function TallerProfile() {
         {error && !loading && (
           <div className="text-center py-20">
             <span className="material-symbols-outlined text-5xl text-gray-400 mb-4 block">error</span>
-            <p className="text-gray-500">{error}</p>
+            <p className="text-gray-700">{error}</p>
             <Link to="/talleres" className="text-primary font-bold mt-4 inline-block hover:underline">
               Volver a talleres
             </Link>
@@ -197,7 +216,7 @@ export default function TallerProfile() {
         {provider && !loading && (
           <>
             {/* Breadcrumbs */}
-            <div className="flex items-center gap-2 text-sm text-text-secondary mb-6">
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-6">
               <Link to="/" className="hover:text-primary transition-colors">Inicio</Link>
               <span className="material-symbols-outlined text-[16px]">chevron_right</span>
               <Link to="/talleres" className="hover:text-primary transition-colors">Talleres</Link>
@@ -205,10 +224,15 @@ export default function TallerProfile() {
               <span className="text-text-main font-medium dark:text-white">{provider.name}</span>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* LEFT COLUMN */}
+            {/* Layout: 2 columnas en desktop — col izquierda (contenido) + col derecha (sidebar de contacto) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+              {/* ─── COLUMNA IZQUIERDA ─────────────────────────────────────── */}
               <div className="lg:col-span-2 space-y-8">
-                {/* Hero Image */}
+
+                {/* ── Hero Image ─────────────────────────────────────────────
+                    Imagen de portada placeholder según el tipo de negocio.
+                    🔧 Reemplazar HERO_IMAGES cuando el backend envíe foto real. */}
                 <div className="w-full aspect-video md:aspect-[21/9] bg-gray-200 rounded-xl overflow-hidden relative">
                   <img
                     src={HERO_IMAGES[provider.type] || HERO_IMAGES.shop}
@@ -217,7 +241,8 @@ export default function TallerProfile() {
                   />
                 </div>
 
-                {/* Header Info */}
+                {/* ── Header Info ────────────────────────────────────────────
+                    Nombre, tipo de negocio, badge de verificado, rating y ciudad */}
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-wrap justify-between items-start gap-4">
                     <div>
@@ -241,14 +266,14 @@ export default function TallerProfile() {
                           <span className="font-bold text-lg text-text-main dark:text-white">
                             {avgRating.toFixed(1)}
                           </span>
-                          <span className="text-text-secondary">
+                          <span className="text-gray-600 dark:text-gray-400">
                             ({provider.total_reviews} {provider.total_reviews === 1 ? "resena" : "resenas"})
                           </span>
                         </div>
                         {provider.location && (
                           <>
-                            <span className="text-gray-300">|</span>
-                            <span className="text-text-secondary flex items-center gap-1">
+                            <span className="text-gray-400">|</span>
+                            <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
                               <span className="material-symbols-outlined text-lg">location_on</span>
                               {provider.location.city}, {provider.location.province}
                             </span>
@@ -259,17 +284,21 @@ export default function TallerProfile() {
                   </div>
                 </div>
 
-                {/* Description */}
+                {/* ── Description ────────────────────────────────────────────
+                    Solo se renderiza si el provider tiene descripción cargada */}
                 {provider.description && (
                   <div>
                     <h3 className="text-lg font-bold mb-2">Sobre el negocio</h3>
-                    <p className="text-text-secondary leading-relaxed text-base">{provider.description}</p>
+                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-base">{provider.description}</p>
                   </div>
                 )}
 
                 <hr className="border-gray-200 dark:border-elevated-dark" />
 
-                {/* Reviews Section */}
+                {/* ── Reviews ────────────────────────────────────────────────
+                    Incluye: botón "Dejar reseña" → abre formulario inline,
+                    resumen de rating (número grande + barras de distribución),
+                    y lista de reseñas individuales con avatar generado por getColor/getInitials. */}
                 <div id="reviews">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-2xl font-bold">Resenas y Opiniones</h3>
@@ -281,7 +310,7 @@ export default function TallerProfile() {
                         }
                         setShowReviewForm(!showReviewForm);
                       }}
-                      className="bg-primary hover:bg-yellow-500 text-text-main font-bold py-2 px-6 rounded-lg transition-colors flex items-center gap-2"
+                      className="bg-primary hover:bg-primary-hover text-[#181611] font-bold py-2 px-6 rounded-lg transition-colors flex items-center gap-2"
                     >
                       <span className="material-symbols-outlined">rate_review</span>
                       Dejar resena
@@ -290,7 +319,7 @@ export default function TallerProfile() {
 
                   {/* Inline Review Form */}
                   {showReviewForm && (
-                    <div className="bg-white dark:bg-card-dark p-6 rounded-xl border border-gray-100 dark:border-input-border-dark mb-8">
+                    <div className="bg-white dark:bg-card-dark p-6 rounded-xl border border-gray-200 dark:border-input-border-dark mb-8">
                       <h4 className="font-bold text-lg mb-4">Tu resena para {provider.name}</h4>
 
                       {reviewError && (
@@ -301,7 +330,7 @@ export default function TallerProfile() {
 
                       {/* Stars */}
                       <div className="mb-4">
-                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Calificacion</p>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Calificacion</p>
                         <div className="flex gap-1 items-center">
                           {[1, 2, 3, 4, 5].map((star) => (
                             <button
@@ -338,7 +367,7 @@ export default function TallerProfile() {
 
                       {/* Comment */}
                       <div className="mb-4">
-                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Comentario</p>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Comentario</p>
                         <div className="relative">
                           <textarea
                             className="w-full rounded-lg border border-gray-300 dark:border-input-border-dark bg-white dark:bg-elevated-dark text-gray-900 dark:text-white text-sm p-3 resize-y min-h-[100px] focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
@@ -347,7 +376,7 @@ export default function TallerProfile() {
                             value={reviewComment}
                             onChange={(e) => setReviewComment(e.target.value.slice(0, 500))}
                           />
-                          <div className="absolute bottom-2 right-3 text-xs text-gray-400">
+                          <div className="absolute bottom-2 right-3 text-xs text-gray-500">
                             {reviewComment.length}/500
                           </div>
                         </div>
@@ -356,12 +385,12 @@ export default function TallerProfile() {
                       {/* Time fields */}
                       <div className="mb-4">
                         <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                          Tiempos del trabajo <span className="text-xs text-gray-400 font-normal">(opcional)</span>
+                          Tiempos del trabajo <span className="text-xs text-gray-600 font-normal">(opcional)</span>
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {/* Estimated */}
                           <div className="bg-gray-50 dark:bg-elevated-dark rounded-lg p-3 border border-gray-200 dark:border-input-border-dark">
-                            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-1">
+                            <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-1">
                               <span className="material-symbols-outlined text-sm">schedule</span>
                               Tiempo estimado
                             </p>
@@ -392,7 +421,7 @@ export default function TallerProfile() {
                           </div>
                           {/* Actual */}
                           <div className="bg-gray-50 dark:bg-elevated-dark rounded-lg p-3 border border-gray-200 dark:border-input-border-dark">
-                            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-1">
+                            <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-1">
                               <span className="material-symbols-outlined text-sm">timer</span>
                               Tiempo real
                             </p>
@@ -438,7 +467,7 @@ export default function TallerProfile() {
                             setActHours(0);
                             setReviewError(null);
                           }}
-                          className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                          className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
                         >
                           Cancelar
                         </button>
@@ -446,7 +475,7 @@ export default function TallerProfile() {
                           type="button"
                           disabled={reviewSubmitting}
                           onClick={handleReviewSubmit}
-                          className="bg-primary hover:bg-[#d6aa28] text-[#181611] font-bold text-sm px-6 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                          className="bg-primary hover:bg-primary-hover text-[#181611] font-bold text-sm px-6 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                         >
                           {reviewSubmitting ? "Publicando..." : "Publicar"}
                           {!reviewSubmitting && (
@@ -459,7 +488,7 @@ export default function TallerProfile() {
 
                   {/* Ratings Summary */}
                   {totalReviews > 0 && (
-                    <div className="bg-white dark:bg-card-dark p-6 rounded-xl border border-gray-100 dark:border-input-border-dark mb-8">
+                    <div className="bg-white dark:bg-card-dark p-6 rounded-xl border border-gray-200 dark:border-input-border-dark mb-8">
                       <div className="flex flex-col md:flex-row gap-8 items-center">
                         <div className="flex flex-col items-center justify-center min-w-[140px]">
                           <span className="text-6xl font-black text-text-main dark:text-white">
@@ -479,7 +508,7 @@ export default function TallerProfile() {
                               </span>
                             ))}
                           </div>
-                          <span className="text-sm text-text-secondary">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
                             Basado en {totalReviews} {totalReviews === 1 ? "opinion" : "opiniones"}
                           </span>
                         </div>
@@ -493,7 +522,7 @@ export default function TallerProfile() {
                                 <div className="flex-1 h-2 bg-gray-200 dark:bg-elevated-dark rounded-full overflow-hidden">
                                   <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }}></div>
                                 </div>
-                                <span className="text-text-secondary w-8 text-right">{pct}%</span>
+                                <span className="text-gray-600 dark:text-gray-400 w-8 text-right">{pct}%</span>
                               </div>
                             );
                           })}
@@ -507,7 +536,7 @@ export default function TallerProfile() {
                     <div className="bg-gray-50 dark:bg-card-dark rounded-xl p-12 text-center">
                       <span className="material-symbols-outlined text-gray-400 text-5xl mb-3 block">chat_bubble</span>
                       <h4 className="font-bold text-lg mb-1">Aun no hay resenas</h4>
-                      <p className="text-gray-500 dark:text-gray-400 text-sm">
+                      <p className="text-gray-700 dark:text-gray-400 text-sm">
                         Se el primero en dejar tu opinion sobre este negocio.
                       </p>
                     </div>
@@ -516,7 +545,7 @@ export default function TallerProfile() {
                   {totalReviews > 0 && (
                     <div className="space-y-6">
                       {reviews.map((review: ReviewData) => (
-                        <div key={review.id} className="border-b border-gray-100 dark:border-elevated-dark pb-6">
+                        <div key={review.id} className="border-b border-gray-200 dark:border-elevated-dark pb-6">
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center gap-3">
                               <div
@@ -527,7 +556,7 @@ export default function TallerProfile() {
                               </div>
                               <div>
                                 <h4 className="font-bold text-sm">{review.user.name}</h4>
-                                <span className="text-xs text-text-secondary">{timeAgo(review.created_at)}</span>
+                                <span className="text-xs text-gray-600 dark:text-gray-400">{timeAgo(review.created_at)}</span>
                               </div>
                             </div>
                             <StarRating rating={review.rating} />
@@ -560,11 +589,14 @@ export default function TallerProfile() {
                 </div>
               </div>
 
-              {/* RIGHT COLUMN (Sidebar) */}
+              {/* ─── COLUMNA DERECHA — sticky a top-24 ────────────────────── */}
               <div className="lg:col-span-1">
                 <div className="sticky top-24 space-y-6">
-                  {/* Contact Card */}
-                  <div className="bg-white dark:bg-card-dark rounded-xl shadow-lg border border-gray-100 dark:border-input-border-dark overflow-hidden">
+
+                  {/* ── Contact Card ───────────────────────────────────────────
+                      Muestra dirección, teléfono, email y web del taller.
+                      Si hay teléfono, aparecen botones de WhatsApp y Llamar. */}
+                  <div className="bg-white dark:bg-card-dark rounded-xl shadow-lg border border-gray-200 dark:border-input-border-dark overflow-hidden">
                     <div className="p-6">
                       <h3 className="font-bold text-lg mb-4">Contacto</h3>
                       <div className="space-y-4 mb-6">
@@ -575,7 +607,7 @@ export default function TallerProfile() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold">Direccion</p>
-                              <p className="text-sm text-text-secondary">
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
                                 {provider.location.address}, {provider.location.city}, {provider.location.province}
                               </p>
                             </div>
@@ -588,7 +620,7 @@ export default function TallerProfile() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold">Telefono</p>
-                              <p className="text-sm text-text-secondary">{provider.phone}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">{provider.phone}</p>
                             </div>
                           </div>
                         )}
@@ -599,7 +631,7 @@ export default function TallerProfile() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold">Email</p>
-                              <p className="text-sm text-text-secondary">{provider.email}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">{provider.email}</p>
                             </div>
                           </div>
                         )}
@@ -645,14 +677,59 @@ export default function TallerProfile() {
                     </div>
                   </div>
 
-                  {/* Verified Badge */}
+                  {/* ── Horarios Card ──────────────────────────────────────────
+                      Tabla lunes→domingo con abre/cierra. El día actual se resalta
+                      en primary. Usa isOpenNow() para mostrar el badge abierto/cerrado. */}
+                  {provider.horarios && (() => {
+                    const { open, opensAt } = isOpenNow(provider.horarios);
+                    const hoy = getDiaArgentina();
+                    return (
+                      <div className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-input-border-dark overflow-hidden">
+                        <div className="p-5">
+                          <div className="flex items-center justify-between mb-3">
+                            <h3 className="font-bold text-base flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[18px] text-primary">schedule</span>
+                              Horarios
+                            </h3>
+                            <div className={`flex items-center gap-1.5 text-xs font-bold ${open ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
+                              <span className={`w-2 h-2 rounded-full shrink-0 ${open ? 'bg-green-500' : 'bg-red-500'}`} />
+                              {open ? 'Abierto ahora' : opensAt ? `Abre a las ${opensAt}` : 'Cerrado hoy'}
+                            </div>
+                          </div>
+                          <div className="space-y-1.5">
+                            {getHorariosSemana(provider.horarios).map(({ dia, label, horario }) => {
+                              const isToday = dia === hoy;
+                              return (
+                                <div
+                                  key={dia}
+                                  className={`flex items-center justify-between text-sm py-0.5 ${isToday ? 'font-bold text-text-main dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}
+                                >
+                                  <span className={isToday ? 'text-primary' : ''}>{label}</span>
+                                  <span>
+                                    {horario?.abre && horario?.cierra
+                                      ? `${horario.abre} – ${horario.cierra}`
+                                      : <span className="text-gray-400 dark:text-gray-600 text-xs font-normal">Cerrado</span>
+                                    }
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* ── Verified Badge ─────────────────────────────────────────
+                      Solo se muestra si el backend devuelve is_verified = true.
+                      🔧 El texto "estandares" puede editarse aquí directamente. */}
                   {provider.is_verified && (
                     <div className="bg-primary/10 rounded-xl p-4 border border-primary/20">
                       <div className="flex items-start gap-3">
                         <span className="material-symbols-outlined text-primary text-3xl">verified</span>
                         <div>
                           <h4 className="font-bold text-sm mb-1">Certificado MotoFIX</h4>
-                          <p className="text-xs text-text-secondary">
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
                             Este negocio cumple con nuestros estandares de calidad y transparencia.
                           </p>
                         </div>

@@ -72,9 +72,9 @@ export default function ResenaForm() {
           <div className="text-center max-w-md">
             <span className="material-symbols-outlined text-5xl text-gray-400 mb-4 block">lock</span>
             <h2 className="text-2xl font-bold mb-2">Inicia sesion para dejar tu resena</h2>
-            <p className="text-gray-500 mb-6">Necesitas una cuenta para calificar negocios.</p>
+            <p className="text-gray-700 mb-6">Necesitas una cuenta para calificar negocios.</p>
             <div className="flex gap-3 justify-center">
-              <Link to="/login" className="bg-primary hover:bg-[#d6aa28] text-[#181611] font-bold px-6 py-3 rounded-lg transition-colors">
+              <Link to="/login" className="bg-primary hover:bg-primary-hover text-[#181611] font-bold px-6 py-3 rounded-lg transition-colors">
                 Iniciar sesion
               </Link>
               <Link to="/register" className="border border-gray-300 hover:bg-gray-100 font-bold px-6 py-3 rounded-lg transition-colors">
@@ -96,10 +96,10 @@ export default function ResenaForm() {
           <div className="text-center max-w-md">
             <span className="material-symbols-outlined text-5xl text-green-500 mb-4 block">check_circle</span>
             <h2 className="text-2xl font-bold mb-2">Resena publicada</h2>
-            <p className="text-gray-500 mb-6">Gracias por compartir tu experiencia con la comunidad motera.</p>
+            <p className="text-gray-700 mb-6">Gracias por compartir tu experiencia con la comunidad motera.</p>
             <Link
               to={`/taller/${id}`}
-              className="bg-primary hover:bg-[#d6aa28] text-[#181611] font-bold px-6 py-3 rounded-lg transition-colors inline-block"
+              className="bg-primary hover:bg-primary-hover text-[#181611] font-bold px-6 py-3 rounded-lg transition-colors inline-block"
             >
               Volver al perfil
             </Link>
@@ -121,7 +121,7 @@ export default function ResenaForm() {
           <div className="mb-6 flex items-center gap-2">
             <Link
               to={id ? `/taller/${id}` : '/talleres'}
-              className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-primary transition-colors dark:text-gray-400"
+              className="flex items-center gap-1 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-primary transition-colors"
             >
               <span className="material-symbols-outlined text-[20px]">arrow_back</span>
               Volver al taller
@@ -135,14 +135,14 @@ export default function ResenaForm() {
           )}
 
           {!loading && provider && (
-            <main className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-[#f4f3f0] dark:border-input-border-dark overflow-hidden">
+            <main className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-input-border-dark overflow-hidden">
               {/* PageHeading */}
               <div className="p-6 md:p-8 pb-4">
                 <div className="flex flex-col gap-2">
                   <h1 className="text-[#181611] dark:text-white tracking-tight text-[32px] font-bold leading-tight">
                     Escribe tu resena
                   </h1>
-                  <p className="text-[#887f63] dark:text-gray-400 text-sm font-normal leading-normal flex items-center gap-2">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm font-normal leading-normal flex items-center gap-2">
                     <span className="material-symbols-outlined text-[18px]">storefront</span>
                     Estas calificando a{' '}
                     <span className="font-semibold text-[#181611] dark:text-gray-200">{provider.name}</span>
@@ -192,7 +192,7 @@ export default function ResenaForm() {
                   </div>
                 </div>
 
-                <div className="border-t border-gray-100 dark:border-elevated-dark mx-8 my-2"></div>
+                <div className="border-t border-gray-200 dark:border-elevated-dark mx-8 my-2"></div>
 
                 {/* Comments Section */}
                 <div className="px-6 md:px-8 py-4 pb-6">
@@ -207,20 +207,20 @@ export default function ResenaForm() {
                       value={comment}
                       onChange={(e) => setComment(e.target.value.slice(0, 500))}
                     />
-                    <div className="absolute bottom-3 right-3 text-xs text-gray-400">{comment.length}/500</div>
+                    <div className="absolute bottom-3 right-3 text-xs text-gray-500">{comment.length}/500</div>
                   </div>
                 </div>
 
                 {/* Footer Actions */}
-                <div className="px-6 md:px-8 py-6 bg-gray-50 dark:bg-surface-dark border-t border-[#f4f3f0] dark:border-input-border-dark flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
+                <div className="px-6 md:px-8 py-6 bg-gray-50 dark:bg-surface-dark border-t border-gray-200 dark:border-input-border-dark flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
                   <Link
                     to={`/taller/${id}`}
-                    className="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-4 py-2"
+                    className="text-sm font-semibold text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-4 py-2"
                   >
                     Cancelar
                   </Link>
                   <button
-                    className="w-full sm:w-auto bg-primary hover:bg-[#d6aa28] text-[#181611] font-bold text-sm px-8 py-3 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full sm:w-auto bg-primary hover:bg-primary-hover text-[#181611] font-bold text-sm px-8 py-3 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     type="button"
                     disabled={submitting}
                     onClick={handleSubmit}
@@ -236,12 +236,12 @@ export default function ResenaForm() {
           {!loading && !provider && (
             <div className="text-center py-20">
               <span className="material-symbols-outlined text-5xl text-gray-400 mb-4 block">error</span>
-              <p className="text-gray-500">No se encontro el negocio.</p>
+              <p className="text-gray-700">No se encontro el negocio.</p>
             </div>
           )}
 
           {/* Trust Indicator */}
-          <div className="mt-6 flex justify-center items-center gap-2 text-xs text-gray-400">
+          <div className="mt-6 flex justify-center items-center gap-2 text-xs text-gray-600">
             <span className="material-symbols-outlined text-[16px]">verified_user</span>
             <span>Tu resena ayuda a miles de motociclistas a elegir mejor.</span>
           </div>

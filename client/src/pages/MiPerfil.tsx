@@ -142,7 +142,7 @@ export default function MiPerfil() {
                       Miembro Verificado
                     </span>
                     {profile.created_at && (
-                      <p className="text-sm text-[#887f63] dark:text-gray-400 flex items-center">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
                         <span className="material-symbols-outlined text-sm mr-1 text-gray-400">calendar_today</span>
                         Miembro desde {formatMemberSince(profile.created_at)}
                       </p>
@@ -155,14 +155,14 @@ export default function MiPerfil() {
                   <div className="grid grid-cols-2 divide-x divide-gray-100 dark:divide-gray-700">
                     <div className="text-center px-4">
                       <span className="block text-2xl font-bold text-[#181611] dark:text-white">{reviewCount}</span>
-                      <span className="text-xs font-medium text-[#887f63] dark:text-gray-400 uppercase tracking-wide">Opiniones</span>
+                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">Opiniones</span>
                     </div>
                     <div className="text-center px-4">
                       <div className="flex items-center justify-center gap-1">
                         <span className="text-2xl font-bold text-[#181611] dark:text-white">{avgRating}</span>
                         <span className="material-symbols-outlined text-primary text-base" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                       </div>
-                      <span className="text-xs font-medium text-[#887f63] dark:text-gray-400 uppercase tracking-wide">Media</span>
+                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">Media</span>
                     </div>
                   </div>
                 </div>
@@ -170,7 +170,7 @@ export default function MiPerfil() {
 
               {/* Privacy footer */}
               <div className="bg-[#f8f7f6] dark:bg-surface-dark px-4 sm:px-6 py-3 border-t border-gray-100 dark:border-input-border-dark flex items-center justify-between">
-                <p className="text-xs text-[#887f63] dark:text-gray-400 flex items-center">
+                <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center">
                   <span className="material-symbols-outlined text-sm mr-2 text-primary">visibility</span>
                   Perfil con privacidad protegida
                 </p>
@@ -186,7 +186,7 @@ export default function MiPerfil() {
                 <span className="material-symbols-outlined mr-2 text-gray-400">lock</span>
                 Datos de Contacto
               </h2>
-              <p className="text-sm text-[#887f63] dark:text-gray-400 mb-5 ml-8">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-5 ml-8">
                 Para modificar estos datos, ingresa al Centro de Seguridad.
               </p>
 
@@ -195,7 +195,7 @@ export default function MiPerfil() {
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-[#f8f7f6] dark:bg-surface-dark">
                   <span className="material-symbols-outlined text-gray-400 text-xl">email</span>
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-[#887f63] dark:text-gray-400">Email</p>
+                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Email</p>
                     <p className="text-sm font-medium text-[#181611] dark:text-white truncate">{profile.email}</p>
                   </div>
                 </div>
@@ -204,7 +204,7 @@ export default function MiPerfil() {
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-[#f8f7f6] dark:bg-surface-dark">
                   <span className="material-symbols-outlined text-gray-400 text-xl">phone</span>
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-[#887f63] dark:text-gray-400">Telefono</p>
+                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Telefono</p>
                     <p className="text-sm font-medium text-[#181611] dark:text-white">
                       {profile.phone ? `+54 ${profile.phone}` : "No registrado"}
                     </p>
@@ -215,7 +215,7 @@ export default function MiPerfil() {
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-[#f8f7f6] dark:bg-surface-dark">
                   <span className="material-symbols-outlined text-gray-400 text-xl">location_city</span>
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-[#887f63] dark:text-gray-400">Ciudad</p>
+                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Ciudad</p>
                     <p className="text-sm font-medium text-[#181611] dark:text-white">
                       {profile.city || "No registrada"}
                     </p>
@@ -226,7 +226,7 @@ export default function MiPerfil() {
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-[#f8f7f6] dark:bg-surface-dark">
                   <span className="material-symbols-outlined text-gray-400 text-xl">map</span>
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-[#887f63] dark:text-gray-400">Provincia</p>
+                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Provincia</p>
                     <p className="text-sm font-medium text-[#181611] dark:text-white">
                       {profile.province || "No registrada"}
                     </p>
@@ -248,7 +248,7 @@ export default function MiPerfil() {
                   <h3 className="font-bold text-sm text-[#181611] dark:text-white group-hover:text-primary transition-colors">
                     Centro de Seguridad
                   </h3>
-                  <p className="text-xs text-[#887f63] dark:text-gray-400">Cambiar contraseña, telefono, ciudad y provincia</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Cambiar contraseña, telefono, ciudad y provincia</p>
                 </div>
               </div>
               <span className="material-symbols-outlined text-gray-400 group-hover:text-primary text-[20px]">chevron_right</span>
@@ -276,13 +276,13 @@ export default function MiPerfil() {
                       <div className="flex-1 min-w-0">
                         <h4 className="font-bold text-sm truncate group-hover:text-primary transition-colors">{prov.name}</h4>
                         <div className="flex items-center gap-3 mt-0.5">
-                          <span className="text-xs text-[#887f63] dark:text-gray-400">{TYPE_LABELS[prov.type] || prov.type}</span>
-                          <span className="text-xs text-[#887f63] dark:text-gray-400 flex items-center gap-0.5">
+                          <span className="text-xs text-gray-600 dark:text-gray-400">{TYPE_LABELS[prov.type] || prov.type}</span>
+                          <span className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-0.5">
                             <span className="material-symbols-outlined text-[14px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                             {Number(prov.average_rating).toFixed(1)}
                           </span>
                           {prov.location && (
-                            <span className="text-xs text-[#887f63] dark:text-gray-400">{prov.location.city}</span>
+                            <span className="text-xs text-gray-600 dark:text-gray-400">{prov.location.city}</span>
                           )}
                         </div>
                       </div>
@@ -300,7 +300,7 @@ export default function MiPerfil() {
                   <span className="material-symbols-outlined mr-2 text-primary">rate_review</span>
                   Historial de Opiniones
                 </h2>
-                <span className="text-xs text-[#887f63] dark:text-gray-400 bg-gray-100 dark:bg-card-dark px-3 py-1 rounded-full border border-gray-200 dark:border-input-border-dark flex items-center">
+                <span className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-card-dark px-3 py-1 rounded-full border border-gray-200 dark:border-input-border-dark flex items-center">
                   <span className="material-symbols-outlined text-xs mr-1">info</span>
                   Las resenas no son editables
                 </span>
@@ -310,7 +310,7 @@ export default function MiPerfil() {
                 <div className="bg-white dark:bg-card-dark rounded-xl p-12 text-center border border-gray-100 dark:border-input-border-dark">
                   <span className="material-symbols-outlined text-gray-400 text-5xl mb-3 block">chat_bubble</span>
                   <h3 className="font-bold text-lg mb-1">Sin opiniones todavia</h3>
-                  <p className="text-[#887f63] dark:text-gray-400 text-sm">Todavia no dejaste ninguna resena.</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">Todavia no dejaste ninguna resena.</p>
                   <Link to="/talleres" className="text-primary font-bold mt-4 inline-block hover:underline text-sm">Explorar talleres</Link>
                 </div>
               )}
@@ -343,9 +343,9 @@ export default function MiPerfil() {
                             ))}
                           </div>
                         </div>
-                        <span className="text-sm text-[#887f63] dark:text-gray-500 whitespace-nowrap ml-4">{timeAgo(review.created_at)}</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-500 whitespace-nowrap ml-4">{timeAgo(review.created_at)}</span>
                       </div>
-                      <p className="text-[#5c584a] dark:text-gray-300 text-sm leading-relaxed mt-3">{review.comment}</p>
+                      <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed mt-3">{review.comment}</p>
                     </div>
                   ))}
                 </div>

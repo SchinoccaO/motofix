@@ -17,7 +17,19 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(npx:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(git stash:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git checkout:*)",
+      "Bash(git merge:*)",
+      "Bash(gh run list:*)",
+      "Bash(git fetch:*)",
+      "Bash(npm run build:*)",
+      "Bash(wc:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm run:*)",
+      "Bash(netstat:*)"
     ]
   }
 }

@@ -121,7 +121,7 @@ export default function Seguridad() {
         <div className="max-w-3xl mx-auto">
           {/* Page Header */}
           <div className="mb-8">
-            <div className="flex items-center text-sm text-[#887f63] dark:text-gray-400 mb-2">
+            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-2">
               <Link to="/mi-perfil" className="hover:text-primary transition-colors flex items-center">
                 <span className="material-symbols-outlined text-base mr-1">arrow_back</span>
                 Volver a Mi Perfil
@@ -130,7 +130,7 @@ export default function Seguridad() {
             <h2 className="text-2xl sm:text-3xl font-bold leading-tight text-[#181611] dark:text-white">
               Centro de Seguridad
             </h2>
-            <p className="mt-2 text-sm text-[#887f63] dark:text-gray-400">
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
               Gestiona tu contraseña, telefono y ubicacion.
             </p>
           </div>
@@ -162,7 +162,7 @@ export default function Seguridad() {
             <div className="px-5 sm:px-6 py-6 space-y-6">
               {/* Current Password */}
               <div>
-                <label className="block text-sm font-medium text-[#5c584a] dark:text-gray-300" htmlFor="current-password">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300" htmlFor="current-password">
                   Contraseña actual
                 </label>
                 <div className="mt-1 relative">
@@ -182,7 +182,7 @@ export default function Seguridad() {
                     <span className="material-symbols-outlined text-sm">{showCurrent ? "visibility" : "visibility_off"}</span>
                   </button>
                 </div>
-                <p className="mt-1 text-xs text-[#887f63] dark:text-gray-500">Necesaria para verificar tu identidad.</p>
+                <p className="mt-1 text-xs text-gray-600 dark:text-gray-500">Necesaria para verificar tu identidad.</p>
               </div>
 
               <hr className="border-gray-100 dark:border-input-border-dark" />
@@ -190,7 +190,7 @@ export default function Seguridad() {
               {/* New Password Group */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-[#5c584a] dark:text-gray-300" htmlFor="new-password">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300" htmlFor="new-password">
                     Nueva contraseña
                   </label>
                   <div className="mt-1 relative">
@@ -211,7 +211,7 @@ export default function Seguridad() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#5c584a] dark:text-gray-300" htmlFor="confirm-password">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300" htmlFor="confirm-password">
                     Confirmar nueva contraseña
                   </label>
                   <div className="mt-1 relative">
@@ -235,10 +235,10 @@ export default function Seguridad() {
 
               {/* Password Requirements */}
               <div className="bg-[#f8f7f6] dark:bg-elevated-dark/50 rounded-lg p-4">
-                <h4 className="text-xs font-semibold text-[#887f63] dark:text-gray-400 uppercase tracking-wider mb-3">
+                <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">
                   Requisitos de seguridad
                 </h4>
-                <ul className="space-y-2 text-sm text-[#5c584a] dark:text-gray-300">
+                <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                   <li className="flex items-center gap-2">
                     <span className={`material-symbols-outlined text-sm ${hasMinLength ? "text-green-500" : "text-gray-400"}`}>
                       {hasMinLength ? "check_circle" : "radio_button_unchecked"}
@@ -266,7 +266,7 @@ export default function Seguridad() {
               <button
                 type="button"
                 onClick={handlePasswordCancel}
-                className="px-4 py-2 border border-gray-300 dark:border-input-border-dark rounded-lg shadow-sm text-sm font-medium text-[#5c584a] dark:text-gray-200 bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-elevated-dark transition-colors"
+                className="px-4 py-2 border border-gray-300 dark:border-input-border-dark rounded-lg shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-elevated-dark transition-colors"
               >
                 Cancelar
               </button>
@@ -295,7 +295,7 @@ export default function Seguridad() {
                 <span className="material-symbols-outlined text-primary text-xl">contact_phone</span>
                 Datos de Contacto
               </h3>
-              <p className="text-sm text-[#887f63] dark:text-gray-400 mt-1">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 Modifica tu telefono y ubicacion. El email no se puede cambiar.
               </p>
             </div>
@@ -309,11 +309,11 @@ export default function Seguridad() {
                 <div className="px-5 sm:px-6 py-6 space-y-6">
                   {/* Phone */}
                   <div>
-                    <label className="block text-sm font-medium text-[#5c584a] dark:text-gray-300" htmlFor="phone-edit">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300" htmlFor="phone-edit">
                       Telefono Movil
                     </label>
                     <div className="mt-1 flex rounded-lg shadow-sm">
-                      <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-300 dark:border-input-border-dark bg-gray-50 dark:bg-elevated-dark text-[#887f63] dark:text-gray-400 text-sm">
+                      <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-300 dark:border-input-border-dark bg-gray-50 dark:bg-elevated-dark text-gray-600 dark:text-gray-400 text-sm">
                         +54
                       </span>
                       <input
@@ -329,7 +329,7 @@ export default function Seguridad() {
                   {/* City + Province */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-[#5c584a] dark:text-gray-300" htmlFor="city-edit">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300" htmlFor="city-edit">
                         Ciudad
                       </label>
                       <div className="mt-1">
@@ -344,7 +344,7 @@ export default function Seguridad() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-[#5c584a] dark:text-gray-300" htmlFor="province-edit">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300" htmlFor="province-edit">
                         Provincia
                       </label>
                       <div className="mt-1">
@@ -389,11 +389,11 @@ export default function Seguridad() {
           {/* Help Card */}
           <div className="bg-[#f8f7f6] dark:bg-card-dark/40 rounded-xl p-5 border border-gray-100 dark:border-input-border-dark">
             <h4 className="text-sm font-semibold text-[#181611] dark:text-white mb-2">Necesitas ayuda?</h4>
-            <p className="text-xs text-[#887f63] dark:text-gray-400 mb-4">
+            <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
               Si tenes problemas con tu cuenta o no reconoces algun cambio, contacta soporte inmediatamente.
             </p>
             <span className="text-xs font-medium text-primary flex items-center gap-1 cursor-pointer hover:underline">
-              Contactar Soporte MotoYA
+              Contactar Soporte MotoFIX
               <span className="material-symbols-outlined text-xs">arrow_forward</span>
             </span>
           </div>

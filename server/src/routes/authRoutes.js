@@ -21,22 +21,22 @@ import {
 const router = express.Router();
 
 // Rate limiters
+// express-rate-limit v8: el keyGenerator personalizado con req.ip requiere el helper
+// ipKeyGenerator. Como el comportamiento es idéntico al default, simplemente lo removemos.
 const loginLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 10, // 10 intentos por ventana
+    windowMs: 15 * 60 * 1000,
+    max: 10,
     message: { error: 'Demasiados intentos de login. Intentá de nuevo en 15 minutos.' },
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: (req) => req.ip
 });
 
 const registerLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, // 1 hora
-    max: 5, // 5 registros por hora por IP
+    windowMs: 60 * 60 * 1000,
+    max: 5,
     message: { error: 'Demasiados registros desde esta IP. Intentá de nuevo en 1 hora.' },
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: (req) => req.ip
 });
 
 const passwordLimiter = rateLimit({
@@ -45,7 +45,6 @@ const passwordLimiter = rateLimit({
     message: { error: 'Demasiados intentos de cambio de contraseña. Intentá de nuevo en 15 minutos.' },
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: (req) => req.ip
 });
 
 // Rutas publicas

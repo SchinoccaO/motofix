@@ -43,7 +43,7 @@ export default function Blog() {
       <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8 max-w-[1280px] mx-auto w-full">
         <div className="mb-12">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">Blog</h1>
-          <p className="text-lg text-gray-500 dark:text-gray-400">
+          <p className="text-lg text-gray-700 dark:text-gray-400">
             Consejos, novedades y guias para motociclistas y talleres.
           </p>
         </div>
@@ -52,7 +52,7 @@ export default function Blog() {
           {articles.map((article, i) => (
             <article
               key={i}
-              className="bg-white dark:bg-card-dark rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden border border-gray-100 dark:border-elevated-dark flex flex-col h-full group"
+              className="bg-white dark:bg-card-dark rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden border border-gray-200 dark:border-elevated-dark flex flex-col h-full group"
             >
               <div className="h-48 bg-gray-200 dark:bg-elevated-dark relative overflow-hidden">
                 <img
@@ -74,15 +74,15 @@ export default function Blog() {
                   {article.title}
                 </h3>
 
-                <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 line-clamp-3 flex-grow">
+                <p className="text-gray-700 dark:text-gray-400 text-sm mb-4 line-clamp-3 flex-grow">
                   {article.summary}
                 </p>
 
-                <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100 dark:border-input-border-dark/50">
-                  <span className="text-xs text-gray-400 dark:text-gray-500">{article.date}</span>
+                <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-200 dark:border-input-border-dark/50">
+                  <span className="text-xs text-gray-600 dark:text-gray-500">{article.date}</span>
                   <Link
                     to={article.link}
-                    className="text-sm font-semibold text-primary hover:text-[#d6aa28] dark:hover:text-yellow-400 flex items-center gap-1 transition-colors"
+                    className="text-sm font-semibold text-primary hover:text-primary-hover dark:hover:text-primary-hover flex items-center gap-1 transition-colors"
                   >
                     Leer mas
                     <span className="material-symbols-outlined" style={{ fontSize: 16 }}>arrow_forward</span>
@@ -95,13 +95,13 @@ export default function Blog() {
 
         <div className="mt-12 flex justify-center">
           <nav aria-label="Paginacion" className="flex items-center space-x-2">
-            <button className="px-3 py-2 rounded-md border border-gray-300 dark:border-input-border-dark bg-white dark:bg-card-dark text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-elevated-dark transition-colors">
+            <button className="px-3 py-2 rounded-md border border-gray-300 dark:border-input-border-dark bg-white dark:bg-card-dark text-sm font-medium text-gray-700 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-elevated-dark transition-colors">
               <span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_left</span>
             </button>
             <button className="px-3 py-2 rounded-md bg-primary text-black text-sm font-medium">1</button>
             <button className="px-3 py-2 rounded-md border border-gray-300 dark:border-input-border-dark bg-white dark:bg-card-dark text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-elevated-dark transition-colors">2</button>
             <button className="px-3 py-2 rounded-md border border-gray-300 dark:border-input-border-dark bg-white dark:bg-card-dark text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-elevated-dark transition-colors">3</button>
-            <button className="px-3 py-2 rounded-md border border-gray-300 dark:border-input-border-dark bg-white dark:bg-card-dark text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-elevated-dark transition-colors">
+            <button className="px-3 py-2 rounded-md border border-gray-300 dark:border-input-border-dark bg-white dark:bg-card-dark text-sm font-medium text-gray-700 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-elevated-dark transition-colors">
               <span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span>
             </button>
           </nav>

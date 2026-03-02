@@ -1,21 +1,35 @@
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { getProviders, type Provider } from "../services/api";
+import { isOpenNow } from "../utils/horarios";
 
+// Etiquetas legibles para mostrar en la UI según el tipo de negocio del backend
 const TYPE_LABELS: Record<string, string> = {
   shop: "Taller",
   mechanic: "Mecanico",
   parts_store: "Repuestos",
 };
 
+// ─── ESTILOS DE BADGES POR TIPO ───────────────────────────────────────────────
+// Colores de los badges que aparecen sobre la foto de cada card.
+// 🔧 Cambiar aquí si se quiere otro color por tipo de negocio.
+//   shop        → amarillo primary (taller mecánico)
+//   mechanic    → azul           (mecánico independiente)
+//   parts_store → negro          (casa de repuestos)
 const TYPE_BADGE_STYLES: Record<string, string> = {
   shop: "bg-primary text-[#181611]",
   mechanic: "bg-blue-500 text-white",
   parts_store: "bg-[#181611] text-white",
 };
 
+// ─── MARCAS DEL CARRUSEL ──────────────────────────────────────────────────────
+// 🔧 Agregar o quitar marcas aquí. Cada objeto necesita:
+//   name  → texto que aparece debajo del logo y que se usa como término de búsqueda
+//   logo  → URL del logo (se usa Clearbit como CDN gratuito de logos)
+//   color → color de la marca, usado para el ring del badge activo y el texto seleccionado
+// Si el logo falla al cargar, se muestra las primeras 3 letras del nombre con ese color.
 const BRANDS = [
   { name: "Honda", logo: "https://logo.clearbit.com/honda.com", color: "#E40521" },
   { name: "Yamaha", logo: "https://logo.clearbit.com/yamaha-motor.com", color: "#0033A0" },
@@ -46,6 +60,7 @@ export default function BuscarTalleres() {
   const [dragScrollLeft, setDragScrollLeft] = useState(0);
   const [wasDragging, setWasDragging] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const navigate = useNavigate();
 
   const fetchProviders = async () => {
     try {
@@ -118,6 +133,9 @@ export default function BuscarTalleres() {
     }
   };
 
+  // ─── COLOR DEL BADGE DE RATING ────────────────────────────────────────────
+  // Umbrales: ≥4.5 → verde (excelente) | ≥3.5 → amarillo (bueno) | <3.5 → rojo (malo)
+  // 🔧 Cambiar los números si se quieren ajustar los umbrales de calidad.
   const getRatingColor = (rating: number) => {
     if (rating >= 4.5) return "bg-green-50 dark:bg-green-900/30 text-green-600";
     if (rating >= 3.5) return "bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600";
@@ -129,7 +147,9 @@ export default function BuscarTalleres() {
       <Navbar activePage="talleres" />
 
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        {/* Mobile Search Bar */}
+        {/* ─── BARRA DE BÚSQUEDA MOBILE ─────────────────────────────────────────
+            Input de texto que filtra providers por nombre. El submit llama a fetchProviders().
+            En desktop se oculta o pasa a segundo plano — los filtros laterales toman protagonismo. */}
         <form onSubmit={handleSearch} className="mb-4">
           <label className="relative w-full block">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -150,16 +170,19 @@ export default function BuscarTalleres() {
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1">
             Encuentra los mejores especialistas
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base">
+          <p className="text-gray-700 dark:text-gray-400 text-sm sm:text-base">
             {loading
               ? "Cargando negocios..."
               : `Explora ${providers.length} negocios de confianza.`}
           </p>
         </div>
 
-        {/* Popular Brands */}
+        {/* ─── CARRUSEL DE MARCAS POPULARES ────────────────────────────────────
+            Muestra las marcas del array BRANDS. Click en una marca filtra los providers
+            por nombre usando setSearchTerm(brandName). Soporta drag para desplazarse
+            en mobile. El flag wasDragging evita que un drag cuente como click. */}
         <div className="mb-8">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-4">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-gray-600 mb-4">
             Marcas Populares
           </h3>
           <div className="relative group/carousel">
@@ -254,7 +277,7 @@ export default function BuscarTalleres() {
           {/* Selected brand indicator */}
           {selectedBrand && (
             <div className="mt-3 flex items-center gap-2">
-              <span className="text-xs text-gray-500">Filtrando por:</span>
+              <span className="text-xs text-gray-600">Filtrando por:</span>
               <span className="inline-flex items-center gap-1 bg-amber-50 dark:bg-amber-900/20 text-primary px-3 py-1 rounded-full text-xs font-bold">
                 {selectedBrand}
                 <button
@@ -268,9 +291,11 @@ export default function BuscarTalleres() {
           )}
         </div>
 
-        {/* Filters Bar */}
+        {/* ─── BARRA DE FILTROS RÁPIDOS ─────────────────────────────────────────
+            Fila de chips/botones de filtro rápido: ubicación, abierto ahora, más valorados.
+            🔧 Estos botones todavía no tienen lógica conectada — pendiente implementar. */}
         <div className="flex items-center gap-3 overflow-x-auto pb-6 no-scrollbar border-b border-gray-100 dark:border-elevated-dark mb-8">
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-[#181611] font-semibold text-sm shadow-sm transition-all hover:bg-[#c09923]">
+          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-[#181611] font-semibold text-sm shadow-sm transition-all hover:bg-primary-hover">
             <span className="material-symbols-outlined text-[18px]">
               location_on
             </span>
@@ -320,7 +345,7 @@ export default function BuscarTalleres() {
 
               {/* Business Type Filter */}
               <div className="space-y-4 mb-8">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-600">
                   Tipo de Negocio
                 </h4>
                 <div className="space-y-2">
@@ -358,7 +383,7 @@ export default function BuscarTalleres() {
 
               {/* Rating Filter */}
               <div className="space-y-4 mb-8">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-600">
                   Calificacion Minima
                 </h4>
                 <div className="space-y-2">
@@ -387,19 +412,34 @@ export default function BuscarTalleres() {
               </div>
             </div>
 
-            {/* Map Preview */}
-            <div className="rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-input-border-dark h-48 relative group cursor-pointer">
-              <div className="absolute inset-0 bg-gray-200 dark:bg-elevated-dark"></div>
-              <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center text-white">
-                <span className="material-symbols-outlined text-3xl mb-1">
-                  map
-                </span>
+            {/* Map Preview — tile estático de Córdoba */}
+            <div
+              onClick={() => navigate('/mapa')}
+              className="rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-input-border-dark h-48 relative group cursor-pointer hover:border-primary transition-colors"
+              aria-label="Ver mapa interactivo de talleres"
+            >
+              {/* Tile real de Córdoba (Carto Voyager z=12) */}
+              <div
+                className="absolute inset-0 bg-cover bg-center scale-105 group-hover:scale-110 transition-transform duration-500"
+                style={{ backgroundImage: 'url(https://a.basemaps.cartocdn.com/rastertiles/voyager/12/1317/2421.png)' }}
+              />
+              {/* Overlay degradado */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent group-hover:from-black/80 transition-colors" />
+              {/* CTA */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+                <div className="size-10 rounded-full bg-primary/90 flex items-center justify-center mb-2 shadow-lg group-hover:scale-110 transition-transform">
+                  <span className="material-symbols-outlined text-[#181611] text-xl">map</span>
+                </div>
                 <span className="font-bold text-sm">Ver en Mapa</span>
+                <span className="text-[11px] text-white/70 mt-0.5">Córdoba, Argentina</span>
               </div>
             </div>
           </aside>
 
-          {/* Providers Grid */}
+          {/* ─── GRILLA DE CARDS DE PROVEEDORES ──────────────────────────────
+              Muestra los providers filtrados en grilla 1 columna (mobile) / 2 columnas (md+).
+              Cada card es un <Link> al perfil /taller/:id.
+              La imagen se asigna por tipo usando Unsplash — no hay fotos reales todavía. */}
           <div className="flex-1">
             {error && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center mb-6">
@@ -426,7 +466,7 @@ export default function BuscarTalleres() {
                 <h3 className="font-bold text-lg mb-1">
                   No se encontraron resultados
                 </h3>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
+                <p className="text-gray-700 dark:text-gray-400 text-sm">
                   Intenta con otros filtros o terminos de busqueda.
                 </p>
               </div>
@@ -462,7 +502,8 @@ export default function BuscarTalleres() {
                           {TYPE_LABELS[provider.type] || provider.type}
                         </span>
                         {provider.is_verified && (
-                          <span className="bg-white/90 dark:bg-black/90 px-2 py-1 rounded text-[10px] font-bold shadow-sm">
+                          <span className="bg-green-500 text-white px-2 py-1 rounded text-[10px] font-bold shadow-sm flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[11px]" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
                             Verificado
                           </span>
                         )}
@@ -492,31 +533,33 @@ export default function BuscarTalleres() {
                         </div>
                       </div>
                       {provider.description && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">
+                        <p className="text-sm text-gray-700 dark:text-gray-400 mb-4 line-clamp-2">
                           {provider.description}
                         </p>
                       )}
-                      <div className="flex flex-wrap gap-4 text-xs text-gray-500 dark:text-gray-400 mb-6 border-y border-gray-50 dark:border-input-border-dark py-3">
+                      <div className="flex flex-wrap gap-4 text-xs text-gray-700 dark:text-gray-400 mb-6 border-y border-gray-200 dark:border-input-border-dark py-3">
                         {provider.location && (
                           <div className="flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-[16px]">
-                              location_on
-                            </span>
-                            <span>
-                              {provider.location.city},{" "}
-                              {provider.location.province}
-                            </span>
+                            <span className="material-symbols-outlined text-[16px]">location_on</span>
+                            <span>{provider.location.city}, {provider.location.province}</span>
                           </div>
                         )}
                         <div className="flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-[16px]">
-                            chat
-                          </span>
-                          <span>{provider.total_reviews} resenas</span>
+                          <span className="material-symbols-outlined text-[16px]">chat</span>
+                          <span>{provider.total_reviews} reseñas</span>
                         </div>
+                        {provider.horarios && (() => {
+                          const { open, opensAt } = isOpenNow(provider.horarios);
+                          return (
+                            <div className={`flex items-center gap-1.5 font-semibold ${open ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${open ? 'bg-green-500' : 'bg-red-500'}`} />
+                              {open ? 'Abierto ahora' : opensAt ? `Abre a las ${opensAt}` : 'Cerrado hoy'}
+                            </div>
+                          );
+                        })()}
                       </div>
                       <div className="flex gap-2">
-                        <div className="flex-1 bg-primary text-[#181611] font-bold py-2.5 rounded-lg text-sm transition-all hover:bg-[#c09923] text-center cursor-pointer">
+                        <div className="flex-1 bg-primary text-[#181611] font-bold py-2.5 rounded-lg text-sm transition-all hover:bg-primary-hover text-center cursor-pointer">
                           Ver Perfil
                         </div>
                         <button
@@ -540,8 +583,11 @@ export default function BuscarTalleres() {
       <Footer />
 
       {/* Mobile Map Button */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 lg:hidden">
-        <button className="bg-primary text-[#181611] font-bold px-6 py-3 rounded-full shadow-xl flex items-center gap-2 hover:scale-105 transition-transform">
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 lg:hidden z-50">
+        <button
+          onClick={() => navigate('/mapa')}
+          className="bg-primary text-[#181611] font-bold px-6 py-3 rounded-full shadow-xl flex items-center gap-2 hover:scale-105 transition-transform"
+        >
           <span className="material-symbols-outlined">map</span>
           Mapa
         </button>
