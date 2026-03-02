@@ -10,18 +10,28 @@ import {
   type Provider,
   type ReviewData,
 } from "../services/api";
+import { isOpenNow, getHorariosSemana, getDiaArgentina } from "../utils/horarios";
 
+// Etiqueta legible del tipo de negocio (aparece como badge bajo el nombre)
 const TYPE_LABELS: Record<string, string> = {
   shop: "Taller Mecanico",
   mechanic: "Mecanico",
   parts_store: "Casa de Repuestos",
 };
 
+// 🔧 Fotos hero por tipo — reemplazar por imágenes reales cuando estén disponibles
 const HERO_IMAGES: Record<string, string> = {
   shop: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=1200&h=500&fit=crop",
   mechanic: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=1200&h=500&fit=crop",
   parts_store: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1200&h=500&fit=crop",
 };
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+// timeAgo     → convierte una fecha ISO a texto relativo ("Hace 2 dias", etc.)
+// StarRating  → 5 estrellas rellenas/vacías según el rating numérico
+// formatTime  → convierte horas enteras a texto legible ("2 dias y 3 horas")
+// getInitials → primeras 2 iniciales del nombre para el avatar de reseña
+// getColor    → color determinista por nombre (hash → paleta COLORS)
 
 function timeAgo(dateStr: string): string {
   const now = new Date();
@@ -74,6 +84,7 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
+// 🔧 Paleta de avatares — agregar o cambiar colores según el branding
 const COLORS = ["#E53E3E", "#DD6B20", "#38A169", "#3182CE", "#805AD5", "#D53F8C"];
 
 function getColor(name: string): string {
@@ -81,6 +92,14 @@ function getColor(name: string): string {
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
   return COLORS[Math.abs(hash) % COLORS.length];
 }
+
+// ─── Estado del componente ────────────────────────────────────────────────────
+// user          → usuario logueado (null si no hay sesión); redirige a /login al reseñar
+// provider      → datos completos del taller cargados por ID desde el backend
+// loading/error → control de estados de la request inicial
+// showReviewForm → toggle del formulario inline de reseña
+// reviewRating / reviewHover → estrellas seleccionadas y hover visual
+// estDays/estHours + actDays/actHours → tiempos del trabajo (opcionales en la reseña)
 
 export default function TallerProfile() {
   const { id } = useParams<{ id: string }>();
@@ -90,7 +109,7 @@ export default function TallerProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Inline review form state
+  // ── Estado del formulario de reseña inline ─────────────────────────────────
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewHover, setReviewHover] = useState(0);
@@ -205,10 +224,15 @@ export default function TallerProfile() {
               <span className="text-text-main font-medium dark:text-white">{provider.name}</span>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* LEFT COLUMN */}
+            {/* Layout: 2 columnas en desktop — col izquierda (contenido) + col derecha (sidebar de contacto) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+              {/* ─── COLUMNA IZQUIERDA ─────────────────────────────────────── */}
               <div className="lg:col-span-2 space-y-8">
-                {/* Hero Image */}
+
+                {/* ── Hero Image ─────────────────────────────────────────────
+                    Imagen de portada placeholder según el tipo de negocio.
+                    🔧 Reemplazar HERO_IMAGES cuando el backend envíe foto real. */}
                 <div className="w-full aspect-video md:aspect-[21/9] bg-gray-200 rounded-xl overflow-hidden relative">
                   <img
                     src={HERO_IMAGES[provider.type] || HERO_IMAGES.shop}
@@ -217,7 +241,8 @@ export default function TallerProfile() {
                   />
                 </div>
 
-                {/* Header Info */}
+                {/* ── Header Info ────────────────────────────────────────────
+                    Nombre, tipo de negocio, badge de verificado, rating y ciudad */}
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-wrap justify-between items-start gap-4">
                     <div>
@@ -259,7 +284,8 @@ export default function TallerProfile() {
                   </div>
                 </div>
 
-                {/* Description */}
+                {/* ── Description ────────────────────────────────────────────
+                    Solo se renderiza si el provider tiene descripción cargada */}
                 {provider.description && (
                   <div>
                     <h3 className="text-lg font-bold mb-2">Sobre el negocio</h3>
@@ -269,7 +295,10 @@ export default function TallerProfile() {
 
                 <hr className="border-gray-200 dark:border-elevated-dark" />
 
-                {/* Reviews Section */}
+                {/* ── Reviews ────────────────────────────────────────────────
+                    Incluye: botón "Dejar reseña" → abre formulario inline,
+                    resumen de rating (número grande + barras de distribución),
+                    y lista de reseñas individuales con avatar generado por getColor/getInitials. */}
                 <div id="reviews">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-2xl font-bold">Resenas y Opiniones</h3>
@@ -560,10 +589,13 @@ export default function TallerProfile() {
                 </div>
               </div>
 
-              {/* RIGHT COLUMN (Sidebar) */}
+              {/* ─── COLUMNA DERECHA — sticky a top-24 ────────────────────── */}
               <div className="lg:col-span-1">
                 <div className="sticky top-24 space-y-6">
-                  {/* Contact Card */}
+
+                  {/* ── Contact Card ───────────────────────────────────────────
+                      Muestra dirección, teléfono, email y web del taller.
+                      Si hay teléfono, aparecen botones de WhatsApp y Llamar. */}
                   <div className="bg-white dark:bg-card-dark rounded-xl shadow-lg border border-gray-200 dark:border-input-border-dark overflow-hidden">
                     <div className="p-6">
                       <h3 className="font-bold text-lg mb-4">Contacto</h3>
@@ -645,7 +677,52 @@ export default function TallerProfile() {
                     </div>
                   </div>
 
-                  {/* Verified Badge */}
+                  {/* ── Horarios Card ──────────────────────────────────────────
+                      Tabla lunes→domingo con abre/cierra. El día actual se resalta
+                      en primary. Usa isOpenNow() para mostrar el badge abierto/cerrado. */}
+                  {provider.horarios && (() => {
+                    const { open, opensAt } = isOpenNow(provider.horarios);
+                    const hoy = getDiaArgentina();
+                    return (
+                      <div className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-input-border-dark overflow-hidden">
+                        <div className="p-5">
+                          <div className="flex items-center justify-between mb-3">
+                            <h3 className="font-bold text-base flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[18px] text-primary">schedule</span>
+                              Horarios
+                            </h3>
+                            <div className={`flex items-center gap-1.5 text-xs font-bold ${open ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
+                              <span className={`w-2 h-2 rounded-full shrink-0 ${open ? 'bg-green-500' : 'bg-red-500'}`} />
+                              {open ? 'Abierto ahora' : opensAt ? `Abre a las ${opensAt}` : 'Cerrado hoy'}
+                            </div>
+                          </div>
+                          <div className="space-y-1.5">
+                            {getHorariosSemana(provider.horarios).map(({ dia, label, horario }) => {
+                              const isToday = dia === hoy;
+                              return (
+                                <div
+                                  key={dia}
+                                  className={`flex items-center justify-between text-sm py-0.5 ${isToday ? 'font-bold text-text-main dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}
+                                >
+                                  <span className={isToday ? 'text-primary' : ''}>{label}</span>
+                                  <span>
+                                    {horario?.abre && horario?.cierra
+                                      ? `${horario.abre} – ${horario.cierra}`
+                                      : <span className="text-gray-400 dark:text-gray-600 text-xs font-normal">Cerrado</span>
+                                    }
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* ── Verified Badge ─────────────────────────────────────────
+                      Solo se muestra si el backend devuelve is_verified = true.
+                      🔧 El texto "estandares" puede editarse aquí directamente. */}
                   {provider.is_verified && (
                     <div className="bg-primary/10 rounded-xl p-4 border border-primary/20">
                       <div className="flex items-start gap-3">

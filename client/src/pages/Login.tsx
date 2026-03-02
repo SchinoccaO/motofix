@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { loginUser, googleLogin } from "../services/api";
 import Logo from "../components/Logo";
@@ -16,13 +16,15 @@ export default function Login() {
   const [googleLoading, setGoogleLoading] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as { from?: string } | null)?.from ?? "/talleres";
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     setError("");
     setGoogleLoading(true);
     try {
       await googleLogin(credentialResponse.credential);
-      navigate("/talleres");
+      navigate(from, { replace: true });
     } catch (err: any) {
       const msg = err?.response?.data?.error || "Error al iniciar sesión con Google.";
       setError(msg);
@@ -46,7 +48,7 @@ export default function Login() {
 
     try {
       await loginUser(formData.email, formData.password);
-      navigate("/talleres");
+      navigate(from, { replace: true });
     } catch (err: any) {
       const msg = err?.response?.data?.error
         || (err?.code === 'ERR_NETWORK' ? "Error de red. Verificá tu conexión o que el backend permita tu dominio (CORS)." : "Error de conexión. Verifica que el backend esté corriendo.");

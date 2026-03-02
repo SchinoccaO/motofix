@@ -65,6 +65,12 @@ Provider.init(
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
       defaultValue: 0
+    },
+    horarios: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: null,
+      comment: 'Horarios por día. Formato: { "lunes": { "abre": "09:00", "cierra": "18:00" }, "sabado": null, ... }'
     }
   },
   {

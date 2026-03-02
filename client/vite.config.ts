@@ -10,8 +10,18 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
-  // Plugin que permite usar React con JSX/TSX
   plugins: [react()],
+
+  // Separar maplibre-gl en su propio chunk (lazy, solo carga en /mapa)
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('maplibre-gl')) return 'maplibre';
+        },
+      },
+    },
+  },
 
   // Configuración del servidor de desarrollo
   server: {

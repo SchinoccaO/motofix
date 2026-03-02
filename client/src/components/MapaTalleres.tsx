@@ -2,8 +2,13 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import maplibregl from 'maplibre-gl';
 import { useEffect, useRef, useState } from 'react';
 import type { Provider } from '../services/api';
+import { isOpenNow } from '../utils/horarios';
 
 // ─── Tile styles ──────────────────────────────────────────────────────────────
+// STYLE_LIGHT → OpenFreeMap "positron" (vector tiles, rápido, sin costo)
+// STYLE_DARK  → Carto Dark Matter (raster tiles, 3 servidores balanceados)
+// ⚠️ No cambiar el formato de STYLE_DARK sin leer la doc de MapLibre StyleSpecification.
+//    El estilo raster necesita sources + layers explícitos (no es una URL directa).
 
 const STYLE_LIGHT = 'https://tiles.openfreemap.org/styles/positron';
 
@@ -34,6 +39,68 @@ const TYPE_COLORS: Record<string, string> = {
   mechanic:    '#3B82F6',
   parts_store: '#9CA3AF',
 };
+
+// ─── PIN_IMAGES ───────────────────────────────────────────────────────────────
+// Define el color de fondo y el emoji para cada tipo de pin en el mapa.
+// 🔧 Para cambiar la apariencia de los pines, editá color y/o emoji aquí.
+//    El color también se usa para el borde del círculo del cluster.
+//    Las claves deben coincidir exactamente con los valores del campo `type` en el backend.
+const PIN_IMAGES: Record<string, { color: string; emoji: string }> = {
+  shop:        { color: '#FFB800', emoji: '🛠️' },
+  mechanic:    { color: '#3B82F6', emoji: '🔧' },
+  parts_store: { color: '#8B5CF6', emoji: '⚙️' },
+};
+
+// ─── createPinCanvas ──────────────────────────────────────────────────────────
+// Dibuja un pin personalizado usando canvas 2D y devuelve ImageData para map.addImage().
+// El pin tiene: círculo de color + borde blanco + cola triangular inferior + emoji centrado.
+// Se renderiza a 2x (DPR=2) para pantallas retina.
+// Se llama una vez por tipo en el handler 'style.load' (después de cada cambio de estilo).
+/** Dibuja un pin de mapa en canvas y devuelve ImageData lista para map.addImage(). */
+function createPinCanvas(color: string, emoji: string): ImageData {
+  const S  = 40; // tamaño lógico del círculo (px)
+  const TL = 10; // longitud de la cola del pin
+  const DPR = 2; // renderizar a 2x para retina
+  const W = S * DPR;
+  const H = (S + TL) * DPR;
+
+  const canvas = document.createElement('canvas');
+  canvas.width  = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+  ctx.scale(DPR, DPR);
+
+  // Sombra del pin
+  ctx.shadowColor   = 'rgba(0,0,0,0.30)';
+  ctx.shadowBlur    = 6;
+  ctx.shadowOffsetY = 3;
+
+  // Círculo principal
+  ctx.beginPath();
+  ctx.arc(S / 2, S / 2, S / 2 - 3, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // Cola del pin
+  ctx.shadowColor = 'transparent';
+  ctx.beginPath();
+  ctx.moveTo(S / 2 - 5, S - 6);
+  ctx.lineTo(S / 2,     S + TL);
+  ctx.lineTo(S / 2 + 5, S - 6);
+  ctx.fillStyle = color;
+  ctx.fill();
+
+  // Emoji centrado
+  ctx.font = `${Math.round(S * 0.42)}px serif`;
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(emoji, S / 2, S / 2 - 1);
+
+  return ctx.getImageData(0, 0, W, H);
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -71,16 +138,38 @@ function buildGeoJSON(providers: Provider[]) {
   };
 }
 
+// ─── makePopupHTML ────────────────────────────────────────────────────────────
+// Genera el HTML del popup de MapLibre que aparece al hacer clic en un marcador.
+// ⚠️ Esta función SOLO se usa cuando la prop onMarkerClick NO está definida.
+//    Si onMarkerClick existe (ej: MapaPage), el popup no se muestra — se usa el panel lateral.
+//    El popup lee el objeto Provider completo desde props._data (JSON serializado en el GeoJSON).
 function makePopupHTML(props: ProviderProperties): string {
   const rating = Number(props.average_rating);
   const stars  = '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
+
+  // Badge abierto/cerrado — parsea el provider completo de _data
+  let openBadge = '';
+  try {
+    const full = JSON.parse(props._data) as Provider;
+    if (full.horarios) {
+      const { open, opensAt } = isOpenNow(full.horarios);
+      const dot   = open ? '#22c55e' : '#ef4444';
+      const label = open ? 'Abierto ahora' : opensAt ? `Abre a las ${opensAt}` : 'Cerrado hoy';
+      openBadge = `<div style="display:flex;align-items:center;gap:5px;margin-bottom:6px">
+        <span style="width:7px;height:7px;border-radius:50%;background:${dot};display:inline-block;flex-shrink:0"></span>
+        <span style="font-size:11px;font-weight:600;color:${dot}">${label}</span>
+      </div>`;
+    }
+  } catch { /* ignorar si _data no parsea */ }
+
   return `
-    <div style="min-width:160px;font-family:Inter,sans-serif;line-height:1.4">
+    <div style="min-width:170px;font-family:Inter,sans-serif;line-height:1.4">
       <p style="font-weight:700;font-size:13px;margin:0 0 4px 0;line-height:1.3">${props.name}</p>
-      <div style="display:flex;align-items:center;gap:4px;margin:0 0 6px 0">
+      <div style="display:flex;align-items:center;gap:4px;margin:0 0 5px 0">
         <span style="color:#FFB800;font-weight:700;font-size:12px">${stars}</span>
         <span style="font-size:12px;font-weight:600">${rating.toFixed(1)}</span>
       </div>
+      ${openBadge}
       ${props.phone ? `<a href="tel:${props.phone}" style="display:flex;align-items:center;gap:4px;font-size:11px;color:#3B82F6;text-decoration:none;margin-bottom:6px">
         <span class="material-symbols-outlined" style="font-size:13px">call</span>${props.phone}</a>` : ''}
       <a href="/taller/${props.id}" style="font-size:11px;font-weight:700;color:#FFB800;text-decoration:none">
@@ -159,7 +248,10 @@ export default function MapaTalleres({
       'bottom-left',
     );
 
-    // ── style.load — re-add sources + layers on every style switch ─────────
+    // ── style.load — re-registrar sources, layers e imágenes en cada cambio de estilo ──
+    // MapLibre elimina todos los recursos cuando se cambia el estilo (setStyle).
+    // Por eso, tanto en el mount inicial como en cada switch light↔dark,
+    // hay que volver a agregar el source 'providers', los layers y las imágenes de pines.
     map.on('style.load', () => {
       const geoJSON = buildGeoJSON(providersRef.current);
 
@@ -199,26 +291,35 @@ export default function MapaTalleres({
         paint: { 'text-color': '#181611' },
       });
 
-      // Individual points — colored by type
+      // Pines SVG por tipo — registrar imágenes canvas para cada tipo
+      for (const [type, { color, emoji }] of Object.entries(PIN_IMAGES)) {
+        map.addImage(`pin-${type}`, createPinCanvas(color, emoji), { pixelRatio: 2 });
+      }
+
+      // Individual points — pines con emoji por tipo
       map.addLayer({
         id:     'unclustered-point',
-        type:   'circle',
+        type:   'symbol',
         source: 'providers',
         filter: ['!', ['has', 'point_count']],
-        paint: {
-          'circle-color': ['match', ['get', 'type'],
-            'shop',        '#FFB800',
-            'mechanic',    '#3B82F6',
-            'parts_store', '#9CA3AF',
-            '#FFB800',
+        layout: {
+          'icon-image': ['match', ['get', 'type'],
+            'shop',        'pin-shop',
+            'mechanic',    'pin-mechanic',
+            'parts_store', 'pin-parts_store',
+            'pin-shop',
           ] as maplibregl.ExpressionSpecification,
-          'circle-radius':       10,
-          'circle-stroke-width': 2.5,
-          'circle-stroke-color': 'rgba(0,0,0,0.45)',
+          'icon-size':               1,
+          'icon-anchor':             'bottom',
+          'icon-allow-overlap':      true,
+          'icon-ignore-placement':   true,
         },
       });
 
-      // ── Event listeners — set up only once (survive style switches) ──────
+      // ── Event listeners — se registran UNA sola vez con el flag listenersSetUp ──
+      // style.load se dispara en el mount Y en cada setStyle() (cambio light↔dark).
+      // Sin el flag, se acumularían N listeners por cada switch, causando N disparos por clic.
+      // La ref listenersSetUp persiste entre renders y entre style switches.
       if (!listenersSetUp.current) {
         listenersSetUp.current = true;
 

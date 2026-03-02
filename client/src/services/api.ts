@@ -1,10 +1,17 @@
+// ─── CLIENTE HTTP (axios) ─────────────────────────────────────────────────────
+// Todas las funciones de este archivo usan esta instancia configurada.
+// La URL base viene de la variable de entorno VITE_API_URL (ver .env / Vercel).
+// 🔧 Cambiar la URL fallback si el puerto del backend cambia en desarrollo.
 import axios from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5001/api',
 });
 
-// Interceptor: attach token to every request
+// Interceptor de autenticación:
+// Antes de CADA request, lee el token JWT del localStorage y lo adjunta
+// como header "Authorization: Bearer <token>". Si no hay token, el request
+// se envía sin header (el backend decide si requiere auth o no).
 api.interceptors.request.use((config) => {
   const token = getStoredToken();
   if (token) {
@@ -13,7 +20,9 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// --- Auth types & helpers ---
+// ─── AUTH — TIPOS Y HELPERS ───────────────────────────────────────────────────
+// Funciones de login/register guardan el token y el usuario en localStorage.
+// Para leer el usuario logueado desde cualquier componente: getStoredUser().
 
 export interface AuthUser {
   id: number;
@@ -73,7 +82,10 @@ export async function googleLogin(credential: string): Promise<AuthResponse> {
   return data;
 }
 
-// --- User profile functions ---
+// ─── PERFIL DE USUARIO ────────────────────────────────────────────────────────
+// getMyProfile()      → perfil propio (requiere token)
+// updateMyProfile()   → edita nombre, teléfono, avatar, ciudad, provincia
+// getPublicProfile()  → perfil público de otro usuario (por ID)
 
 export interface UserProfile extends AuthUser {
   reviews?: (ReviewData & { provider?: { id: number; name: string; type: string; location?: { city: string; province: string } } })[];
@@ -100,7 +112,9 @@ export async function getPublicProfile(userId: number): Promise<UserProfile> {
   return data.data;
 }
 
-// --- Review types ---
+// ─── RESEÑAS — TIPOS ─────────────────────────────────────────────────────────
+// ReviewData es el objeto que devuelve el backend al listar o crear una reseña.
+// estimated_time y actual_time están en horas (enteros). null = no informado.
 
 export interface ReviewData {
   id: number;
@@ -112,14 +126,19 @@ export interface ReviewData {
   user: { id: number; name: string; email: string };
 }
 
-// --- Tag types ---
+// ─── TAGS (ESPECIALIDADES) — TIPOS ───────────────────────────────────────────
+// Los tags representan especialidades del taller (ej. "Frenos", "Motor 4T").
+// Se gestionan desde el backend; el frontend solo los lee y los envía al crear.
 
 export interface Tag {
   id: number;
   name: string;
 }
 
-// --- Provider types & functions ---
+// ─── PROVIDERS (TALLERES/MECÁNICOS) — TIPOS Y FUNCIONES ─────────────────────
+// Provider es la entidad central de la app. Tiene location, reviews, tags y horarios opcionales.
+// 🔧 Si el backend agrega un campo nuevo, agregarlo aquí en la interfaz Provider.
+// Los campos con ? son opcionales: el backend no siempre los incluye en el listado general.
 
 export interface Provider {
   id: number;
@@ -144,6 +163,15 @@ export interface Provider {
   };
   reviews?: ReviewData[];
   tags?: Tag[];
+  horarios?: {
+    lunes?:     { abre: string; cierra: string } | null;
+    martes?:    { abre: string; cierra: string } | null;
+    miercoles?: { abre: string; cierra: string } | null;
+    jueves?:    { abre: string; cierra: string } | null;
+    viernes?:   { abre: string; cierra: string } | null;
+    sabado?:    { abre: string; cierra: string } | null;
+    domingo?:   { abre: string; cierra: string } | null;
+  } | null;
 }
 
 interface ProvidersResponse {
@@ -203,14 +231,15 @@ export async function getProviderById(id: number): Promise<Provider> {
   return data.data;
 }
 
-// --- Tag functions ---
+// ─── TAGS — FUNCIONES ────────────────────────────────────────────────────────
 
 export async function getTags(): Promise<Tag[]> {
   const { data } = await api.get<TagsResponse>('/providers/tags');
   return data.data;
 }
 
-// --- Review functions ---
+// ─── RESEÑAS — FUNCIONES ─────────────────────────────────────────────────────
+// createReview() requiere token JWT. Si el usuario no está logueado, redirigir a /login.
 
 export async function createReview(
   providerId: number,
@@ -228,7 +257,7 @@ export async function createReview(
   return data.data;
 }
 
-// --- Password functions ---
+// ─── CONTRASEÑA ───────────────────────────────────────────────────────────────
 
 export async function changePassword(currentPassword: string, newPassword: string): Promise<{ success: boolean; mensaje: string }> {
   const { data } = await api.put('/auth/cambiar-contrasena', { currentPassword, newPassword });

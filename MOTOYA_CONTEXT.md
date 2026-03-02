@@ -1,5 +1,5 @@
 # MOTOYA_CONTEXT.md — Single Source of Truth (SSOT)
-> Versión: 1.0 | Última actualización: 2026-02-28
+> Versión: 1.3 | Última actualización: 2026-03-01
 > Protocolo: Este archivo DEBE actualizarse al final de cada sesión de cambios.
 
 ---
@@ -108,6 +108,7 @@
 /login               → Login.tsx              (pública, redirige si hay token)
 /register            → Register.tsx           (pública, redirige si hay token)
 /talleres            → BuscarTalleres.tsx     (pública)
+/mapa                → MapaPage.tsx           (pública) ← NUEVO: mapa full-screen
 /taller/:id          → TallerProfile.tsx      (pública)
 /taller/:id/resena   → ResenaForm.tsx         (protegida, requiere token)
 /registro-taller     → RegistroTaller.tsx     (protegida)
@@ -167,14 +168,16 @@
 
 ## 6. COMPONENTES REUTILIZABLES
 
-| Componente      | Archivo                         | Descripción                                           |
-|-----------------|---------------------------------|-------------------------------------------------------|
-| `<Navbar>`      | `components/Navbar.tsx`         | Prop: `activePage` (string para estado activo)        |
-| `<Footer>`      | `components/Footer.tsx`         | Sin props, autónomo                                   |
-| `<Logo>`        | `components/Logo.tsx`           | Prop: `size` (number, default implícito)              |
-| `<Icon>`        | `components/Icon.tsx`           | Props: `name` (string), `size` (number)               |
-| `<UserAvatar>`  | `components/UserAvatar.tsx`     | Avatar con fallback a iniciales de color              |
-| `<ScrollToTop>` | `components/ScrollToTop.tsx`    | Utility: scrollea al top en cambio de ruta            |
+| Componente        | Archivo                         | Descripción                                                    |
+|-------------------|---------------------------------|----------------------------------------------------------------|
+| `<Navbar>`        | `components/Navbar.tsx`         | Prop: `activePage` (string para estado activo)                 |
+| `<Footer>`        | `components/Footer.tsx`         | Sin props, autónomo                                            |
+| `<Logo>`          | `components/Logo.tsx`           | Prop: `size` (number, default implícito)                       |
+| `<Icon>`          | `components/Icon.tsx`           | Props: `name` (string), `size` (number)                        |
+| `<UserAvatar>`    | `components/UserAvatar.tsx`     | Avatar con fallback a iniciales de color                       |
+| `<ScrollToTop>`   | `components/ScrollToTop.tsx`    | Utility: scrollea al top en cambio de ruta                     |
+| `<MapaTalleres>`  | `components/MapaTalleres.tsx`   | Mapa MapLibre GL JS. Props: `providers`, `onMarkerClick?`, `fullScreen?`, `selectedId?`. Pines SVG con emoji por tipo (canvas 2x). Popup con badge abierto/cerrado. |
+| `<SelectorUbicacion>` | `components/SelectorUbicacion.tsx` | Selector de ubicación con mapa + geocoding. Prop: `onLocationChange(LocationData)`. **Lazy-load obligatorio** (ver nota abajo) |
 
 ---
 
@@ -188,10 +191,34 @@ TypeScript 5.9    │ Lenguaje
 React Router 6.22 │ Navegación SPA
 TailwindCSS 3.4   │ Estilos (darkMode: 'class')
 Axios 1.6         │ HTTP client
+maplibre-gl 4.7   │ Mapa interactivo (reemplaza Leaflet — lazy loaded en /mapa y /registro-taller)
 @react-oauth/google 0.13 │ Google OAuth
 @tailwindcss/forms 0.5   │ Plugin forms
 Material Symbols  │ Iconografía (via CDN en index.html)
 ```
+
+> **REGLA CRÍTICA — maplibre-gl**: Siempre importar componentes que usen maplibre-gl con
+> `React.lazy()` + `<Suspense>`. El motivo es **code splitting** (el chunk pesa ~800KB), NO
+> compatibilidad con Web Workers.
+>
+> **⚠️ NO usar `optimizeDeps: { exclude: ['maplibre-gl'] }`**: maplibre-gl v4 distribuye
+> un bundle **UMD** (`dist/maplibre-gl.js`). Sin pre-bundling, Vite lo sirve raw y el browser
+> falla con `SyntaxError: does not provide an export named 'default'`. Dejar que Vite
+> pre-bundlee (esbuild convierte UMD→ESM automáticamente, el worker viene inline en el bundle).
+> El `vite.config.ts` solo necesita `build.rollupOptions.manualChunks` para producción.
+>
+> **Patrón correcto**:
+> ```tsx
+> import type { LocationData } from '../components/SelectorUbicacion' // type-only: OK eager
+> const SelectorUbicacion = lazy(() => import('../components/SelectorUbicacion'))
+> // …
+> <Suspense fallback={<div className="h-64 animate-pulse rounded-xl bg-[#f4f3f0] dark:bg-elevated-dark" />}>
+>   <SelectorUbicacion onLocationChange={setLocation} />
+> </Suspense>
+> ```
+>
+> Chunks en producción: `maplibre-gl` (~800KB), `MapaTalleres` (~7KB), `SelectorUbicacion` (~6KB).
+> Bundle principal: ~370KB min / ~103KB gzip.
 
 ### Backend (`server/`)
 ```
@@ -202,7 +229,7 @@ bcryptjs 2.4      │ Hash de contraseñas
 jsonwebtoken 9.0  │ Auth JWT
 helmet 8.1        │ Security headers
 cors 2.8          │ CORS middleware
-express-rate-limit│ Rate limiting en auth
+express-rate-limit│ Rate limiting en auth (v8 — NO usar keyGenerator: req.ip manual, ver §14)
 express-validator │ Validación de inputs
 google-auth-lib   │ Verificación OAuth
 ```
@@ -279,8 +306,24 @@ id, owner_id → User,
 type: 'shop' | 'mechanic' | 'parts_store',
 name, description, phone, email, website, photo_url,
 is_verified: boolean, is_active: boolean,
-average_rating: float, total_reviews: int
+average_rating: float, total_reviews: int,
+horarios: JSON | null   // ← NUEVO (migrado 2026-03-01)
 ```
+
+**Formato `horarios`:**
+```json
+{
+  "lunes":     { "abre": "09:00", "cierra": "19:00" },
+  "martes":    { "abre": "09:00", "cierra": "19:00" },
+  "miercoles": { "abre": "09:00", "cierra": "19:00" },
+  "jueves":    { "abre": "09:00", "cierra": "19:00" },
+  "viernes":   { "abre": "09:00", "cierra": "18:00" },
+  "sabado":    { "abre": "10:00", "cierra": "14:00" },
+  "domingo":   null
+}
+```
+> `null` en un día = cerrado ese día. Campo global `null` = sin horarios cargados (no muestra badge).
+> Días SIN tilde: `miercoles`, `sabado`. Los keys son exactamente así en DB y en la función `isOpenNow()`.
 
 ### Location
 ```typescript
@@ -336,9 +379,15 @@ ProviderTag: { provider_id, tag_id }  // pivot many-to-many
 | Seguridad (contraseña, datos)    | ✅ Completo |
 | Dark mode                        | ✅ Completo |
 | Responsive design                | ✅ Completo |
-| Registro de taller (formulario)  | ⚠️ UI lista, backend parcial |
+| Mapa interactivo (MapLibre)      | ✅ Completo |
+| Pines SVG diferenciados por tipo | ✅ Completo (canvas 2x retina, emoji 🛠️🔧⚙️, clustering intacto) |
+| Badge "Abierto ahora / Cerrado"  | ✅ Completo (MapaPage, BuscarTalleres, TallerProfile, popup mapa) |
+| Horarios en perfil de taller     | ✅ Completo (tarjeta en sidebar derecho de TallerProfile) |
+| Registro de taller (formulario)  | ✅ Completo (form controlado + submit → POST /providers) |
+| Campo `horarios` en DB           | ✅ Migrado (columna JSON en providers) |
+| Selector lat/lng en RegistroTaller | ✅ Completo (SelectorUbicacion con MapLibre + Nominatim) |
+| Rediseño mobile MapaPage (FAB)   | ⏳ Próximo |
 | Upload de fotos de taller        | ❌ Pendiente |
-| Mapa interactivo                 | ❌ Pendiente |
 | Notificaciones                   | ❌ Pendiente |
 | Chat / mensajería                | ❌ Pendiente |
 | Analytics / estadísticas         | ❌ Pendiente |
@@ -352,32 +401,128 @@ client/
 ├── tailwind.config.js          ← TOKENS DE COLOR (modificar siempre aquí primero)
 ├── src/index.css               ← Sombras dark, scrollbar, utilidades globales
 ├── src/App.tsx                 ← Rutas
-├── src/services/api.ts         ← Todas las llamadas HTTP + auth helpers
+├── src/services/api.ts         ← Todas las llamadas HTTP + auth helpers + createProvider()
 ├── src/components/
 │   ├── Navbar.tsx              ← Dark mode toggle, navegación, auth state
-│   └── Footer.tsx              ← Links, redes sociales
+│   ├── Footer.tsx              ← Links, redes sociales
+│   ├── MapaTalleres.tsx        ← Mapa de talleres (lazy, clustering, pines SVG, popup con horarios)
+│   └── SelectorUbicacion.tsx   ← Selector lat/lng con pin draggable (lazy — ver nota maplibre)
 └── src/pages/
     ├── Home.tsx                ← Landing page principal
-    ├── BuscarTalleres.tsx      ← Búsqueda + filtros + lista
-    ├── TallerProfile.tsx       ← Detalle + reseñas
-    ├── RegistroTaller.tsx      ← Formulario registro (⚠️ incompleto)
+    ├── BuscarTalleres.tsx      ← Búsqueda + filtros + lista (badge abierto/cerrado en cards)
+    ├── TallerProfile.tsx       ← Detalle + reseñas + tarjeta horarios en sidebar
+    ├── MapaPage.tsx            ← Mapa full-screen con sidebar/drawer
+    ├── RegistroTaller.tsx      ← Formulario registro completo (conectado al backend)
     ├── MiPerfil.tsx            ← Perfil del user logueado
     └── Seguridad.tsx           ← Cambio contraseña/datos
 
 server/
 ├── src/index.js                ← Entry point Express
 ├── src/routes/
-│   ├── authRoutes.js           ← /api/auth/*
+│   ├── authRoutes.js           ← /api/auth/* (rate limiters sin keyGenerator manual)
 │   └── tallerRoutes.js         ← /api/providers/*
 ├── src/controllers/
 │   ├── authController.js       ← Lógica auth
 │   └── tallerController.js     ← Lógica talleres/reseñas
-└── src/models/                 ← Sequelize models
+└── src/models/                 ← Sequelize models (Provider tiene campo horarios JSON)
+
+client/src/utils/
+└── horarios.ts                 ← isOpenNow(), getHorariosSemana(), getDiaArgentina(), tipos Horarios/HorarioDia
 ```
+
+### Pines del mapa — implementación (MapaTalleres.tsx)
+
+| Tipo          | Color     | Emoji | imagen MapLibre |
+|---------------|-----------|-------|-----------------|
+| `shop`        | `#FFB800` | 🛠️   | `pin-shop`      |
+| `mechanic`    | `#3B82F6` | 🔧   | `pin-mechanic`  |
+| `parts_store` | `#8B5CF6` | ⚙️   | `pin-parts_store`|
+
+- Pines dibujados en `<canvas>` a **2× (retina)** con `createPinCanvas(color, emoji)` → `ImageData`
+- Registrados en cada `style.load` via `map.addImage(id, imageData, { pixelRatio: 2 })`
+- Layer `unclustered-point`: tipo `symbol` con `icon-image` match por `type`
+- Clusters siguen siendo `circle` layer amarillo (no se rompe el clustering nativo de MapLibre)
+- Popup (solo en modo embebido sin `onMarkerClick`): parsea `_data` → badge abierto/cerrado via `isOpenNow()`
 
 ---
 
 ## 14. CHANGELOG DE SESIONES
+
+### 2026-03-01 — Sesión 6: Fix maplibre-gl UMD + UI/UX MapaPage + horarios en BuscarTalleres
+
+**Fix crítico — maplibre-gl no cargaba en /mapa:**
+- **Síntoma**: `SyntaxError: does not provide an export named 'default'` al lazy-cargar `MapaTalleres`
+- **Causa**: `vite.config.ts` tenía `optimizeDeps: { exclude: ['maplibre-gl'] }`. maplibre-gl v4 es un bundle **UMD**, no ESM. Sin pre-bundling, Vite sirve el UMD raw y el browser no puede importarlo como módulo ES.
+- **Fix**: Eliminado `optimizeDeps.exclude`. Vite pre-bundlea el UMD→ESM, el worker viene inline. Solo se mantiene `build.rollupOptions.manualChunks` para separar el chunk en producción.
+
+**UI/UX MapaPage.tsx:**
+- Badge "Verificado" → `bg-green-500 text-white` (antes `bg-white/90`), consistente light y dark
+- Solapa toggle del sidebar → ícono `text-primary` + borde `border-primary/40` (antes gris invisible en light)
+- Indicador verificado en items de la lista → ícono `verified` verde junto al nombre
+
+**BuscarTalleres.tsx:**
+- Badge "Verificado" → `bg-green-500 text-white` (mismo estilo que MapaPage)
+- Agregado badge "Abierto ahora / Cerrado" en cards usando `isOpenNow()` de `utils/horarios`
+- Import: `isOpenNow` desde `../utils/horarios`
+
+**Archivos modificados:**
+- `client/vite.config.ts` — eliminado `optimizeDeps.exclude`
+- `client/src/pages/MapaPage.tsx` — verificado verde, toggle visible, verified en lista
+- `client/src/pages/BuscarTalleres.tsx` — verificado verde, badge abierto/cerrado
+
+---
+
+### 2026-03-01 — Sesión 5: SelectorUbicacion + RegistroTaller conectado al backend
+
+**Archivos creados:**
+- `client/src/components/SelectorUbicacion.tsx` — componente de ubicación precisa
+
+**Archivos modificados:**
+- `client/src/pages/RegistroTaller.tsx` — form controlado + submit → backend
+- `client/src/services/api.ts` — agregado `createProvider()` + `CreateProviderPayload`
+- `server/src/routes/authRoutes.js` — fix breaking change express-rate-limit v8
+
+---
+
+**`SelectorUbicacion.tsx` — detalles técnicos:**
+- MapLibre GL con mismos tiles que `MapaTalleres` (OpenFreeMap positron / Carto Dark Matter)
+- Nominatim geocoding con `addressdetails=1` → extrae `city` y `province` del objeto estructurado
+- Debounce 500ms en el input → `GET nominatim/search?countrycodes=ar` → `flyTo` + pin
+- Pin SVG amarillo (`#FFB800`) draggable con `anchor: 'bottom'`
+- Al soltar el pin → `nominatim/reverse` → actualiza el input de texto automáticamente
+- Centrado en Córdoba `[-64.181, -31.4135]` por defecto
+- Exporta `LocationData { lat, lng, address, displayAddress, city, province }`
+- `address` = dirección compacta para DB (ej: "Av. Colón 1234, General Paz, Córdoba")
+- `displayAddress` = `display_name` completo de Nominatim (para mostrar en el input)
+- Alturas: `h-64` (256px mobile) / `md:h-80` (320px desktop)
+- Dark mode: MutationObserver + `darkEffectFirst` ref (mismo patrón que MapaTalleres)
+
+**`RegistroTaller.tsx` — form controlado:**
+- Estado: `formType`, `name`, `phone`, `email`, `description`, `sabOpen`, `location`, `terms`
+- `handleSubmit`: valida cliente → llama `createProvider()` → redirect a `/taller/:id`
+- Banner de advertencia si el usuario no está logueado
+- Error banner muestra detalles del middleware `express-validator` del backend
+- Botón con spinner `progress_activity` durante loading
+- `SelectorUbicacion` importado con `React.lazy()` + `<Suspense>` con skeleton animado
+
+**`api.ts` — `createProvider()`:**
+- Envía: `type`, `name`, `phone`, `email`, `description`, `address`, `city`, `province`, `latitude`, `longitude`
+- Responde con el `Provider` completo (incluye `id` para el redirect)
+
+**Fix backend — `express-rate-limit` v8:**
+- **Síntoma**: backend crasheaba al iniciar con `ERR_ERL_KEY_GEN_IPV6`
+- **Causa**: v8 prohíbe `keyGenerator: (req) => req.ip` sin el helper `ipKeyGenerator`
+- **Fix**: eliminado `keyGenerator` de los 3 rate limiters en `authRoutes.js`
+  (el comportamiento por defecto de v8 ya usa `req.ip` con soporte IPv6 correcto)
+
+**Fix frontend — maplibre-gl en bundle principal:**
+- **Síntoma**: app se congelaba al cargar porque maplibre-gl sin pre-bundling
+  genera cientos de requests HTTP individuales en dev mode
+- **Causa**: `optimizeDeps.exclude: ['maplibre-gl']` en vite.config.ts + import eager
+- **Fix**: `SelectorUbicacion` importado con `React.lazy()` en `RegistroTaller`
+- Bundle principal volvió a ~103KB gzip (vs 324KB con import directo)
+
+---
 
 ### 2026-02-28 — Sesión 4: Home — Full UX cleanup + CTA sin gradiente
 **Cambios realizados:**

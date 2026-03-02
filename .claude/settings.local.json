@@ -27,7 +27,9 @@
       "Bash(git fetch:*)",
       "Bash(npm run build:*)",
       "Bash(wc:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(npm run:*)",
+      "Bash(netstat:*)"
     ]
   }
 }
