@@ -6,6 +6,7 @@ import {
   getStoredUser,
   getProviderById,
   createReview,
+  updateProviderStatus,
   type AuthUser,
   type Provider,
   type ReviewData,
@@ -123,6 +124,25 @@ export default function TallerProfile() {
 
   const ratingLabels = ["", "Muy mala", "Mala", "Regular", "Buena", "Excelente"];
 
+  // ── Estado del toggle abierto/cerrado (solo owner/admin) ───────────────────
+  const [statusLoading, setStatusLoading] = useState(false);
+  const [statusError,   setStatusError]   = useState<string | null>(null);
+
+  const handleStatusChange = async (override: boolean | null) => {
+    if (!provider) return;
+    setStatusLoading(true);
+    setStatusError(null);
+    try {
+      const result = await updateProviderStatus(provider.id, override);
+      // Actualizar localmente sin re-fetch para respuesta inmediata
+      setProvider(prev => prev ? { ...prev, is_open_override: result.is_open_override } : prev);
+    } catch {
+      setStatusError('No se pudo cambiar el estado. Intentá de nuevo.');
+    } finally {
+      setStatusLoading(false);
+    }
+  };
+
   useEffect(() => {
     setUser(getStoredUser());
   }, []);
@@ -224,6 +244,69 @@ export default function TallerProfile() {
               <span className="text-text-main font-medium dark:text-white">{provider.name}</span>
             </div>
 
+            {/* ── Panel de propietario: toggle abierto/cerrado ──────────────
+                Solo visible para el owner o admin. Permite anular el horario
+                programado con un override manual (feriados, enfermedad, etc.) */}
+            {user && (user.id === provider.owner_id || user.role === 'admin') && (
+              <div className="mb-6 rounded-xl border border-input-border-dark bg-surface-dark px-4 py-3 flex flex-wrap items-center gap-3">
+                <span className="material-symbols-outlined text-lg text-primary">storefront</span>
+                <span className="text-sm font-semibold text-white shrink-0">Panel propietario:</span>
+
+                {/* Estado actual */}
+                {provider.is_open_override === null || provider.is_open_override === undefined ? (
+                  <span className="text-xs text-gray-400">Usando horario programado</span>
+                ) : provider.is_open_override ? (
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-green-400 bg-green-900/30 px-2 py-0.5 rounded-full">
+                    <span className="material-symbols-outlined text-sm">circle</span>Abierto (manual)
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-red-400 bg-red-900/30 px-2 py-0.5 rounded-full">
+                    <span className="material-symbols-outlined text-sm">circle</span>Cerrado (manual)
+                  </span>
+                )}
+
+                <div className="flex gap-2 ml-auto flex-wrap">
+                  {/* Botón Cerrar ahora */}
+                  {provider.is_open_override !== false && (
+                    <button
+                      onClick={() => handleStatusChange(false)}
+                      disabled={statusLoading}
+                      className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 transition-colors disabled:opacity-50"
+                    >
+                      <span className="material-symbols-outlined text-sm align-middle mr-1">do_not_disturb_on</span>
+                      Cerrar ahora
+                    </button>
+                  )}
+                  {/* Botón Abrir ahora */}
+                  {provider.is_open_override !== true && (
+                    <button
+                      onClick={() => handleStatusChange(true)}
+                      disabled={statusLoading}
+                      className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/30 transition-colors disabled:opacity-50"
+                    >
+                      <span className="material-symbols-outlined text-sm align-middle mr-1">check_circle</span>
+                      Abrir ahora
+                    </button>
+                  )}
+                  {/* Botón Volver al horario */}
+                  {provider.is_open_override !== null && provider.is_open_override !== undefined && (
+                    <button
+                      onClick={() => handleStatusChange(null)}
+                      disabled={statusLoading}
+                      className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-elevated-dark hover:bg-input-border-dark text-gray-300 border border-input-border-dark transition-colors disabled:opacity-50"
+                    >
+                      <span className="material-symbols-outlined text-sm align-middle mr-1">schedule</span>
+                      Usar horario
+                    </button>
+                  )}
+                </div>
+
+                {statusError && (
+                  <p className="w-full text-xs text-red-400 mt-1">{statusError}</p>
+                )}
+              </div>
+            )}
+
             {/* Layout: 2 columnas en desktop — col izquierda (contenido) + col derecha (sidebar de contacto) */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
@@ -281,6 +364,17 @@ export default function TallerProfile() {
                         )}
                       </div>
                     </div>
+
+                    {/* Botón editar — solo visible para el owner o admin */}
+                    {user && (user.id === provider.owner_id || user.role === 'admin') && (
+                      <Link
+                        to={`/taller/${id}/editar`}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 dark:border-input-border-dark text-sm font-semibold text-gray-700 dark:text-gray-300 hover:border-primary hover:text-primary transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">edit</span>
+                        Editar taller
+                      </Link>
+                    )}
                   </div>
                 </div>
 
