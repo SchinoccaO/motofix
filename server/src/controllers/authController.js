@@ -327,6 +327,8 @@ export const forgotPassword = async (req, res) => {
             const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
             const resetLink = `${CLIENT_URL}/restablecer-contrasena?token=${resetToken}`;
 
+            console.log('[forgot-password] Enviando mail a:', user.email, '| SMTP_USER:', process.env.SMTP_USER || 'NO CONFIGURADO');
+
             await sendMail({
                 to: user.email,
                 subject: '🔑 Restablecer contraseña — MotoFIX',
@@ -349,6 +351,8 @@ export const forgotPassword = async (req, res) => {
                   </div>
                 `,
             });
+
+            console.log('[forgot-password] Mail enviado OK a:', user.email);
         }
 
         // Respuesta genérica siempre
