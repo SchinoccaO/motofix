@@ -137,10 +137,12 @@ export default function MiPerfil() {
                   </h1>
 
                   <div className="mt-3 flex flex-wrap items-center justify-center sm:justify-start gap-3">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/20 text-yellow-700 dark:text-primary border border-primary/30">
-                      <span className="material-symbols-outlined text-sm mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
-                      Miembro Verificado
-                    </span>
+                    {profile.role === 'admin' ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/20 text-yellow-700 dark:text-primary border border-primary/30">
+                        <span className="material-symbols-outlined text-sm mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
+                        Miembro Verificado
+                      </span>
+                    ) : null}
                     {profile.created_at && (
                       <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
                         <span className="material-symbols-outlined text-sm mr-1 text-gray-400">calendar_today</span>

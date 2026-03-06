@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import { User, Review, Provider, Location } from '../models/index.js';
+import { sendMail } from '../utils/mailer.js';
+import { RESET_PASSWORD_TOKEN_EXPIRES } from '../config/constants.js';
 
 const googleClient = new OAuth2Client();
 
@@ -300,5 +302,102 @@ export const obtenerPerfilPublico = async (req, res) => {
     } catch (error) {
         console.error('Error al obtener perfil publico:', error);
         res.status(500).json({ error: 'Error al obtener perfil' });
+    }
+};
+
+/**
+ * Forgot password — genera un token JWT firmado y envía el link por email.
+ * Siempre responde con el mismo mensaje para no revelar si el email existe.
+ */
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ error: 'El email es requerido.' });
+
+        const user = await User.findOne({ where: { email: email.toLowerCase().trim() } });
+
+        // Si no existe o es cuenta Google (no tiene contraseña local), devolvemos éxito igual
+        if (user && user.auth_provider !== 'google') {
+            const resetToken = jwt.sign(
+                { id: user.id, email: user.email, type: 'password-reset' },
+                process.env.JWT_SECRET,
+                { expiresIn: RESET_PASSWORD_TOKEN_EXPIRES }
+            );
+
+            const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
+            const resetLink = `${CLIENT_URL}/restablecer-contrasena?token=${resetToken}`;
+
+            await sendMail({
+                to: user.email,
+                subject: '🔑 Restablecer contraseña — MotoFIX',
+                html: `
+                  <div style="font-family:sans-serif;max-width:520px;margin:0 auto">
+                    <h2 style="color:#FFB800;border-bottom:2px solid #FFB800;padding-bottom:8px">
+                      MotoFIX — Restablecé tu contraseña
+                    </h2>
+                    <p>Hola <strong>${user.name}</strong>,</p>
+                    <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta.</p>
+                    <p>Hacé clic en el botón para crear una nueva contraseña. El link expira en <strong>1 hora</strong>.</p>
+                    <a href="${resetLink}"
+                       style="display:inline-block;padding:12px 28px;background:#FFB800;color:#181611;
+                              font-weight:bold;text-decoration:none;border-radius:8px;margin:16px 0">
+                      🔑 Restablecer contraseña
+                    </a>
+                    <p style="color:#999;font-size:12px;margin-top:24px">
+                      Si no solicitaste esto, ignorá este correo. Tu contraseña no cambia.
+                    </p>
+                  </div>
+                `,
+            });
+        }
+
+        // Respuesta genérica siempre
+        res.json({
+            success: true,
+            message: 'Si el email está registrado, recibirás un enlace para restablecer tu contraseña en breve.',
+        });
+    } catch (error) {
+        console.error('Error en forgot password:', error);
+        res.status(500).json({ error: 'Error al procesar la solicitud.' });
+    }
+};
+
+/**
+ * Reset password — verifica el token JWT y actualiza la contraseña.
+ * El hook beforeUpdate del modelo se encarga de hashear.
+ */
+export const resetPassword = async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+
+        if (!token || !newPassword) {
+            return res.status(400).json({ error: 'Token y nueva contraseña son requeridos.' });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres.' });
+        }
+
+        let payload;
+        try {
+            payload = jwt.verify(token, process.env.JWT_SECRET);
+        } catch {
+            return res.status(400).json({ error: 'El enlace es inválido o ya expiró. Solicitá uno nuevo.' });
+        }
+
+        if (payload.type !== 'password-reset') {
+            return res.status(400).json({ error: 'Token inválido.' });
+        }
+
+        const user = await User.findByPk(payload.id);
+        if (!user) return res.status(404).json({ error: 'Usuario no encontrado.' });
+
+        // beforeUpdate hook hashea automáticamente si password_hash cambió
+        await user.update({ password_hash: newPassword });
+
+        res.json({ success: true, message: 'Contraseña actualizada correctamente. Ya podés iniciar sesión.' });
+    } catch (error) {
+        console.error('Error en reset password:', error);
+        res.status(500).json({ error: 'Error al restablecer la contraseña.' });
     }
 };

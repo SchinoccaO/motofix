@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 import dotenv from 'dotenv';
 import sequelize, { testConnection } from './config/db.js';
 import './models/index.js'; // Cargar modelos y relaciones
@@ -32,6 +33,7 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 
+app.use(compression());
 app.use(helmet({
   contentSecurityPolicy: false, // API JSON, no sirve HTML
   crossOriginResourcePolicy: { policy: 'cross-origin' }

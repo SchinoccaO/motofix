@@ -8,7 +8,7 @@ export default function ResenaForm() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
-  const [user, setUser] = useState<AuthUser | null>(null)
+  const [user] = useState<AuthUser | null>(() => getStoredUser())
   const [provider, setProvider] = useState<Provider | null>(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -23,10 +23,6 @@ export default function ResenaForm() {
   const ratingLabels = ['', 'Muy mala', 'Mala', 'Regular', 'Buena', 'Excelente']
 
   useEffect(() => {
-    setUser(getStoredUser())
-  }, [])
-
-  useEffect(() => {
     if (!id) return
     getProviderById(Number(id))
       .then(setProvider)
@@ -34,9 +30,16 @@ export default function ResenaForm() {
       .finally(() => setLoading(false))
   }, [id])
 
+  const isOwner = user && provider && provider.owner_id === user.id
+
   const handleSubmit = async () => {
     if (!user) {
       navigate(`/login`)
+      return
+    }
+
+    if (isOwner) {
+      setError('No podes dejar una reseña en tu propio negocio')
       return
     }
 
@@ -166,11 +169,12 @@ export default function ResenaForm() {
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
                         key={star}
-                        className="group focus:outline-none transition-transform active:scale-95"
+                        className="group focus:outline-none transition-transform active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center"
                         type="button"
                         onMouseEnter={() => setHoverRating(star)}
                         onMouseLeave={() => setHoverRating(0)}
                         onClick={() => setRating(star)}
+                        aria-label={`${star} estrellas`}
                       >
                         <span
                           className={`material-symbols-outlined text-4xl transition-colors ${
@@ -219,15 +223,22 @@ export default function ResenaForm() {
                   >
                     Cancelar
                   </Link>
-                  <button
-                    className="w-full sm:w-auto bg-primary hover:bg-primary-hover text-[#181611] font-bold text-sm px-8 py-3 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    type="button"
-                    disabled={submitting}
-                    onClick={handleSubmit}
-                  >
-                    <span>{submitting ? 'Publicando...' : 'Publicar Resena'}</span>
-                    {!submitting && <span className="material-symbols-outlined text-[18px] font-bold">send</span>}
-                  </button>
+                  {isOwner ? (
+                    <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[16px]">block</span>
+                      No podes reseñar tu propio negocio
+                    </div>
+                  ) : (
+                    <button
+                      className="w-full sm:w-auto bg-primary hover:bg-primary-hover text-[#181611] font-bold text-sm px-8 py-3 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      type="button"
+                      disabled={submitting}
+                      onClick={handleSubmit}
+                    >
+                      <span>{submitting ? 'Publicando...' : 'Publicar Resena'}</span>
+                      {!submitting && <span className="material-symbols-outlined text-[18px] font-bold">send</span>}
+                    </button>
+                  )}
                 </div>
               </form>
             </main>

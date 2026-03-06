@@ -143,6 +143,18 @@ function buildGeoJSON(providers: Provider[]) {
 // ⚠️ Esta función SOLO se usa cuando la prop onMarkerClick NO está definida.
 //    Si onMarkerClick existe (ej: MapaPage), el popup no se muestra — se usa el panel lateral.
 //    El popup lee el objeto Provider completo desde props._data (JSON serializado en el GeoJSON).
+
+/** Escapa caracteres HTML especiales para prevenir XSS en el popup. */
+function esc(str: string | number | null | undefined): string {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function makePopupHTML(props: ProviderProperties): string {
   const rating = Number(props.average_rating);
   const stars  = '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
@@ -162,17 +174,21 @@ function makePopupHTML(props: ProviderProperties): string {
     }
   } catch { /* ignorar si _data no parsea */ }
 
+  const safeId    = esc(props.id);
+  const safeName  = esc(props.name);
+  const safePhone = esc(props.phone);
+
   return `
     <div style="min-width:170px;font-family:Inter,sans-serif;line-height:1.4">
-      <p style="font-weight:700;font-size:13px;margin:0 0 4px 0;line-height:1.3">${props.name}</p>
+      <p style="font-weight:700;font-size:13px;margin:0 0 4px 0;line-height:1.3">${safeName}</p>
       <div style="display:flex;align-items:center;gap:4px;margin:0 0 5px 0">
         <span style="color:#FFB800;font-weight:700;font-size:12px">${stars}</span>
         <span style="font-size:12px;font-weight:600">${rating.toFixed(1)}</span>
       </div>
       ${openBadge}
-      ${props.phone ? `<a href="tel:${props.phone}" style="display:flex;align-items:center;gap:4px;font-size:11px;color:#3B82F6;text-decoration:none;margin-bottom:6px">
-        <span class="material-symbols-outlined" style="font-size:13px">call</span>${props.phone}</a>` : ''}
-      <a href="/taller/${props.id}" style="font-size:11px;font-weight:700;color:#FFB800;text-decoration:none">
+      ${safePhone ? `<a href="tel:${safePhone}" style="display:flex;align-items:center;gap:4px;font-size:11px;color:#3B82F6;text-decoration:none;margin-bottom:6px">
+        <span class="material-symbols-outlined" style="font-size:13px">call</span>${safePhone}</a>` : ''}
+      <a href="/taller/${safeId}" style="font-size:11px;font-weight:700;color:#FFB800;text-decoration:none">
         Ver perfil →
       </a>
     </div>

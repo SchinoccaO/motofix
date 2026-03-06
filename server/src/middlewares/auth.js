@@ -1,44 +1,26 @@
 import jwt from 'jsonwebtoken';
-import { User } from '../models/index.js';
 
-export const verificarToken = async (req, res, next) => {
+export const verificarToken = (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
 
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({
-                error: 'Token no proporcionado'
-            });
+            return res.status(401).json({ error: 'Token no proporcionado' });
         }
 
         const token = authHeader.substring(7);
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        const usuario = await User.findByPk(decoded.id);
-        if (!usuario) {
-            return res.status(401).json({ error: 'Usuario no encontrado' });
-        }
-
-        req.usuario = {
-            id: usuario.id,
-            email: usuario.email,
-            name: usuario.name,
-            role: usuario.role
-        };
+        // jwt.verify valida la firma criptográficamente y el campo exp.
+        // El payload ya contiene { id, email, role } — no hace falta ir a la DB.
+        req.usuario = jwt.verify(token, process.env.JWT_SECRET);
 
         next();
 
     } catch (error) {
-        if (error.name === 'JsonWebTokenError') {
-            return res.status(401).json({ error: 'Token inválido' });
-        }
-
         if (error.name === 'TokenExpiredError') {
             return res.status(401).json({ error: 'Token expirado' });
         }
-
-        res.status(500).json({ error: 'Error al verificar token' });
+        return res.status(401).json({ error: 'Token inválido' });
     }
 };
 
