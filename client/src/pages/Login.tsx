@@ -125,12 +125,12 @@ export default function Login() {
           </div>
 
           <div className="text-right">
-            <a
-              href="#"
+            <Link
+              to="/olvide-contrasena"
               className="text-sm text-yellow-600 hover:text-yellow-700 dark:text-yellow-500 dark:hover:text-yellow-400"
             >
               ¿Olvidaste tu contraseña?
-            </a>
+            </Link>
           </div>
 
           <button

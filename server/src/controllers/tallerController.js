@@ -3,6 +3,13 @@ import { Op } from 'sequelize';
 import sequelize from '../config/db.js';
 import jwt from 'jsonwebtoken';
 import { sendMail } from '../utils/mailer.js';
+import cache from '../config/cache.js';
+import {
+    PROFILE_EDIT_MAX, PROFILE_EDIT_WINDOW_MS,
+    REVIEW_COOLDOWN_MS,
+    SEARCH_TERMS_MAX,
+    LOCATION_TOKEN_EXPIRES,
+} from '../config/constants.js';
 
 /**
  * Obtener mis providers (del usuario logueado)
@@ -37,7 +44,18 @@ export const getMyProviders = async (req, res) => {
  */
 export const getProviders = async (req, res) => {
     try {
-        const { type, city, is_verified, is_active = 'true', search } = req.query;
+        const { type, city, is_verified, is_active = 'true', search, page, limit } = req.query;
+
+        const pageNum  = Math.max(1, parseInt(page)  || 1);
+        const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 20));
+        const offset   = (pageNum - 1) * limitNum;
+
+        // Cache key basada en los parámetros de la query
+        const cacheKey = `providers:${JSON.stringify({ type, city, is_verified, is_active, search, page: pageNum, limit: limitNum })}`;
+        const cached = cache.get(cacheKey);
+        if (cached) {
+            return res.json({ success: true, ...cached, _cached: true });
+        }
 
         const whereClause = { is_active: is_active === 'true' };
 
@@ -59,7 +77,7 @@ export const getProviders = async (req, res) => {
             const norm = (col) =>
                 `LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(${col},'á','a'),'é','e'),'í','i'),'ó','o'),'ú','u'))`;
 
-            const searchTerms = search.trim().split(/\s+/).slice(0, 10);
+            const searchTerms = search.trim().split(/\s+/).slice(0, SEARCH_TERMS_MAX);
             const columns = [
                 'p.name', 'p.description',
                 'l.city', 'l.province', 'l.address',
@@ -95,7 +113,7 @@ export const getProviders = async (req, res) => {
             whereClause.id = { [Op.in]: ids };
         }
 
-        const providers = await Provider.findAll({
+        const { count: total, rows: providers } = await Provider.findAndCountAll({
             where: whereClause,
             include: [
                 {
@@ -113,14 +131,25 @@ export const getProviders = async (req, res) => {
             order: [
                 ['average_rating', 'DESC'],
                 ['total_reviews', 'DESC']
-            ]
+            ],
+            limit: limitNum,
+            offset,
+            distinct: true,
         });
 
-        res.json({
-            success: true,
-            count: providers.length,
-            data: providers
-        });
+        const totalPages = Math.ceil(total / limitNum);
+        const plainData = providers.map(p => p.toJSON());
+        const payload = {
+            count: plainData.length,
+            total,
+            page: pageNum,
+            totalPages,
+            data: plainData,
+        };
+
+        cache.set(cacheKey, payload);
+
+        res.json({ success: true, ...payload });
     } catch (error) {
         console.error('Error al obtener providers:', error);
         res.status(500).json({
@@ -247,6 +276,8 @@ export const createProvider = async (req, res) => {
             ]
         });
 
+        cache.flushAll(); // Invalidar lista cacheada al crear uno nuevo
+
         res.status(201).json({
             success: true,
             message: 'Provider creado exitosamente',
@@ -295,27 +326,26 @@ export const updateProvider = async (req, res) => {
                 });
             }
 
-            const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
             const now = new Date();
             let editCount = provider.profile_edit_count ?? 0;
             const windowStart = provider.profile_edit_window_start;
 
             // 2. Nueva ventana si no existe o venció
-            const windowExpired = !windowStart || (now - new Date(windowStart)) > TWO_WEEKS_MS;
+            const windowExpired = !windowStart || (now - new Date(windowStart)) > PROFILE_EDIT_WINDOW_MS;
             if (windowExpired) {
                 editCount = 0;
                 await provider.update({ profile_edit_count: 0, profile_edit_window_start: now });
             }
 
             // 3. Límite alcanzado → poner en revisión manual
-            if (editCount >= 2) {
+            if (editCount >= PROFILE_EDIT_MAX) {
                 await provider.update({ pending_validation: true });
                 return res.status(429).json({
                     success: false,
-                    error: 'Alcanzaste el límite de 2 ediciones cada 14 días. Tu perfil quedó en revisión manual y será revisado en las próximas 24 hs.',
+                    error: `Alcanzaste el límite de ${PROFILE_EDIT_MAX} ediciones cada 14 días. Tu perfil quedó en revisión manual y será revisado en las próximas 24 hs.`,
                     code: 'EDIT_LIMIT_REACHED',
                     edits_used: editCount,
-                    edits_allowed: 2,
+                    edits_allowed: PROFILE_EDIT_MAX,
                 });
             }
 
@@ -369,6 +399,8 @@ export const updateProvider = async (req, res) => {
             ]
         });
 
+        cache.flushAll(); // Invalidar lista cacheada al editar
+
         res.json({
             success: true,
             message: 'Provider actualizado exitosamente',
@@ -399,8 +431,16 @@ export const createReview = async (req, res) => {
             });
         }
 
-        // Cooldown: 1 hora entre reviews al mismo provider
-        const unaHoraAtras = new Date(Date.now() - 60 * 60 * 1000);
+        // El dueño no puede reseñar su propio negocio
+        if (provider.owner_id === req.usuario.id) {
+            return res.status(403).json({
+                success: false,
+                error: 'No podés dejar una reseña en tu propio negocio'
+            });
+        }
+
+        // Cooldown entre reviews al mismo provider
+        const unaHoraAtras = new Date(Date.now() - REVIEW_COOLDOWN_MS);
         const reviewReciente = await Review.findOne({
             where: {
                 user_id: req.usuario.id,
@@ -611,11 +651,11 @@ export const requestLocationChange = async (req, res) => {
         const oldLat      = provider.location?.latitude   ?? '—';
         const oldLng      = provider.location?.longitude  ?? '—';
 
-        // Token firmado con los datos de la nueva ubicación — expira en 7 días
+        // Token firmado con los datos de la nueva ubicación
         const approvalToken = jwt.sign(
             { providerId: id, newLat, newLng, newAddress, newCity, newProvince },
             process.env.JWT_SECRET,
-            { expiresIn: '7d' }
+            { expiresIn: LOCATION_TOKEN_EXPIRES }
         );
 
         const API_URL = process.env.API_URL || 'http://localhost:5001';
@@ -788,6 +828,46 @@ export const setStatusOverride = async (req, res) => {
     } catch (error) {
         console.error('Error al cambiar estado del provider:', error);
         res.status(500).json({ success: false, error: 'Error al cambiar el estado' });
+    }
+};
+
+/**
+ * Verificar / desverificar un provider (solo admin).
+ * Body: { verified: true | false }
+ * También libera pending_validation si el admin la aprueba.
+ */
+export const setProviderVerified = async (req, res) => {
+    try {
+        if (req.usuario.role !== 'admin') {
+            return res.status(403).json({ success: false, error: 'Solo administradores pueden verificar talleres' });
+        }
+
+        const { id } = req.params;
+        const { verified } = req.body;
+
+        if (typeof verified !== 'boolean') {
+            return res.status(400).json({ success: false, error: 'El campo verified debe ser true o false' });
+        }
+
+        const provider = await Provider.findByPk(id);
+        if (!provider) {
+            return res.status(404).json({ success: false, error: 'Provider no encontrado' });
+        }
+
+        await provider.update({
+            is_verified: verified,
+            // Si el admin verifica, también resuelve la validación pendiente
+            ...(verified && { pending_validation: false }),
+        });
+
+        return res.json({
+            success: true,
+            message: verified ? `"${provider.name}" verificado correctamente.` : `Verificación removida de "${provider.name}".`,
+            data: { id: provider.id, is_verified: verified },
+        });
+    } catch (error) {
+        console.error('Error al verificar provider:', error);
+        res.status(500).json({ success: false, error: 'Error al verificar el taller' });
     }
 };
 

@@ -20,6 +20,17 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.response?.status === 401) {
+      logout();
+      window.location.href = '/login';
+    }
+    return Promise.reject(err);
+  }
+);
+
 // ─── AUTH — TIPOS Y HELPERS ───────────────────────────────────────────────────
 // Funciones de login/register guardan el token y el usuario en localStorage.
 // Para leer el usuario logueado desde cualquier componente: getStoredUser().
@@ -246,14 +257,26 @@ export async function getMyProviders(): Promise<Provider[]> {
   return data.data;
 }
 
+export interface ProvidersPage {
+  data: Provider[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
 export async function getProviders(params?: {
   type?: string;
   city?: string;
   search?: string;
   is_verified?: string;
-}): Promise<Provider[]> {
-  const { data } = await api.get<ProvidersResponse>('/providers', { params });
-  return data.data;
+  page?: number;
+  limit?: number;
+}): Promise<ProvidersPage> {
+  const { data } = await api.get<ProvidersResponse & { total: number; page: number; totalPages: number }>(
+    '/providers',
+    { params }
+  );
+  return { data: data.data, total: data.total, page: data.page, totalPages: data.totalPages };
 }
 
 export async function getProviderById(id: number): Promise<Provider> {
@@ -304,6 +327,16 @@ export async function createReview(
 
 export async function changePassword(currentPassword: string, newPassword: string): Promise<{ success: boolean; mensaje: string }> {
   const { data } = await api.put('/auth/cambiar-contrasena', { currentPassword, newPassword });
+  return data;
+}
+
+export async function forgotPassword(email: string): Promise<{ success: boolean; message: string }> {
+  const { data } = await api.post('/auth/forgot-password', { email });
+  return data;
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+  const { data } = await api.post('/auth/reset-password', { token, newPassword });
   return data;
 }
 

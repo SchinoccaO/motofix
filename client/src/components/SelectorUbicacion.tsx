@@ -1,36 +1,17 @@
-import 'maplibre-gl/dist/maplibre-gl.css';
-import maplibregl from 'maplibre-gl';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-
-const CORDOBA: [number, number] = [-64.181, -31.4135];
+const CORDOBA: [number, number] = [-31.4135, -64.181]; // [lat, lng]
 const INIT_ZOOM = 13;
 const NOMINATIM_EMAIL = 'hola@motofix.com.ar';
 
-const STYLE_LIGHT = 'https://tiles.openfreemap.org/styles/positron';
-
-const STYLE_DARK: maplibregl.StyleSpecification = {
-  version: 8,
-  glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
-  sources: {
-    'carto-dark': {
-      type: 'raster',
-      tiles: [
-        'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-        'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-        'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-      ],
-      tileSize: 256,
-      attribution:
-        '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
-    },
-  },
-  layers: [{ id: 'bg', type: 'raster', source: 'carto-dark' }],
-};
+const TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+const TILE_DARK  = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+const TILE_ATTR  = '© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>';
 
 // ── Nominatim types ───────────────────────────────────────────────────────────
-
 interface NominatimAddress {
   road?: string;
   house_number?: string;
@@ -58,7 +39,6 @@ interface NominatimReverseResult {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
 function extractCity(addr: NominatimAddress): string {
   return addr.city ?? addr.town ?? addr.village ?? addr.municipality ?? '';
 }
@@ -68,37 +48,30 @@ function extractProvince(addr: NominatimAddress): string {
 }
 
 function truncateDisplayName(name: string): string {
-  const parts = name.split(', ');
-  return parts.slice(0, 3).join(', ');
+  return name.split(', ').slice(0, 3).join(', ');
 }
 
 function buildShortAddress(addr: NominatimAddress, fallback: string): string {
-  const street = addr.road
-    ? addr.house_number
-      ? `${addr.road} ${addr.house_number}`
-      : addr.road
-    : null;
+  const street        = addr.road ? (addr.house_number ? `${addr.road} ${addr.house_number}` : addr.road) : null;
   const neighbourhood = addr.suburb ?? addr.neighbourhood ?? null;
-  const city = extractCity(addr);
-  const parts = [street, neighbourhood, city].filter(Boolean);
+  const city          = extractCity(addr);
+  const parts         = [street, neighbourhood, city].filter(Boolean);
   return parts.length >= 2 ? parts.join(', ') : fallback.slice(0, 499);
 }
 
-// ── Pin SVG ───────────────────────────────────────────────────────────────────
-
-function createPinElement(): HTMLElement {
-  const el = document.createElement('div');
-  el.style.cssText =
-    'cursor:grab;width:32px;height:42px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));';
-  el.innerHTML = `<svg width="32" height="42" viewBox="0 0 32 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+// ── Custom pin icon ───────────────────────────────────────────────────────────
+const PIN_ICON = L.divIcon({
+  className: '',
+  html: `<svg width="32" height="42" viewBox="0 0 32 42" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M16 0C7.163 0 0 7.163 0 16C0 28 16 42 16 42C16 42 32 28 32 16C32 7.163 24.837 0 16 0Z" fill="#FFB800"/>
     <circle cx="16" cy="16" r="6" fill="#181611"/>
-  </svg>`;
-  return el;
-}
+  </svg>`,
+  iconSize:    [32, 42],
+  iconAnchor:  [16, 42],
+  popupAnchor: [0, -42],
+});
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-
 export interface LocationData {
   lat: number;
   lng: number;
@@ -113,48 +86,29 @@ interface Props {
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-
 export default function SelectorUbicacion({ onLocationChange }: Props) {
-  const containerRef    = useRef<HTMLDivElement>(null);
-  const mapRef          = useRef<maplibregl.Map | null>(null);
-  const markerRef       = useRef<maplibregl.Marker | null>(null);
-  const debounceRef     = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const darkEffectFirst = useRef(true);
-  const onChangeRef     = useRef(onLocationChange);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef       = useRef<L.Map | null>(null);
+  const tileRef      = useRef<L.TileLayer | null>(null);
+  const markerRef    = useRef<L.Marker | null>(null);
+  const debounceRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onChangeRef  = useRef(onLocationChange);
 
   const [inputText,            setInputText]            = useState('');
   const [isSearching,          setIsSearching]          = useState(false);
   const [hasConfirmedLocation, setHasConfirmedLocation] = useState(false);
-  const [isDark,               setIsDark]               = useState(
-    () => document.documentElement.classList.contains('dark'),
-  );
 
   useEffect(() => { onChangeRef.current = onLocationChange; }, [onLocationChange]);
 
-  // ── Dark mode observer ────────────────────────────────────────────────────
-  useEffect(() => {
-    const obs = new MutationObserver(() =>
-      setIsDark(document.documentElement.classList.contains('dark')),
-    );
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    return () => obs.disconnect();
-  }, []);
-
-  // ── Cambiar estilo cuando cambia el modo oscuro ───────────────────────────
-  useEffect(() => {
-    if (darkEffectFirst.current) { darkEffectFirst.current = false; return; }
-    mapRef.current?.setStyle(isDark ? STYLE_DARK : STYLE_LIGHT);
-  }, [isDark]);
-
-  // ── Reverse geocoding — compartido por dragend, dblclick y geolocate ─────
+  // ── Reverse geocoding ─────────────────────────────────────────────────────
   const reverseGeocode = useCallback(async (lat: number, lng: number) => {
     try {
       const res  = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1&accept-language=es&email=${NOMINATIM_EMAIL}`,
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1&accept-language=es&email=${NOMINATIM_EMAIL}`
       );
       const data = (await res.json()) as NominatimReverseResult;
-      const addr         = data.address ?? {};
-      const rawDisplay   = data.display_name ?? `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+      const addr           = data.address ?? {};
+      const rawDisplay     = data.display_name ?? `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
       const displayAddress = truncateDisplayName(rawDisplay);
       setInputText(displayAddress);
       setHasConfirmedLocation(true);
@@ -170,99 +124,89 @@ export default function SelectorUbicacion({ onLocationChange }: Props) {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Colocar o mover el pin ────────────────────────────────────────────────
-  const placeMarker = useCallback((lngLat: [number, number]) => {
+  // ── Place / move marker ───────────────────────────────────────────────────
+  const placeMarker = useCallback((latlng: [number, number]) => {
     const map = mapRef.current;
     if (!map) return;
 
     if (markerRef.current) {
-      markerRef.current.setLngLat(lngLat);
+      markerRef.current.setLatLng(latlng);
       return;
     }
 
-    const el     = createPinElement();
-    const marker = new maplibregl.Marker({ element: el, draggable: true, anchor: 'bottom' })
-      .setLngLat(lngLat)
-      .addTo(map);
-
-    // Pan solo al acercarse al borde del viewport (comportamiento Google Maps)
-    marker.on('drag', () => {
-      const point = map.project(marker.getLngLat());
-      const { clientWidth: w, clientHeight: h } = map.getCanvas();
-      const EDGE  = 80;
-      const SPEED = 0.35;
-      const dx =
-        point.x < EDGE     ? (point.x - EDGE)       * SPEED :
-        point.x > w - EDGE ? (point.x - (w - EDGE)) * SPEED : 0;
-      const dy =
-        point.y < EDGE     ? (point.y - EDGE)       * SPEED :
-        point.y > h - EDGE ? (point.y - (h - EDGE)) * SPEED : 0;
-      if (dx !== 0 || dy !== 0) map.panBy([dx, dy], { animate: false });
-    });
+    const marker = L.marker(latlng, { icon: PIN_ICON, draggable: true }).addTo(map);
 
     marker.on('dragend', () => {
-      const { lat, lng } = marker.getLngLat();
-      reverseGeocode(lat, lng);
+      const pos = marker.getLatLng();
+      reverseGeocode(pos.lat, pos.lng);
     });
 
     markerRef.current = marker;
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Inicializar mapa (una sola vez) ───────────────────────────────────────
+  // ── Init map (once) ───────────────────────────────────────────────────────
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || mapRef.current) return;
 
-    const map = new maplibregl.Map({
-      container: containerRef.current,
-      style:     document.documentElement.classList.contains('dark') ? STYLE_DARK : STYLE_LIGHT,
-      center:    CORDOBA,
-      zoom:      INIT_ZOOM,
-      attributionControl: false,
+    const isDark = document.documentElement.classList.contains('dark');
+
+    const map = L.map(containerRef.current, {
+      center:      CORDOBA,
+      zoom:        INIT_ZOOM,
+      zoomControl: false,
+      doubleClickZoom: false, // disable so dblclick places pin
     });
 
-    map.addControl(
-      new maplibregl.NavigationControl({ showCompass: false }),
-      'bottom-right',
-    );
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    L.control.attribution({ prefix: false }).addTo(map);
 
-    // Botón "dónde estoy" — al activarse mueve el pin a la ubicación del usuario
-    const geolocate = new maplibregl.GeolocateControl({
-      positionOptions: { enableHighAccuracy: true },
-      trackUserLocation: false,
+    const tile = L.tileLayer(isDark ? TILE_DARK : TILE_LIGHT, {
+      attribution: TILE_ATTR,
+      maxZoom: 19,
+      subdomains: ['a', 'b', 'c', 'd'],
+    }).addTo(map);
+    tileRef.current = tile;
+
+    // Dark mode swap
+    const observer = new MutationObserver(() => {
+      tileRef.current?.setUrl(
+        document.documentElement.classList.contains('dark') ? TILE_DARK : TILE_LIGHT
+      );
     });
-    map.addControl(geolocate, 'bottom-right');
-    geolocate.on('geolocate', (position) => {
-      const { longitude: lng, latitude: lat } = (position as GeolocationPosition).coords;
-      placeMarker([lng, lat]);
-      map.flyTo({ center: [lng, lat], zoom: 16, speed: 1.4, curve: 1 });
-      reverseGeocode(lat, lng);
-    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
-    map.addControl(
-      new maplibregl.AttributionControl({ compact: true }),
-      'bottom-left',
-    );
+    // Default pin at Córdoba
+    placeMarker(CORDOBA);
 
-    // Pin por defecto en Córdoba al cargar el mapa
-    map.on('load', () => placeMarker(CORDOBA));
-
-    // Doble clic / doble tap → mover el pin a esa posición
-    map.doubleClickZoom.disable();
+    // Double-click / double-tap → place pin
     map.on('dblclick', (e) => {
-      const { lng, lat } = e.lngLat;
-      placeMarker([lng, lat]);
-      reverseGeocode(lat, lng);
+      placeMarker([e.latlng.lat, e.latlng.lng]);
+      reverseGeocode(e.latlng.lat, e.latlng.lng);
     });
 
     mapRef.current = map;
+
     return () => {
+      observer.disconnect();
       map.remove();
-      mapRef.current    = null;
+      mapRef.current  = null;
+      tileRef.current = null;
       markerRef.current = null;
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Input de dirección con debounce 500ms → geocoding ────────────────────
+  // ── Geolocate handler ─────────────────────────────────────────────────────
+  const handleGeolocate = () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const { latitude: lat, longitude: lng } = pos.coords;
+      placeMarker([lat, lng]);
+      mapRef.current?.flyTo([lat, lng], 16, { duration: 0.8 });
+      reverseGeocode(lat, lng);
+    });
+  };
+
+  // ── Address search with debounce ──────────────────────────────────────────
   const handleAddressChange = (value: string) => {
     setInputText(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -272,25 +216,23 @@ export default function SelectorUbicacion({ onLocationChange }: Props) {
       setIsSearching(true);
       try {
         const res  = await fetch(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value)}&format=json&limit=1&addressdetails=1&countrycodes=ar&accept-language=es&email=${NOMINATIM_EMAIL}`,
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value)}&format=json&limit=1&addressdetails=1&countrycodes=ar&accept-language=es&email=${NOMINATIM_EMAIL}`
         );
         const data = (await res.json()) as NominatimSearchResult[];
-
         if (data.length > 0) {
           const { lat, lon, display_name, address = {} } = data[0];
-          const lngLat: [number, number] = [parseFloat(lon), parseFloat(lat)];
+          const latlng: [number, number] = [parseFloat(lat), parseFloat(lon)];
           const shortDisplay = truncateDisplayName(display_name);
-          mapRef.current?.flyTo({ center: lngLat, zoom: 16, speed: 1.6, curve: 1 });
-          placeMarker(lngLat);
+          mapRef.current?.flyTo(latlng, 16, { duration: 0.8 });
+          placeMarker(latlng);
           setInputText(shortDisplay);
           setHasConfirmedLocation(true);
           onChangeRef.current({
-            lat:            parseFloat(lat),
-            lng:            parseFloat(lon),
+            lat: parseFloat(lat), lng: parseFloat(lon),
             displayAddress: shortDisplay,
-            address:        buildShortAddress(address, display_name),
-            city:           extractCity(address),
-            province:       extractProvince(address),
+            address:  buildShortAddress(address, display_name),
+            city:     extractCity(address),
+            province: extractProvince(address),
           });
         }
       } finally {
@@ -317,11 +259,7 @@ export default function SelectorUbicacion({ onLocationChange }: Props) {
         />
         <span
           className={`material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-base transition-colors ${
-            isSearching
-              ? 'text-primary animate-pulse'
-              : hasConfirmedLocation
-              ? 'text-green-500'
-              : 'text-gray-400'
+            isSearching ? 'text-primary animate-pulse' : hasConfirmedLocation ? 'text-green-500' : 'text-gray-400'
           }`}
         >
           {isSearching ? 'search' : hasConfirmedLocation ? 'check_circle' : 'location_on'}
@@ -338,15 +276,24 @@ export default function SelectorUbicacion({ onLocationChange }: Props) {
       <div className="relative rounded-xl overflow-hidden border border-[#dbdce0] dark:border-input-border-dark h-64 md:h-80">
         <div ref={containerRef} className="h-full w-full" />
 
+        {/* Botón geolocate */}
+        <button
+          type="button"
+          onClick={handleGeolocate}
+          className="absolute bottom-14 right-2 z-[1000] w-8 h-8 bg-white dark:bg-card-dark border border-gray-300 dark:border-input-border-dark rounded shadow-md flex items-center justify-center hover:bg-gray-50 dark:hover:bg-elevated-dark transition-colors"
+          title="Mi ubicación"
+          aria-label="Usar mi ubicación actual"
+        >
+          <span className="material-symbols-outlined text-[18px] text-gray-600 dark:text-gray-300">my_location</span>
+        </button>
+
         {/* Overlay hasta confirmar ubicación */}
         {!hasConfirmedLocation && (
-          <div className="absolute inset-0 flex items-end justify-center pb-4 pointer-events-none z-10">
+          <div className="absolute inset-0 flex items-end justify-center pb-4 pointer-events-none z-[999]">
             <div className="bg-white/90 dark:bg-card-dark/90 backdrop-blur-sm border border-gray-200 dark:border-input-border-dark rounded-xl shadow-sm px-4 py-2.5 flex items-center gap-2 mx-4">
-              <span className="material-symbols-outlined text-lg text-primary shrink-0">
-                touch_app
-              </span>
+              <span className="material-symbols-outlined text-lg text-primary shrink-0">touch_app</span>
               <p className="text-xs font-medium text-gray-600 dark:text-gray-400 leading-tight">
-                Doble tap, arrastrá el pin o usá el botón{' '}
+                Doble tap, arrastrá el pin o usá{' '}
                 <span className="text-primary font-semibold">⊙</span> para tu ubicación
               </p>
             </div>

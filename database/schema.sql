@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS providers (
   type ENUM('shop', 'mechanic', 'parts_store') NOT NULL,
   name VARCHAR(255) NOT NULL,
   description TEXT,
-  phone VARCHAR(20),
+  phone VARCHAR(30),
   email VARCHAR(255),
   website VARCHAR(500),
   photo_url VARCHAR(500),
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS providers (
 CREATE TABLE IF NOT EXISTS locations (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   provider_id INT UNSIGNED NOT NULL UNIQUE,
-  address VARCHAR(255) NOT NULL,
+  address VARCHAR(500) NOT NULL,
   city VARCHAR(100) NOT NULL,
   province VARCHAR(100) NOT NULL,
   country VARCHAR(100) NOT NULL DEFAULT 'Argentina',

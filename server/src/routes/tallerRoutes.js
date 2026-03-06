@@ -13,6 +13,7 @@ import {
     requestLocationChange,
     approveLocationChange,
     setStatusOverride,
+    setProviderVerified,
 } from '../controllers/tallerController.js';
 import { verificarToken } from '../middlewares/auth.js';
 import { validateCreateProvider, validateCreateReview } from '../middlewares/validate.js';
@@ -40,6 +41,9 @@ router.delete('/:id', verificarToken, deleteProvider);
 
 // Estado manual abierto/cerrado (override independiente del horario)
 router.put('/:id/status', verificarToken, setStatusOverride);
+
+// Verificación de talleres (solo admin)
+router.put('/:id/verify', verificarToken, setProviderVerified);
 
 // Solicitud de cambio de ubicación (envía email con link de aprobación)
 router.post('/:id/request-location-change', verificarToken, requestLocationChange);

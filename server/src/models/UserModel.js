@@ -1,6 +1,7 @@
 import { DataTypes, Model } from 'sequelize';
 import bcrypt from 'bcryptjs';
 import sequelize from '../config/db.js';
+import { NAME_MAX, EMAIL_MAX, PHONE_MAX, URL_MAX, CITY_MAX, PROVINCE_MAX, BCRYPT_ROUNDS } from '../config/constants.js';
 
 class User extends Model {
   async compararPassword(password) {
@@ -24,11 +25,11 @@ User.init(
       primaryKey: true
     },
     name: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(NAME_MAX),
       allowNull: false
     },
     email: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(EMAIL_MAX),
       allowNull: false,
       unique: true,
       validate: {
@@ -36,11 +37,11 @@ User.init(
       }
     },
     password_hash: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(NAME_MAX),
       allowNull: true
     },
     google_id: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(NAME_MAX),
       allowNull: true
     },
     auth_provider: {
@@ -49,19 +50,19 @@ User.init(
       defaultValue: 'local'
     },
     phone: {
-      type: DataTypes.STRING(30),
+      type: DataTypes.STRING(PHONE_MAX),
       allowNull: true
     },
     avatar_url: {
-      type: DataTypes.STRING(500),
+      type: DataTypes.STRING(URL_MAX),
       allowNull: true
     },
     city: {
-      type: DataTypes.STRING(100),
+      type: DataTypes.STRING(CITY_MAX),
       allowNull: true
     },
     province: {
-      type: DataTypes.STRING(100),
+      type: DataTypes.STRING(PROVINCE_MAX),
       allowNull: true
     },
     role: {
@@ -84,12 +85,12 @@ User.init(
     hooks: {
       beforeCreate: async (user) => {
         if (user.password_hash) {
-          user.password_hash = await bcrypt.hash(user.password_hash, 10);
+          user.password_hash = await bcrypt.hash(user.password_hash, BCRYPT_ROUNDS);
         }
       },
       beforeUpdate: async (user) => {
         if (user.changed('password_hash')) {
-          user.password_hash = await bcrypt.hash(user.password_hash, 10);
+          user.password_hash = await bcrypt.hash(user.password_hash, BCRYPT_ROUNDS);
         }
       }
     },

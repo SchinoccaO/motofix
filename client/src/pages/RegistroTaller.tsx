@@ -5,7 +5,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import type { LocationData } from '../components/SelectorUbicacion'
 const SelectorUbicacion = lazy(() => import('../components/SelectorUbicacion'))
-import { createProvider, getStoredToken, getStoredUser } from '../services/api'
+import { createProvider, getTags, getStoredToken, getStoredUser, type Tag } from '../services/api'
 import HorariosEditor, {
   type HorariosForm,
   horariosToBackend,
@@ -196,6 +196,8 @@ export default function RegistroTaller() {
   // savedId: id del provider recién creado (muestra el overlay de éxito)
   const [isDirty,     setIsDirty]     = useState(false)
   const [savedId,     setSavedId]     = useState<number | null>(null)
+  const [availableTags, setAvailableTags] = useState<Tag[]>([])
+  const [selectedTags,  setSelectedTags]  = useState<string[]>([])
 
   // Bloquea la navegación in-app si hay cambios sin guardar y aún no se guardó
   const blocker = useBlocker(isDirty && savedId === null)
@@ -210,6 +212,11 @@ export default function RegistroTaller() {
     window.addEventListener('beforeunload', handler)
     return () => window.removeEventListener('beforeunload', handler)
   }, [isDirty, savedId])
+
+  // Cargar tags disponibles del backend
+  useEffect(() => {
+    getTags().then(setAvailableTags).catch(() => {})
+  }, [])
 
   // Prellenar "Nombre y Apellido Profesional" al cambiar a tipo mecánico
   useEffect(() => {
@@ -266,6 +273,7 @@ export default function RegistroTaller() {
         latitude:    location!.lat,
         longitude:   location!.lng,
         horarios:    horariosToBackend(horarios),
+        ...(selectedTags.length > 0 && { tags: selectedTags }),
       })
       setSavedId(provider.id)
     } catch (err) {
@@ -453,6 +461,50 @@ export default function RegistroTaller() {
 
                 <HorariosEditor value={horarios} onChange={setHorarios} />
               </div>
+
+              <div className="w-full h-px bg-[#f4f3f0] dark:bg-elevated-dark" />
+
+              {/* ── Especialidades / Tags ────────────────────────────────────── */}
+              {availableTags.length > 0 && (
+                <div>
+                  <h3 className="text-[#181611] dark:text-white text-xl font-bold leading-tight mb-1">
+                    Especialidades
+                  </h3>
+                  <p className="text-sm text-[#887f63] dark:text-body-dark mb-4">
+                    Seleccioná los servicios que ofrecés (opcional).
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {availableTags.map((tag) => {
+                      const active = selectedTags.includes(tag.name)
+                      return (
+                        <button
+                          key={tag.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedTags(prev =>
+                              active ? prev.filter(t => t !== tag.name) : [...prev, tag.name]
+                            )
+                            setIsDirty(true)
+                          }}
+                          className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
+                            active
+                              ? 'bg-primary border-primary text-[#181611]'
+                              : 'bg-white dark:bg-elevated-dark border-[#dbdce0] dark:border-input-border-dark text-[#887f63] dark:text-gray-400 hover:border-primary hover:text-primary'
+                          }`}
+                        >
+                          {active && <span className="mr-1">✓</span>}
+                          {tag.name}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {selectedTags.length > 0 && (
+                    <p className="text-xs text-primary mt-2 font-medium">
+                      {selectedTags.length} especialidad{selectedTags.length !== 1 ? 'es' : ''} seleccionada{selectedTags.length !== 1 ? 's' : ''}
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div className="w-full h-px bg-[#f4f3f0] dark:bg-elevated-dark" />
 

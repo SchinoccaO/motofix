@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense, type ReactNode, type CSSProperties } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { getProviders, type Provider } from '../services/api';
 import { isOpenNow, getHorariosSemana, getDiaArgentina, type Horarios } from '../utils/horarios';
 
@@ -58,9 +58,9 @@ function InfoRow({ icon, label, children }: { icon: string; label: string; child
   );
 }
 
-function OpenBadge({ horarios }: { horarios?: Horarios | null }) {
+function OpenBadge({ horarios, override }: { horarios?: Horarios | null; override?: boolean | null }) {
   if (!horarios) return null;
-  const { open, opensAt } = isOpenNow(horarios);
+  const { open, opensAt } = isOpenNow(horarios, override);
   return (
     <div className={`flex items-center gap-1 text-[10px] font-semibold ${open ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${open ? 'bg-green-500' : 'bg-red-500'}`} />
@@ -89,6 +89,7 @@ function mapsUrl(p: Provider): string {
 // isDark     → refleja el estado actual del dark mode para pasar el tile correcto al mapa
 
 export default function MapaPage() {
+  const [searchParams] = useSearchParams();
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading]     = useState(true);
   const [search, setSearch]       = useState('');
@@ -100,7 +101,18 @@ export default function MapaPage() {
 
   // ── Effect: carga inicial de providers ─────────────────────────────────────
   useEffect(() => {
-    getProviders().then(setProviders).finally(() => setLoading(false));
+    getProviders({ limit: 200 }).then(({ data }) => {
+      setProviders(data);
+      // Si viene ?taller=ID desde BuscarTalleres, auto-seleccionar ese pin
+      const tallerId = searchParams.get('taller');
+      if (tallerId) {
+        const match = data.find((p: any) => p.id === Number(tallerId));
+        if (match) {
+          setSelected(match);
+          setPanelOpen(true);
+        }
+      }
+    }).finally(() => setLoading(false));
   }, []);
 
   // ── Effect: abrir sidebar automáticamente 500ms después del mount ───────────
@@ -163,6 +175,7 @@ export default function MapaPage() {
           src={TYPE_PHOTO[selected.type] ?? TYPE_PHOTO.shop}
           alt={selected.name}
           className="w-full h-full object-cover"
+          loading="lazy"
         />
         <div className="absolute top-2 left-2 flex gap-1.5">
           <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest shadow-sm ${TYPE_BADGE[selected.type] ?? TYPE_BADGE.shop}`}>
@@ -185,7 +198,7 @@ export default function MapaPage() {
             <h2 className="font-bold text-base leading-tight text-gray-900 dark:text-white mb-1">
               {selected.name}
             </h2>
-            <OpenBadge horarios={selected.horarios} />
+            <OpenBadge horarios={selected.horarios} override={selected.is_open_override} />
           </div>
           <div className="shrink-0 bg-gray-50 dark:bg-elevated-dark px-2.5 py-1.5 rounded-xl border border-gray-200 dark:border-input-border-dark text-center min-w-[52px]">
             <div className="flex items-center text-primary gap-0.5 justify-center">
@@ -327,6 +340,7 @@ export default function MapaPage() {
                   src={TYPE_PHOTO[p.type] ?? TYPE_PHOTO.shop}
                   alt={p.name}
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
               </div>
               <div className="flex-1 min-w-0">
@@ -352,7 +366,7 @@ export default function MapaPage() {
                     {p.total_reviews} reseñas
                   </span>
                 </div>
-                <OpenBadge horarios={p.horarios} />
+                <OpenBadge horarios={p.horarios} override={p.is_open_override} />
               </div>
             </div>
 
