@@ -327,32 +327,35 @@ export const forgotPassword = async (req, res) => {
             const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
             const resetLink = `${CLIENT_URL}/restablecer-contrasena?token=${resetToken}`;
 
-            console.log('[forgot-password] Enviando mail a:', user.email, '| SMTP_USER:', process.env.SMTP_USER || 'NO CONFIGURADO');
+            console.log('[forgot-password] Enviando mail a:', user.email, '| RESEND_API_KEY:', process.env.RESEND_API_KEY ? 'OK' : 'NO CONFIGURADO', '| CLIENT_URL:', process.env.CLIENT_URL || 'localhost (FALTA)');
 
-            await sendMail({
-                to: user.email,
-                subject: '🔑 Restablecer contraseña — MotoFIX',
-                html: `
-                  <div style="font-family:sans-serif;max-width:520px;margin:0 auto">
-                    <h2 style="color:#FFB800;border-bottom:2px solid #FFB800;padding-bottom:8px">
-                      MotoFIX — Restablecé tu contraseña
-                    </h2>
-                    <p>Hola <strong>${user.name}</strong>,</p>
-                    <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta.</p>
-                    <p>Hacé clic en el botón para crear una nueva contraseña. El link expira en <strong>1 hora</strong>.</p>
-                    <a href="${resetLink}"
-                       style="display:inline-block;padding:12px 28px;background:#FFB800;color:#181611;
-                              font-weight:bold;text-decoration:none;border-radius:8px;margin:16px 0">
-                      🔑 Restablecer contraseña
-                    </a>
-                    <p style="color:#999;font-size:12px;margin-top:24px">
-                      Si no solicitaste esto, ignorá este correo. Tu contraseña no cambia.
-                    </p>
-                  </div>
-                `,
-            });
-
-            console.log('[forgot-password] Mail enviado OK a:', user.email);
+            try {
+                await sendMail({
+                    to: user.email,
+                    subject: '🔑 Restablecer contraseña — MotoFIX',
+                    html: `
+                      <div style="font-family:sans-serif;max-width:520px;margin:0 auto">
+                        <h2 style="color:#FFB800;border-bottom:2px solid #FFB800;padding-bottom:8px">
+                          MotoFIX — Restablecé tu contraseña
+                        </h2>
+                        <p>Hola <strong>${user.name}</strong>,</p>
+                        <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta.</p>
+                        <p>Hacé clic en el botón para crear una nueva contraseña. El link expira en <strong>1 hora</strong>.</p>
+                        <a href="${resetLink}"
+                           style="display:inline-block;padding:12px 28px;background:#FFB800;color:#181611;
+                                  font-weight:bold;text-decoration:none;border-radius:8px;margin:16px 0">
+                          🔑 Restablecer contraseña
+                        </a>
+                        <p style="color:#999;font-size:12px;margin-top:24px">
+                          Si no solicitaste esto, ignorá este correo. Tu contraseña no cambia.
+                        </p>
+                      </div>
+                    `,
+                });
+                console.log('[forgot-password] Mail enviado OK a:', user.email);
+            } catch (mailError) {
+                console.error('[forgot-password] Error SMTP:', mailError.message);
+            }
         }
 
         // Respuesta genérica siempre

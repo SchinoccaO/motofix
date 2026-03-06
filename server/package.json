@@ -26,6 +26,7 @@
     "mysql2": "^3.16.1",
     "node-cache": "^5.1.2",
     "nodemailer": "^8.0.1",
+    "resend": "^6.9.3",
     "sequelize": "^6.37.7"
   },
   "devDependencies": {
