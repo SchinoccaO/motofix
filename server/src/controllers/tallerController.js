@@ -138,12 +138,13 @@ export const getProviders = async (req, res) => {
         });
 
         const totalPages = Math.ceil(total / limitNum);
+        const plainData = providers.map(p => p.toJSON());
         const payload = {
-            count: providers.length,
+            count: plainData.length,
             total,
             page: pageNum,
             totalPages,
-            data: providers,
+            data: plainData,
         };
 
         cache.set(cacheKey, payload);
