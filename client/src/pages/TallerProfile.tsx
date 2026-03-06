@@ -248,19 +248,19 @@ export default function TallerProfile() {
                 Solo visible para el owner o admin. Permite anular el horario
                 programado con un override manual (feriados, enfermedad, etc.) */}
             {user && (user.id === provider.owner_id || user.role === 'admin') && (
-              <div className="mb-6 rounded-xl border border-input-border-dark bg-surface-dark px-4 py-3 flex flex-wrap items-center gap-3">
+              <div className="mb-6 rounded-xl border border-primary/20 dark:border-input-border-dark bg-primary/5 dark:bg-surface-dark px-4 py-3 flex flex-wrap items-center gap-3">
                 <span className="material-symbols-outlined text-lg text-primary">storefront</span>
-                <span className="text-sm font-semibold text-white shrink-0">Panel propietario:</span>
+                <span className="text-sm font-semibold text-[#181611] dark:text-white shrink-0">Panel propietario:</span>
 
                 {/* Estado actual */}
                 {provider.is_open_override === null || provider.is_open_override === undefined ? (
-                  <span className="text-xs text-gray-400">Usando horario programado</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Usando horario programado</span>
                 ) : provider.is_open_override ? (
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-green-400 bg-green-900/30 px-2 py-0.5 rounded-full">
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full">
                     <span className="material-symbols-outlined text-sm">circle</span>Abierto (manual)
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-red-400 bg-red-900/30 px-2 py-0.5 rounded-full">
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-900/30 px-2 py-0.5 rounded-full">
                     <span className="material-symbols-outlined text-sm">circle</span>Cerrado (manual)
                   </span>
                 )}
@@ -271,7 +271,7 @@ export default function TallerProfile() {
                     <button
                       onClick={() => handleStatusChange(false)}
                       disabled={statusLoading}
-                      className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 transition-colors disabled:opacity-50"
+                      className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30 transition-colors disabled:opacity-50"
                     >
                       <span className="material-symbols-outlined text-sm align-middle mr-1">do_not_disturb_on</span>
                       Cerrar ahora
@@ -282,7 +282,7 @@ export default function TallerProfile() {
                     <button
                       onClick={() => handleStatusChange(true)}
                       disabled={statusLoading}
-                      className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/30 transition-colors disabled:opacity-50"
+                      className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-green-50 hover:bg-green-100 dark:bg-green-500/10 dark:hover:bg-green-500/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-500/30 transition-colors disabled:opacity-50"
                     >
                       <span className="material-symbols-outlined text-sm align-middle mr-1">check_circle</span>
                       Abrir ahora
@@ -293,7 +293,7 @@ export default function TallerProfile() {
                     <button
                       onClick={() => handleStatusChange(null)}
                       disabled={statusLoading}
-                      className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-elevated-dark hover:bg-input-border-dark text-gray-300 border border-input-border-dark transition-colors disabled:opacity-50"
+                      className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-elevated-dark dark:hover:bg-input-border-dark text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-input-border-dark transition-colors disabled:opacity-50"
                     >
                       <span className="material-symbols-outlined text-sm align-middle mr-1">schedule</span>
                       Usar horario
@@ -302,7 +302,7 @@ export default function TallerProfile() {
                 </div>
 
                 {statusError && (
-                  <p className="w-full text-xs text-red-400 mt-1">{statusError}</p>
+                  <p className="w-full text-xs text-red-500 dark:text-red-400 mt-1">{statusError}</p>
                 )}
               </div>
             )}
@@ -775,7 +775,7 @@ export default function TallerProfile() {
                       Tabla lunes→domingo con abre/cierra. El día actual se resalta
                       en primary. Usa isOpenNow() para mostrar el badge abierto/cerrado. */}
                   {provider.horarios && (() => {
-                    const { open, opensAt } = isOpenNow(provider.horarios);
+                    const { open, opensAt } = isOpenNow(provider.horarios, provider.is_open_override);
                     const hoy = getDiaArgentina();
                     return (
                       <div className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-input-border-dark overflow-hidden">

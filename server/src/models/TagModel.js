@@ -1,5 +1,6 @@
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/db.js';
+import { TAG_DB_MAX } from '../config/constants.js';
 
 class Tag extends Model {}
 
@@ -11,7 +12,7 @@ Tag.init(
       primaryKey: true
     },
     name: {
-      type: DataTypes.STRING(100),
+      type: DataTypes.STRING(TAG_DB_MAX),
       allowNull: false,
       unique: true
     }

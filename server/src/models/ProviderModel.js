@@ -1,5 +1,6 @@
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/db.js';
+import { NAME_MAX, EMAIL_MAX, PHONE_MAX, URL_MAX, PROVIDER_TYPES } from '../config/constants.js';
 
 class Provider extends Model {}
 
@@ -20,30 +21,31 @@ Provider.init(
       onDelete: 'SET NULL'
     },
     type: {
-      type: DataTypes.ENUM('shop', 'mechanic', 'parts_store'),
+      type: DataTypes.ENUM(...PROVIDER_TYPES),
       allowNull: false
     },
     name: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(NAME_MAX),
       allowNull: false
     },
     description: {
       type: DataTypes.TEXT
     },
     phone: {
-      type: DataTypes.STRING(20)
+      // era STRING(20) — corregido para alinear con PHONE_MAX (30)
+      type: DataTypes.STRING(PHONE_MAX)
     },
     email: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(EMAIL_MAX),
       validate: {
         isEmail: true
       }
     },
     website: {
-      type: DataTypes.STRING(500)
+      type: DataTypes.STRING(URL_MAX)
     },
     photo_url: {
-      type: DataTypes.STRING(500),
+      type: DataTypes.STRING(URL_MAX),
       allowNull: true
     },
     is_verified: {
