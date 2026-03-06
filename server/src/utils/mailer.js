@@ -1,37 +1,35 @@
-// ─── MAILER — transporter singleton de Nodemailer ────────────────────────────
-// Usar siempre `sendMail(options)` de este módulo en vez de crear un
-// transporter inline. Así la config SMTP está en un solo lugar.
+// ─── MAILER — Resend (HTTP API, funciona en Render free tier) ────────────────
+// Render bloquea SMTP saliente (puertos 25/465/587). Resend usa HTTPS.
 //
-// Requiere en .env:
-//   SMTP_HOST   (default: smtp.gmail.com)
-//   SMTP_PORT   (default: 587)
-//   SMTP_USER   → motofixoficial@gmail.com
-//   SMTP_PASS   → App Password de Google (16 chars, sin espacios)
-//                 Generarlo en: https://myaccount.google.com/apppasswords
+// Requiere en .env / Render Environment:
+//   RESEND_API_KEY  → re_xxxxxxxxx (desde resend.com → API Keys)
+//
+// El "from" usa el dominio por defecto de Resend (onboarding@resend.dev)
+// hasta que verifiques tu dominio en resend.com/domains.
 
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: Number(process.env.SMTP_PORT) || 587,
-    secure: false, // STARTTLS en port 587
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-    },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+const FROM_ADDRESS = process.env.RESEND_FROM || 'MotoFIX <onboarding@resend.dev>';
 
 /**
- * Envía un correo. Wrappea transporter.sendMail con los defaults de MotoFIX.
+ * Envía un correo vía Resend (HTTPS).
  * @param {{ to: string, subject: string, html: string, from?: string }} options
  */
 export async function sendMail({ to, subject, html, from }) {
-    return transporter.sendMail({
-        from: from || `"MotoFIX" <${process.env.SMTP_USER}>`,
+    const { data, error } = await resend.emails.send({
+        from: from || FROM_ADDRESS,
         to,
         subject,
         html,
     });
+
+    if (error) {
+        throw new Error(`Resend error: ${error.message}`);
+    }
+
+    return data;
 }
 
-export default transporter;
+export default resend;
