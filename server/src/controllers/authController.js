@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { Op } from 'sequelize';
 import { OAuth2Client } from 'google-auth-library';
 import { User, Review, Provider, Location } from '../models/index.js';
 import { sendMail } from '../utils/mailer.js';
@@ -406,5 +407,97 @@ export const resetPassword = async (req, res) => {
     } catch (error) {
         console.error('Error en reset password:', error);
         res.status(500).json({ error: 'Error al restablecer la contraseña.' });
+    }
+};
+
+/**
+ * Admin: listar todos los usuarios con conteo de providers que poseen.
+ * Query params: search (name o email), page, limit
+ */
+export const adminListUsers = async (req, res) => {
+    try {
+        const { search, page, limit } = req.query;
+
+        const pageNum  = Math.max(1, parseInt(page)  || 1);
+        const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 30));
+        const offset   = (pageNum - 1) * limitNum;
+
+        const whereClause = {};
+        if (search) {
+            const term = `%${search.trim()}%`;
+            whereClause[Op.or] = [
+                { name:  { [Op.like]: term } },
+                { email: { [Op.like]: term } },
+            ];
+        }
+
+        const { count: total, rows: users } = await User.findAndCountAll({
+            where: whereClause,
+            attributes: ['id', 'name', 'email', 'role', 'city', 'province', 'avatar_url', 'auth_provider', 'is_active', 'created_at'],
+            include: [
+                {
+                    model: Provider,
+                    as: 'providers',
+                    attributes: ['id'],
+                    required: false,
+                }
+            ],
+            order: [['created_at', 'DESC']],
+            limit: limitNum,
+            offset,
+            distinct: true,
+        });
+
+        const data = users.map(u => {
+            const plain = u.toJSON();
+            plain.providers_count = plain.providers?.length ?? 0;
+            delete plain.providers;
+            return plain;
+        });
+
+        res.json({ success: true, data, total, page: pageNum, totalPages: Math.ceil(total / limitNum) });
+    } catch (error) {
+        console.error('Error adminListUsers:', error);
+        res.status(500).json({ error: 'Error al listar usuarios' });
+    }
+};
+
+/**
+ * Admin: cambiar el rol de un usuario a 'admin' o 'user'.
+ * Body: { role: 'admin' | 'user' }
+ * No se puede cambiar el propio rol (prevención de lockout accidental).
+ */
+export const adminSetUserRole = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { role } = req.body;
+
+        if (!['admin', 'user'].includes(role)) {
+            return res.status(400).json({ error: 'El rol debe ser "admin" o "user"' });
+        }
+
+        if (String(req.usuario.id) === String(id)) {
+            return res.status(400).json({ error: 'No podés cambiar tu propio rol' });
+        }
+
+        const usuario = await User.findByPk(id, {
+            attributes: ['id', 'name', 'email', 'role']
+        });
+        if (!usuario) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        await usuario.update({ role });
+
+        res.json({
+            success: true,
+            message: role === 'admin'
+                ? `${usuario.name} ahora es administrador.`
+                : `${usuario.name} ya no es administrador.`,
+            data: { id: usuario.id, role },
+        });
+    } catch (error) {
+        console.error('Error adminSetUserRole:', error);
+        res.status(500).json({ error: 'Error al cambiar el rol' });
     }
 };

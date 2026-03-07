@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import { scrollToId } from '../utils/scroll'
 
 import imgNinja  from '../assets/icons/inicioninja.jpg'
 import imgCorven from '../assets/icons/44bce802-0a36-4bfc-890a-ca215930e348.jpg'
@@ -16,9 +17,9 @@ const SLIDES = [
 ]
 
 const STEPS = [
-    { icon: 'location_on', title: '1. Elegí tu zona',   desc: 'Filtrá por ubicación y encontrá las opciones más cercanas a vos, ya sea taller o casa de repuestos.' },
-    { icon: 'star',        title: '2. Compará reseñas', desc: 'Lee opiniones 100% reales de otros motociclistas sobre el servicio, precios y atención.' },
-    { icon: 'build',       title: '3. Repará tu moto',  desc: 'Contactá al taller directamente por WhatsApp o llamada y solucioná tu problema.' },
+    { icon: 'location_on', title: 'Elegí tu zona',   desc: 'Filtrá por ubicación y encontrá las opciones más cercanas a vos, ya sea taller o casa de repuestos.' },
+    { icon: 'star',        title: 'Compará reseñas', desc: 'Lee opiniones 100% reales de otros motociclistas sobre el servicio, precios y atención.' },
+    { icon: 'build',       title: 'Repará tu moto',  desc: 'Contactá al taller directamente por WhatsApp o llamada y solucioná tu problema.' },
 ]
 
 const FEATURES = [
@@ -33,7 +34,7 @@ const FEATURES = [
 const AVATAR_IDS = [
     'AB6AXuCk9LG2c7_8npsPaImWPeYYLpRXmUk6uXcoDt8elvjKLk2Y2fXAoS7azFR-YQbe9PxYo_CW9zjJbPtfyiinMMVMqqrgBF-EkRj8VrZpDFTqdaiXue181fvgOhpcXqlhXN63jc5unhGWxglBt0whKjoM5doeNW0nGpiWg1yvh33UvNEAdEIFETofkm91c8oGt2vtWvji0Pz_u7zbuUv8xnqkph1tuvm9-udRxGCGvMRD_Vt9kwf7WADwswQsVTRXon60-4keDicgue7p',
     'AB6AXuAT6pOXv2GGiQFyRyDsRobweumF46j9DMxAG22RVaVy-MdC6cO1PqtDWSrk8F9bUeualHQvJ01Iv7SqqJym0N-sbxajLgkk7BpVHBACCGcwwDfdyOB-Aticcb2-fhumoY2vi3uyLc15aZMgzfXgUA4ayo4vDjzP8T4FVmhxYQm-WSpKnGNUIqGydKnEf21Fd5ffxIOjv0G5gdHvgproGyjY6ej7foi8_xrQ445zaea8L1EqbnzDegd8VBNZ9iE2Wk1-f3eId6BITyRE',
-    'AB6AXuAXgMMit5f3R6hl4f2hHX__INpDfAG_7gfQzHd9ArqE2TkmrGkUpKkyfNLrs5B4MMdCJNVCTI5F7S4h89kvlQL7Du-eE4wLIRf282iMSOfap43U2A2vWbIKDKL9P5hiUK8m-qa9CDfBBJPMtvegzxaTwi34tVyJOtVnNsxmgmY--HfvARVETE_xSVYv8Y1hg9uc2TiPYkjTrrRbI4A-8fQYbW04Pq6-B9CMNKXvwtKwBmenTBNwaqzexr1q3wgryuAEq68wTpAYJyJF',
+    'AB6AXuAXgMMit5f3R6hl4f2hHX__INpDfAG_7gfQzHd9ArqE2TkmrGkUpKkyfNLrs5B4MMdCJNVCTI5F7S4h89kvlQL7Du-eE4wLIRf282iMSOfap43U2A2pvWbIKDKL9P5hiUK8m-qa9CDfBBJPMtvegzxaTwi34tVyJOtVnNsxmgmY--HfvARVETE_xSVYv8Y1hg9uc2TiPYkjTrrRbI4A-8fQYbW04Pq6-B9CMNKXvwtKwBmenTBNwaqzexr1q3wgryuAEq68wTpAYJyJF',
 ]
 
 export default function Home() {
@@ -63,7 +64,7 @@ export default function Home() {
 
                         {/* Left ─ copy + search */}
                         <div className="flex flex-col gap-7 flex-1 text-left">
-                            <div className="flex flex-col gap-3">
+                            <div className="flex flex-col gap-3 animate-fade-up [animation-delay:0ms]">
                                 <h1 className="text-[#181611] dark:text-white text-3xl sm:text-4xl font-black leading-tight tracking-tight">
                                     Tu taller de confianza,{' '}
                                     <span className="text-primary">más cerca.</span>
@@ -75,7 +76,7 @@ export default function Home() {
                             </div>
 
                             {/* Search */}
-                            <form onSubmit={handleSearch} className="flex flex-col gap-2 w-full max-w-[480px]">
+                            <form onSubmit={handleSearch} className="flex flex-col gap-2 w-full max-w-[480px] animate-fade-up [animation-delay:120ms]">
                                 <div className="flex w-full items-stretch h-12 rounded-lg overflow-hidden border border-[#b8b3aa] dark:border-input-border-dark focus-within:border-primary/60 dark:focus-within:border-primary/50 transition-colors shadow-[0_2px_8px_rgba(0,0,0,0.10)]">
                                     <div className="flex items-center flex-1 bg-[#edeae5] dark:bg-card-dark px-4 gap-3">
                                         <span className="material-symbols-outlined text-gray-400 flex-shrink-0" style={{ fontSize: '18px' }}>
@@ -101,7 +102,7 @@ export default function Home() {
                             </form>
 
                             {/* Trust badges */}
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 animate-fade-up [animation-delay:200ms]">
                                 <div className="flex -space-x-2">
                                     {AVATAR_IDS.map((id, i) => (
                                         <img
@@ -116,10 +117,11 @@ export default function Home() {
                                     +1000 moteros confían en nosotros
                                 </p>
                             </div>
+
                         </div>
 
                         {/* Right ─ carousel */}
-                        <div className="w-full flex-1 max-w-[520px]">
+                        <div className="w-full flex-1 max-w-[520px] animate-fade-up [animation-delay:80ms]">
                             <div
                                 className="relative rounded-xl overflow-hidden shadow-2xl dark:shadow-[0_24px_64px_rgba(0,0,0,0.75)] ring-1 ring-black/10 dark:ring-white/[0.06]"
                                 style={{ aspectRatio: '16/10' }}
@@ -129,6 +131,9 @@ export default function Home() {
                                         key={i}
                                         src={img.src}
                                         alt={img.alt}
+                                        loading={i === 0 ? "eager" : "lazy"}
+                                        fetchPriority={i === 0 ? "high" : "low"}
+                                        decoding={i === 0 ? "sync" : "async"}
                                         className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
                                             i === slide ? 'opacity-100' : 'opacity-0'
                                         }`}
@@ -173,37 +178,61 @@ export default function Home() {
 
                     </div>
                 </div>
+                {/* Scroll indicator — sin texto, solo ícono animado */}
+                <div className="flex justify-center pb-4 md:pb-6 mt-2">
+                    <button
+                        onClick={() => scrollToId('como-funciona')}
+                        aria-label="Ver cómo funciona"
+                        className="animate-bounce text-gray-300 dark:text-gray-600 hover:text-primary dark:hover:text-primary transition-colors"
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>keyboard_arrow_down</span>
+                    </button>
+                </div>
             </section>
 
             {/* ── CÓMO FUNCIONA ─────────────────────────────────────────────── */}
             <section id="como-funciona" className="bg-[#fcfbf9] dark:bg-surface-dark">
-                <div className="max-w-[1280px] mx-auto px-4 py-16 md:px-10 md:py-20">
-                    <div className="flex flex-col gap-10">
-                        <div className="flex flex-col gap-3 text-center items-center">
-                            <h2 className="text-[#181611] dark:text-white text-3xl sm:text-4xl font-black leading-tight tracking-tight max-w-[720px]">
+                <div className="max-w-[1280px] mx-auto px-4 py-16 md:px-10 md:py-24">
+                    <div className="flex flex-col gap-12">
+                        <div className="flex flex-col gap-2">
+                            <h2 className="text-[#181611] dark:text-white text-3xl sm:text-4xl font-black leading-tight tracking-tight">
                                 Cómo funciona
                             </h2>
-                            <p className="text-gray-700 dark:text-gray-400 text-lg leading-normal max-w-[540px]">
+                            <p className="text-gray-600 dark:text-gray-400 text-lg max-w-[480px]">
                                 Encontrá lo que necesitás en 3 simples pasos.
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-                            {STEPS.map(step => (
+                        {/*
+                          Mobile: horizontal (ícono izq, texto der) — compacto y escaneable.
+                          Desktop md+: 3 columnas verticales.
+                        */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
+                            {STEPS.map((step, i) => (
                                 <div
                                     key={step.title}
-                                    className="flex flex-col items-center text-center gap-5 rounded-xl border border-[#e5e3dc] dark:border-input-border-dark bg-white dark:bg-card-dark p-8 shadow-sm hover:shadow-md transition-shadow"
+                                    className="flex flex-col gap-4 p-5 md:p-6 rounded-xl bg-white dark:bg-card-dark border border-[#e5e3dc] dark:border-input-border-dark"
                                 >
-                                    <div className="bg-primary/15 dark:bg-primary/20 p-4 rounded-full size-16 flex items-center justify-center text-primary">
-                                        <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>
-                                            {step.icon}
+                                    {/* Número grande + ícono en la misma fila */}
+                                    <div className="flex items-start justify-between">
+                                        <span className="text-6xl font-black leading-none text-primary/20 dark:text-primary/15 tabular-nums select-none">
+                                            {String(i + 1).padStart(2, '0')}
                                         </span>
+                                        <div className="bg-primary/10 dark:bg-primary/15 rounded-xl p-3 flex items-center justify-center">
+                                            <span
+                                                className="material-symbols-outlined text-primary"
+                                                style={{ fontSize: '26px', fontVariationSettings: "'FILL' 1" }}
+                                            >
+                                                {step.icon}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="flex flex-col gap-2">
-                                        <h3 className="text-[#181611] dark:text-white text-xl font-bold leading-tight">
+
+                                    <div className="flex flex-col gap-1.5">
+                                        <h3 className="text-[#181611] dark:text-white text-lg font-bold leading-tight">
                                             {step.title}
                                         </h3>
-                                        <p className="text-gray-700 dark:text-gray-400 text-base leading-relaxed">
+                                        <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
                                             {step.desc}
                                         </p>
                                     </div>
@@ -217,14 +246,14 @@ export default function Home() {
             {/* ── POR QUÉ ELEGIRNOS ─────────────────────────────────────────── */}
             <section className="bg-white dark:bg-background-dark">
                 <div className="max-w-[1280px] mx-auto px-4 py-16 md:px-10 md:py-20">
-                    <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-8 lg:gap-12 items-start">
+                    <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-8 lg:gap-16 items-start">
 
-                        {/* Left — centrado en mobile, izquierda en desktop */}
-                        <div className="flex flex-col items-center lg:items-start gap-4 text-center lg:text-left">
+                        {/* Left */}
+                        <div className="flex flex-col items-start gap-4">
                             <h2 className="text-[#181611] dark:text-white text-3xl sm:text-4xl font-black leading-tight tracking-tight">
                                 Por qué elegir <span className="text-primary">MotoFIX</span>
                             </h2>
-                            <p className="text-gray-700 dark:text-gray-400 text-lg max-w-[340px] lg:max-w-none">
+                            <p className="text-gray-600 dark:text-gray-400 text-lg">
                                 Transparencia y confianza para tu moto.
                             </p>
                             <Link
@@ -236,23 +265,24 @@ export default function Home() {
                             </Link>
                         </div>
 
-                        {/* Right ─ feature grid: 2 cols en mobile, 3 en lg */}
-                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
+                        {/*
+                          Mobile: 2 columnas desde el principio — 6 features = 3 filas de 2.
+                          Desktop lg: 3 columnas.
+                        */}
+                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                             {FEATURES.map(f => (
-                                <div
-                                    key={f.title}
-                                    className="flex flex-col sm:flex-row gap-3 sm:gap-4 rounded-xl bg-[#f8f7f6] dark:bg-card-dark p-4 sm:p-5 hover:bg-[#f0efec] dark:hover:bg-elevated-dark transition-colors border border-[#ece9e3] dark:border-input-border-dark"
-                                >
-                                    <div className="bg-primary/15 dark:bg-primary/20 rounded-xl p-2.5 flex-shrink-0 self-start flex items-center justify-center">
-                                        <span className="material-symbols-outlined text-primary" style={{ fontSize: '22px', lineHeight: 1 }}>
-                                            {f.icon}
-                                        </span>
-                                    </div>
-                                    <div className="min-w-0">
-                                        <h3 className="text-[#181611] dark:text-white text-sm sm:text-base font-bold mb-1">
+                                <div key={f.title} className="flex gap-3">
+                                    <span
+                                        className="material-symbols-outlined text-primary shrink-0 mt-0.5"
+                                        style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}
+                                    >
+                                        {f.icon}
+                                    </span>
+                                    <div className="flex flex-col gap-1">
+                                        <h3 className="text-[#181611] dark:text-white text-xs sm:text-sm font-bold">
                                             {f.title}
                                         </h3>
-                                        <p className="text-gray-700 dark:text-gray-400 text-xs sm:text-sm leading-relaxed">
+                                        <p className="text-gray-500 dark:text-gray-400 text-xs leading-relaxed">
                                             {f.desc}
                                         </p>
                                     </div>
@@ -264,18 +294,8 @@ export default function Home() {
             </section>
 
             {/* ── CTA TALLER ────────────────────────────────────────────────── */}
-            {/*
-              Light: bg sólido #0F1621, sin decoraciones — limpio.
-              Dark:  bg surface-dark + glows primary — efecto premium solo donde se ve bien.
-            */}
-            <section className="relative overflow-hidden bg-[#0F1621] dark:bg-surface-dark border-y border-white/[0.06] dark:border-primary/15">
-
-                {/* Decoraciones solo en dark mode */}
-                <div className="hidden dark:block pointer-events-none absolute inset-0 bg-gradient-to-r from-primary/[0.07] via-transparent to-primary/[0.04]" />
-                <div className="hidden dark:block pointer-events-none absolute -left-20 top-1/2 -translate-y-1/2 w-[420px] h-[420px] rounded-full bg-primary/[0.12] blur-3xl" />
-                <div className="hidden dark:block pointer-events-none absolute -right-10 top-1/2 -translate-y-1/2 w-72 h-72 rounded-full bg-primary/[0.07] blur-3xl" />
-
-                <div className="relative max-w-[1280px] mx-auto px-4 py-16 md:px-10 md:py-20">
+            <section className="bg-[#0F1621] dark:bg-surface-dark border-y border-white/[0.06] dark:border-primary/15">
+                <div className="max-w-[1280px] mx-auto px-4 py-16 md:px-10 md:py-20">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-8">
 
                         <div className="flex flex-col gap-4 text-center md:text-left max-w-[580px]">

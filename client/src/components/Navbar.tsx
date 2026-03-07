@@ -96,6 +96,15 @@ export default function Navbar({ activePage }: NavbarProps) {
           <div className="hidden lg:flex items-center gap-6 mr-4">
             <Link to="/talleres" className={linkClass("talleres")}>Talleres y Repuestos</Link>
             <Link to="/registro-taller" className={linkClass("registro-taller")}>Registrar taller</Link>
+            {user?.role === 'admin' && (
+              <Link
+                to="/admin"
+                className="flex items-center gap-1.5 text-sm font-bold px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-[#181611] transition-colors"
+              >
+                <span className="material-symbols-outlined text-[16px]">admin_panel_settings</span>
+                Admin
+              </Link>
+            )}
           </div>
           {user ? (
             <>
@@ -164,6 +173,16 @@ export default function Navbar({ activePage }: NavbarProps) {
               <Link to="/mi-perfil" className={mobileLinkClass("mi-perfil")} onClick={() => setMenuOpen(false)}>
                 Mi Perfil
               </Link>
+              {user.role === 'admin' && (
+                <Link
+                  to="/admin"
+                  className="flex items-center gap-2 py-3 text-sm font-bold text-primary"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span>
+                  Panel Admin
+                </Link>
+              )}
               <div className="border-t border-[#f4f3f0] dark:border-elevated-dark mt-1 pt-1">
                 <button
                   onClick={() => { setMenuOpen(false); handleLogout(); }}

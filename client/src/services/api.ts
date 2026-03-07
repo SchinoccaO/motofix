@@ -323,6 +323,80 @@ export async function createReview(
   return data.data;
 }
 
+// ─── ADMIN — PROVIDERS ────────────────────────────────────────────────────────
+
+export interface AdminProvider extends Provider {
+  owner?: { id: number; name: string; email: string } | null;
+}
+
+export interface AdminProvidersPage {
+  data: AdminProvider[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export async function adminGetProviders(params?: {
+  is_active?: 'all' | 'true' | 'false';
+  pending_validation?: 'true' | 'false';
+  search?: string;
+  page?: number;
+  limit?: number;
+}): Promise<AdminProvidersPage> {
+  const { data } = await api.get<{ success: boolean; data: AdminProvider[]; total: number; page: number; totalPages: number }>(
+    '/providers/admin',
+    { params }
+  );
+  return { data: data.data, total: data.total, page: data.page, totalPages: data.totalPages };
+}
+
+export async function adminVerifyProvider(id: number, verified: boolean): Promise<void> {
+  await api.put(`/providers/${id}/verify`, { verified });
+}
+
+export async function adminSetProviderActive(id: number, is_active: boolean): Promise<void> {
+  await api.put(`/providers/${id}/active`, { is_active });
+}
+
+// ─── ADMIN — USUARIOS ─────────────────────────────────────────────────────────
+
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  role: 'user' | 'admin';
+  city: string | null;
+  province: string | null;
+  avatar_url: string | null;
+  auth_provider: 'local' | 'google';
+  is_active: boolean;
+  created_at: string;
+  providers_count: number;
+}
+
+export interface AdminUsersPage {
+  data: AdminUser[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export async function adminGetUsers(params?: {
+  search?: string;
+  page?: number;
+  limit?: number;
+}): Promise<AdminUsersPage> {
+  const { data } = await api.get<{ success: boolean; data: AdminUser[]; total: number; page: number; totalPages: number }>(
+    '/auth/admin/users',
+    { params }
+  );
+  return { data: data.data, total: data.total, page: data.page, totalPages: data.totalPages };
+}
+
+export async function adminSetUserRole(id: number, role: 'admin' | 'user'): Promise<void> {
+  await api.put(`/auth/admin/users/${id}/role`, { role });
+}
+
 // ─── CONTRASEÑA ───────────────────────────────────────────────────────────────
 
 export async function changePassword(currentPassword: string, newPassword: string): Promise<{ success: boolean; mensaje: string }> {

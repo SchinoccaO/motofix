@@ -14,8 +14,10 @@ import {
     approveLocationChange,
     setStatusOverride,
     setProviderVerified,
+    adminGetProviders,
+    setProviderActive,
 } from '../controllers/tallerController.js';
-import { verificarToken } from '../middlewares/auth.js';
+import { verificarToken, verificarRol } from '../middlewares/auth.js';
 import { validateCreateProvider, validateCreateReview } from '../middlewares/validate.js';
 
 const router = express.Router();
@@ -27,6 +29,8 @@ const router = express.Router();
  */
 router.get('/tags', getTags);
 router.get('/mine', verificarToken, getMyProviders);
+// Admin: todos los providers (activos e inactivos) — debe ir ANTES de /:id
+router.get('/admin', verificarToken, verificarRol(['admin']), adminGetProviders);
 // Aprobación de mudanza — pública, el JWT embebido en ?token= es la auth
 router.get('/approve/:id', approveLocationChange);
 router.get('/', getProviders);
@@ -44,6 +48,9 @@ router.put('/:id/status', verificarToken, setStatusOverride);
 
 // Verificación de talleres (solo admin)
 router.put('/:id/verify', verificarToken, setProviderVerified);
+
+// Activar / desactivar (solo admin)
+router.put('/:id/active', verificarToken, verificarRol(['admin']), setProviderActive);
 
 // Solicitud de cambio de ubicación (envía email con link de aprobación)
 router.post('/:id/request-location-change', verificarToken, requestLocationChange);
