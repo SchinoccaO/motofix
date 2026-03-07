@@ -275,7 +275,7 @@ export default function SelectorUbicacion({ onLocationChange }: Props) {
       </p>
 
       {/* Mapa */}
-      <div className="relative rounded-xl overflow-hidden border border-[#dbdce0] dark:border-input-border-dark h-64 md:h-80">
+      <div className="relative z-[1] rounded-xl overflow-hidden border border-[#dbdce0] dark:border-input-border-dark h-64 md:h-80">
         <div ref={containerRef} className="h-full w-full" />
 
         {/* Atribución colapsada — ⓘ */}
@@ -316,7 +316,7 @@ export default function SelectorUbicacion({ onLocationChange }: Props) {
 
         {/* Overlay hasta confirmar ubicación */}
         {!hasConfirmedLocation && (
-          <div className="absolute inset-0 flex items-end justify-center pb-4 pointer-events-none z-[999]">
+          <div className="absolute inset-0 flex items-end justify-center pb-4 pointer-events-none z-[700]">
             <div className="bg-white/90 dark:bg-card-dark/90 backdrop-blur-sm border border-gray-200 dark:border-input-border-dark rounded-xl shadow-sm px-4 py-2.5 flex items-center gap-2 mx-4">
               <span className="material-symbols-outlined text-lg text-primary shrink-0">touch_app</span>
               <p className="text-xs font-medium text-gray-600 dark:text-gray-400 leading-tight">

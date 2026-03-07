@@ -81,7 +81,7 @@ export default function Navbar({ activePage }: NavbarProps) {
       : "block py-3 text-sm font-medium hover:text-primary transition-colors";
 
   return (
-    <nav ref={menuRef} className="bg-white dark:bg-background-dark border-b border-[#d4d0c8] dark:border-elevated-dark sticky top-0 z-50">
+    <nav ref={menuRef} className="bg-white dark:bg-background-dark border-b border-[#d4d0c8] dark:border-elevated-dark sticky top-0 z-[900]">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
         {/* Left: Logo + Links */}
         <div className="flex items-center">
