@@ -17,8 +17,10 @@ import {
     obtenerPerfilPublico,
     forgotPassword,
     resetPassword,
+    adminListUsers,
+    adminSetUserRole,
 } from '../controllers/authController.js';
-import { verificarToken } from '../middlewares/auth.js';
+import { verificarToken, verificarRol } from '../middlewares/auth.js';
 import {
     validateRegister,
     validateLogin,
@@ -76,5 +78,9 @@ router.post('/reset-password', resetPassword);
 router.get('/perfil', verificarToken, obtenerPerfil);
 router.put('/perfil', verificarToken, validateUpdateProfile, actualizarPerfil);
 router.put('/cambiar-contrasena', verificarToken, passwordLimiter, validateChangePassword, cambiarContrasena);
+
+// Rutas de administración (solo admin)
+router.get('/admin/users', verificarToken, verificarRol(['admin']), adminListUsers);
+router.put('/admin/users/:id/role', verificarToken, verificarRol(['admin']), adminSetUserRole);
 
 export default router;

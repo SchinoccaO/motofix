@@ -886,6 +886,90 @@ function htmlResponse(title, body, success) {
 }
 
 /**
+ * Admin: listar TODOS los providers con info de owner (sin restricción de is_active).
+ * Solo admin puede llamar esta ruta.
+ * Query params: is_active (all|true|false), pending_validation (true|false), search, page, limit
+ */
+export const adminGetProviders = async (req, res) => {
+    try {
+        const { is_active = 'all', pending_validation, search, page, limit } = req.query;
+
+        const pageNum  = Math.max(1, parseInt(page)  || 1);
+        const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 30));
+        const offset   = (pageNum - 1) * limitNum;
+
+        const whereClause = {};
+
+        if (is_active !== 'all') {
+            whereClause.is_active = is_active === 'true';
+        }
+        if (pending_validation !== undefined) {
+            whereClause.pending_validation = pending_validation === 'true';
+        }
+        if (search) {
+            whereClause.name = { [Op.like]: `%${search.trim()}%` };
+        }
+
+        const { count: total, rows: providers } = await Provider.findAndCountAll({
+            where: whereClause,
+            include: [
+                { model: Location, as: 'location' },
+                { model: User, as: 'owner', attributes: ['id', 'name', 'email'] },
+                { model: Tag, as: 'tags', attributes: ['id', 'name'], through: { attributes: [] } },
+            ],
+            order: [['created_at', 'DESC']],
+            limit: limitNum,
+            offset,
+            distinct: true,
+        });
+
+        res.json({
+            success: true,
+            data: providers.map(p => p.toJSON()),
+            total,
+            page: pageNum,
+            totalPages: Math.ceil(total / limitNum),
+        });
+    } catch (error) {
+        console.error('Error adminGetProviders:', error);
+        res.status(500).json({ success: false, error: 'Error al obtener providers' });
+    }
+};
+
+/**
+ * Admin: activar o desactivar un provider.
+ * Body: { is_active: true | false }
+ * Solo admin puede llamar esta ruta.
+ */
+export const setProviderActive = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { is_active } = req.body;
+
+        if (typeof is_active !== 'boolean') {
+            return res.status(400).json({ success: false, error: 'El campo is_active debe ser true o false' });
+        }
+
+        const provider = await Provider.findByPk(id);
+        if (!provider) {
+            return res.status(404).json({ success: false, error: 'Provider no encontrado' });
+        }
+
+        await provider.update({ is_active });
+        cache.flushAll();
+
+        return res.json({
+            success: true,
+            message: is_active ? `"${provider.name}" activado.` : `"${provider.name}" desactivado.`,
+            data: { id: provider.id, is_active },
+        });
+    } catch (error) {
+        console.error('Error setProviderActive:', error);
+        res.status(500).json({ success: false, error: 'Error al cambiar estado del provider' });
+    }
+};
+
+/**
  * Quitar un tag de un provider (solo owner o admin)
  */
 export const removeTagFromProvider = async (req, res) => {

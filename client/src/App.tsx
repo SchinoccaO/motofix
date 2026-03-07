@@ -1,28 +1,39 @@
+import { lazy, Suspense } from "react";
 import { createBrowserRouter, RouterProvider, Outlet, Link } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
 import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import BuscarTalleres from "./pages/BuscarTalleres";
-import MapaPage from "./pages/MapaPage";
-import TallerProfile from "./pages/TallerProfile";
-import RegistroTaller from "./pages/RegistroTaller";
-import EditarTaller from "./pages/EditarTaller";
-import ResenaForm from "./pages/ResenaForm";
-import PerfilPublico from "./pages/PerfilPublico";
-import MiPerfil from "./pages/MiPerfil";
-import Seguridad from "./pages/Seguridad";
-import SobreNosotros from "./pages/SobreNosotros";
-import Blog from "./pages/Blog";
-import Ayuda from "./pages/Ayuda";
-import Terminos from "./pages/Terminos";
-import Privacidad from "./pages/Privacidad";
-import OlvideContrasena from "./pages/OlvideContrasena";
-import RestablecerContrasena from "./pages/RestablecerContrasena";
+
+const Login              = lazy(() => import("./pages/Login"));
+const Register           = lazy(() => import("./pages/Register"));
+const BuscarTalleres     = lazy(() => import("./pages/BuscarTalleres"));
+const MapaPage           = lazy(() => import("./pages/MapaPage"));
+const TallerProfile      = lazy(() => import("./pages/TallerProfile"));
+const RegistroTaller     = lazy(() => import("./pages/RegistroTaller"));
+const EditarTaller       = lazy(() => import("./pages/EditarTaller"));
+const ResenaForm         = lazy(() => import("./pages/ResenaForm"));
+const PerfilPublico      = lazy(() => import("./pages/PerfilPublico"));
+const MiPerfil           = lazy(() => import("./pages/MiPerfil"));
+const Seguridad          = lazy(() => import("./pages/Seguridad"));
+const SobreNosotros      = lazy(() => import("./pages/SobreNosotros"));
+const Blog               = lazy(() => import("./pages/Blog"));
+const Ayuda              = lazy(() => import("./pages/Ayuda"));
+const Terminos           = lazy(() => import("./pages/Terminos"));
+const Privacidad         = lazy(() => import("./pages/Privacidad"));
+const OlvideContrasena   = lazy(() => import("./pages/OlvideContrasena"));
+const RestablecerContrasena = lazy(() => import("./pages/RestablecerContrasena"));
+const AdminPanel         = lazy(() => import("./pages/AdminPanel"));
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import "./App.css";
+
+function PageLoader() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
+      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
+    </div>
+  );
+}
 
 function NotFound() {
   return (
@@ -47,7 +58,9 @@ function RootLayout() {
   return (
     <>
       <ScrollToTop />
-      <Outlet />
+      <Suspense fallback={<PageLoader />}>
+        <Outlet />
+      </Suspense>
     </>
   );
 }
@@ -76,6 +89,7 @@ const router = createBrowserRouter(
         { path: "/privacidad",            element: <Privacidad /> },
         { path: "/olvide-contrasena",     element: <OlvideContrasena /> },
         { path: "/restablecer-contrasena", element: <RestablecerContrasena /> },
+        { path: "/admin",                  element: <AdminPanel /> },
         { path: "*",                       element: <NotFound /> },
       ],
     },
