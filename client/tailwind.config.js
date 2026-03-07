@@ -41,6 +41,16 @@ export default {
                 display: ['Inter', 'sans-serif'],       // Títulos, encabezados, botones
                 body:    ['Noto Sans', 'sans-serif'],   // Texto corrido (poco usado — Inter cubre todo)
             },
+            // ─── ANIMACIONES ───────────────────────────────────────────────────────────
+            animation: {
+                'fade-up': 'fadeUp 0.55s ease-out both',
+            },
+            keyframes: {
+                fadeUp: {
+                    from: { opacity: '0', transform: 'translateY(14px)' },
+                    to:   { opacity: '1', transform: 'translateY(0)' },
+                },
+            },
             // ─── BORDER RADIUS ─────────────────────────────────────────────────────────
             // 🔧 Cambiar lg si se quiere más/menos redondeado en botones y cards
             borderRadius: {

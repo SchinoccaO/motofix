@@ -436,15 +436,6 @@ export default function BuscarTalleres() {
                   </span>
                 </div>
               ))}
-              {/* "Más" button */}
-              <div className="flex flex-col items-center gap-2 min-w-[80px] cursor-pointer group/more">
-                <div className="w-16 h-16 rounded-full bg-white dark:bg-card-dark border border-gray-100 dark:border-input-border-dark flex items-center justify-center group-hover/more:border-primary group-hover/more:shadow-md transition-all">
-                  <span className="material-symbols-outlined text-gray-400 group-hover/more:text-primary transition-colors">
-                    add
-                  </span>
-                </div>
-                <span className="text-xs font-medium">Más</span>
-              </div>
             </div>
 
             {/* Right Arrow */}
@@ -487,7 +478,7 @@ export default function BuscarTalleres() {
             <span className="material-symbols-outlined text-[18px]">
               {locationLoading ? 'sync' : 'location_on'}
             </span>
-            {locationLoading ? 'Localizando...' : 'Cerca de mi'}
+            {locationLoading ? 'Localizando...' : 'Cerca de mí'}
           </button>
           <button
             onClick={() => setFilterOpenNow((v) => !v)}
@@ -509,7 +500,7 @@ export default function BuscarTalleres() {
             }`}
           >
             <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-            Mas valorados
+            Más valorados
           </button>
         </div>
 
@@ -526,27 +517,26 @@ export default function BuscarTalleres() {
 
           {/* Sidebar Filters */}
           <aside className={`w-full lg:w-64 shrink-0 space-y-6 ${showFilters ? "block" : "hidden lg:block"}`}>
-            <div className="bg-white dark:bg-card-dark p-6 rounded-xl border border-gray-100 dark:border-input-border-dark shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-lg">Filtros</h3>
-                <button
-                  className="text-xs text-primary font-bold hover:underline"
-                  onClick={() => {
-                    setTypeFilter("");
-                    setSearchTerm("");
-                    setSelectedBrand(null);
-                    setFilterOpenNow(false);
-                    setSortByRating(false);
-                    setSortByNearby(false);
-                    setMinRating(0);
-                  }}
-                >
-                  Limpiar
-                </button>
-              </div>
+            <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-input-border-dark">
+              <h3 className="font-bold text-base">Filtros</h3>
+              <button
+                className="text-xs text-primary font-bold hover:underline"
+                onClick={() => {
+                  setTypeFilter("");
+                  setSearchTerm("");
+                  setSelectedBrand(null);
+                  setFilterOpenNow(false);
+                  setSortByRating(false);
+                  setSortByNearby(false);
+                  setMinRating(0);
+                }}
+              >
+                Limpiar
+              </button>
+            </div>
 
               {/* Business Type Filter */}
-              <div className="space-y-4 mb-8">
+              <div className="space-y-4">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-gray-600">
                   Tipo de Negocio
                 </h4>
@@ -584,9 +574,9 @@ export default function BuscarTalleres() {
               </div>
 
               {/* Rating Filter */}
-              <div className="space-y-4 mb-8">
+              <div className="space-y-4">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-gray-600">
-                  Calificacion Minima
+                  Calificación Mínima
                 </h4>
                 <div className="space-y-2">
                   {[
@@ -614,7 +604,6 @@ export default function BuscarTalleres() {
                   ))}
                 </div>
               </div>
-            </div>
 
             {/* Map Preview — tile estático de Córdoba */}
             <div

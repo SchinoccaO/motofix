@@ -1,6 +1,6 @@
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useId } from 'react';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CORDOBA: [number, number] = [-31.4135, -64.181]; // [lat, lng]
@@ -97,6 +97,8 @@ export default function SelectorUbicacion({ onLocationChange }: Props) {
   const [inputText,            setInputText]            = useState('');
   const [isSearching,          setIsSearching]          = useState(false);
   const [hasConfirmedLocation, setHasConfirmedLocation] = useState(false);
+  const [showAttrib,           setShowAttrib]           = useState(false);
+  const attribId = useId();
 
   useEffect(() => { onChangeRef.current = onLocationChange; }, [onLocationChange]);
 
@@ -151,14 +153,14 @@ export default function SelectorUbicacion({ onLocationChange }: Props) {
     const isDark = document.documentElement.classList.contains('dark');
 
     const map = L.map(containerRef.current, {
-      center:      CORDOBA,
-      zoom:        INIT_ZOOM,
-      zoomControl: false,
-      doubleClickZoom: false, // disable so dblclick places pin
+      center:           CORDOBA,
+      zoom:             INIT_ZOOM,
+      zoomControl:      false,
+      doubleClickZoom:  false, // disable so dblclick places pin
+      attributionControl: false, // se reemplaza por botón ⓘ personalizado
     });
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
-    L.control.attribution({ prefix: false }).addTo(map);
 
     const tile = L.tileLayer(isDark ? TILE_DARK : TILE_LIGHT, {
       attribution: TILE_ATTR,
