@@ -16,6 +16,7 @@ import {
     setProviderVerified,
     adminGetProviders,
     setProviderActive,
+    adminHardDeleteProvider,
 } from '../controllers/tallerController.js';
 import { verificarToken, verificarRol } from '../middlewares/auth.js';
 import { validateCreateProvider, validateCreateReview } from '../middlewares/validate.js';
@@ -51,6 +52,9 @@ router.put('/:id/verify', verificarToken, setProviderVerified);
 
 // Activar / desactivar (solo admin)
 router.put('/:id/active', verificarToken, verificarRol(['admin']), setProviderActive);
+
+// Eliminar definitivamente de la DB (solo admin, irreversible)
+router.delete('/:id/hard', verificarToken, verificarRol(['admin']), adminHardDeleteProvider);
 
 // Solicitud de cambio de ubicación (envía email con link de aprobación)
 router.post('/:id/request-location-change', verificarToken, requestLocationChange);
