@@ -1,6 +1,6 @@
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useId } from 'react';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CORDOBA: [number, number] = [-31.4135, -64.181]; // [lat, lng]
@@ -97,6 +97,8 @@ export default function SelectorUbicacion({ onLocationChange }: Props) {
   const [inputText,            setInputText]            = useState('');
   const [isSearching,          setIsSearching]          = useState(false);
   const [hasConfirmedLocation, setHasConfirmedLocation] = useState(false);
+  const [showAttrib,           setShowAttrib]           = useState(false);
+  const attribId = useId();
 
   useEffect(() => { onChangeRef.current = onLocationChange; }, [onLocationChange]);
 
@@ -151,14 +153,14 @@ export default function SelectorUbicacion({ onLocationChange }: Props) {
     const isDark = document.documentElement.classList.contains('dark');
 
     const map = L.map(containerRef.current, {
-      center:      CORDOBA,
-      zoom:        INIT_ZOOM,
-      zoomControl: false,
-      doubleClickZoom: false, // disable so dblclick places pin
+      center:           CORDOBA,
+      zoom:             INIT_ZOOM,
+      zoomControl:      false,
+      doubleClickZoom:  false, // disable so dblclick places pin
+      attributionControl: false, // se reemplaza por botón ⓘ personalizado
     });
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
-    L.control.attribution({ prefix: false }).addTo(map);
 
     const tile = L.tileLayer(isDark ? TILE_DARK : TILE_LIGHT, {
       attribution: TILE_ATTR,
@@ -276,11 +278,36 @@ export default function SelectorUbicacion({ onLocationChange }: Props) {
       <div className="relative rounded-xl overflow-hidden border border-[#dbdce0] dark:border-input-border-dark h-64 md:h-80">
         <div ref={containerRef} className="h-full w-full" />
 
+        {/* Atribución colapsada — ⓘ */}
+        <div className="absolute bottom-2 left-2 z-[1000]">
+          <button
+            type="button"
+            aria-expanded={showAttrib}
+            aria-controls={attribId}
+            onClick={() => setShowAttrib(v => !v)}
+            className="w-5 h-5 rounded-full bg-white/90 dark:bg-card-dark/90 border border-gray-300 dark:border-input-border-dark text-[10px] font-bold text-gray-500 dark:text-gray-400 flex items-center justify-center shadow-sm hover:bg-white dark:hover:bg-card-dark transition-colors leading-none"
+            title="Atribución del mapa"
+          >
+            i
+          </button>
+          {showAttrib && (
+            <div
+              id={attribId}
+              className="absolute bottom-6 left-0 bg-white/95 dark:bg-card-dark/95 backdrop-blur-sm border border-gray-200 dark:border-input-border-dark rounded px-2 py-1 shadow-md whitespace-nowrap"
+            >
+              <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                © <a href="https://openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">OpenStreetMap</a> contributors ©{' '}
+                <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">CARTO</a>
+              </span>
+            </div>
+          )}
+        </div>
+
         {/* Botón geolocate */}
         <button
           type="button"
           onClick={handleGeolocate}
-          className="absolute bottom-14 right-2 z-[1000] w-8 h-8 bg-white dark:bg-card-dark border border-gray-300 dark:border-input-border-dark rounded shadow-md flex items-center justify-center hover:bg-gray-50 dark:hover:bg-elevated-dark transition-colors"
+          className="absolute bottom-[76px] right-2 z-[1000] w-8 h-8 bg-white dark:bg-card-dark border border-gray-300 dark:border-input-border-dark rounded shadow-md flex items-center justify-center hover:bg-gray-50 dark:hover:bg-elevated-dark transition-colors"
           title="Mi ubicación"
           aria-label="Usar mi ubicación actual"
         >

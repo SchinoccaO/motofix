@@ -91,10 +91,11 @@ interface Props {
   onMarkerClick?: (provider: Provider) => void;
   fullScreen?: boolean;
   selectedId?: number | null;
+  geocodeCenter?: { lat: number; lng: number };
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export default function MapaTalleres({ providers, onMarkerClick, fullScreen = false, selectedId }: Props) {
+export default function MapaTalleres({ providers, onMarkerClick, fullScreen = false, selectedId, geocodeCenter }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef       = useRef<L.Map | null>(null);
   const tileRef      = useRef<L.TileLayer | null>(null);
@@ -129,9 +130,13 @@ export default function MapaTalleres({ providers, onMarkerClick, fullScreen = fa
     });
     map.addLayer(cluster);
 
-    mapRef.current   = map;
-    tileRef.current  = tile;
+    mapRef.current     = map;
+    tileRef.current    = tile;
     clusterRef.current = cluster;
+
+    // Llama invalidateSize() cuando el contenedor cambia de tamaño (ej: sidebar que se abre/cierra)
+    const ro = new ResizeObserver(() => map.invalidateSize());
+    ro.observe(containerRef.current!);
 
     // Dark mode: swap tile URL on class change
     const observer = new MutationObserver(() => {
@@ -141,6 +146,7 @@ export default function MapaTalleres({ providers, onMarkerClick, fullScreen = fa
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
     return () => {
+      ro.disconnect();
       observer.disconnect();
       map.remove();
       mapRef.current = null;
@@ -196,6 +202,13 @@ export default function MapaTalleres({ providers, onMarkerClick, fullScreen = fa
       map.flyTo([p.location.latitude, p.location.longitude], 15, { duration: 0.8 });
     }
   }, [selectedId, providers]);
+
+  // ── Fly to geocode result ─────────────────────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !geocodeCenter) return;
+    map.flyTo([geocodeCenter.lat, geocodeCenter.lng], 14, { duration: 0.9 });
+  }, [geocodeCenter?.lat, geocodeCenter?.lng]);
 
   return (
     <div

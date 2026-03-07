@@ -164,7 +164,7 @@ function AuthGuard() {
           </Link>
           <p className="text-xs text-[#887f63] dark:text-gray-500">
             ¿No tenés cuenta?{' '}
-            <Link to="/registro" className="text-primary hover:underline font-medium">
+            <Link to="/register" className="text-primary hover:underline font-medium">
               Creá una gratis
             </Link>
           </p>
@@ -225,18 +225,19 @@ export default function RegistroTaller() {
     }
   }, [formType])
 
-  // Marca el form como sucio y actualiza la ubicación (SelectorUbicacion)
-  const handleLocationChange = (loc: typeof location) => {
-    setLocation(loc)
-    setIsDirty(true)
-  }
 
   // Guard temprano: si no hay sesión activa, mostrar empty state
   if (!isLoggedIn) return <AuthGuard />
 
+  // Marca el form como sucio y actualiza la ubicación (SelectorUbicacion)
+  const handleLocationChange = (loc: LocationData) => {
+    setLocation(loc)
+    setIsDirty(true)
+  }
+
   const copy          = COPY[formType]
   const locationValid = location !== null
-  const canSubmit    = (
+  const canSubmit     = (
     name.trim() !== '' &&
     phone.trim() !== '' &&
     email.trim() !== '' &&
@@ -308,7 +309,7 @@ export default function RegistroTaller() {
             {/* Page Heading */}
             <div className="p-8 pb-4">
               <p className="text-[#181611] dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-[-0.033em]">
-                Únete a MotoFIX
+                Registrá tu negocio
               </p>
               <p className="mt-2 text-[#887f63] dark:text-body-dark text-base font-normal leading-normal">
                 Registrá tu taller o tienda y conectá con miles de motociclistas en tu zona.
@@ -409,7 +410,7 @@ export default function RegistroTaller() {
                   />
                 </div>
 
-                {/* Selector de ubicación con mapa — lazy para mantener maplibre-gl fuera del bundle principal */}
+                {/* Selector de ubicación con mapa — lazy para mantener bundle principal liviano */}
                 <Suspense fallback={
                   <div className="flex flex-col gap-2">
                     <div className="h-4 w-40 rounded bg-[#f4f3f0] dark:bg-elevated-dark animate-pulse" />

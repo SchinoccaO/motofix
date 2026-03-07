@@ -29,7 +29,10 @@
       "Bash(wc:*)",
       "Bash(npm uninstall:*)",
       "Bash(npm run:*)",
-      "Bash(netstat:*)"
+      "Bash(netstat:*)",
+      "Bash(cmd:*)",
+      "Skill(claude-developer-platform)",
+      "WebFetch(domain:resend.com)"
     ]
   }
 }

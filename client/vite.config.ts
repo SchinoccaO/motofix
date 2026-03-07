@@ -12,15 +12,34 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
 
-  // Configuración del servidor de desarrollo
+  // Fuerza a Vite a pre-bundlear leaflet y markercluster (ambos son CJS)
+  // antes de que cualquier módulo lazy los importe. Sin esto, el dynamic
+  // import de MapaTalleres falla con "Failed to fetch" en dev mode.
+  optimizeDeps: {
+    include: ['leaflet', 'leaflet.markercluster'],
+  },
+
   server: {
-    port: 5173, // Abre la app en http://localhost:5173
-    open: true, // Abre el navegador automáticamente al ejecutar "npm run dev"
+    port: 5173,
+    open: true,
     proxy: {
-      // Redirige peticiones /api al backend
       "/api": {
         target: "http://localhost:5001",
         changeOrigin: true,
+      },
+    },
+  },
+
+  build: {
+    target: "es2020",
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-react": ["react", "react-dom", "react-router-dom"],
+          "vendor-leaflet": ["leaflet", "leaflet.markercluster"],
+          "vendor-axios": ["axios"],
+        },
       },
     },
   },

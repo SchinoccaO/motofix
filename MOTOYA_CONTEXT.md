@@ -1,5 +1,5 @@
 # MOTOYA_CONTEXT.md — Single Source of Truth (SSOT)
-> Versión: 1.3 | Última actualización: 2026-03-01
+> Versión: 1.4 | Última actualización: 2026-03-06
 > Protocolo: Este archivo DEBE actualizarse al final de cada sesión de cambios.
 
 ---
@@ -104,22 +104,26 @@
 ## 4. ESTRUCTURA DE RUTAS (React Router v6)
 
 ```
-/                    → Home.tsx               (pública)
-/login               → Login.tsx              (pública, redirige si hay token)
-/register            → Register.tsx           (pública, redirige si hay token)
-/talleres            → BuscarTalleres.tsx     (pública)
-/mapa                → MapaPage.tsx           (pública) ← NUEVO: mapa full-screen
-/taller/:id          → TallerProfile.tsx      (pública)
-/taller/:id/resena   → ResenaForm.tsx         (protegida, requiere token)
-/registro-taller     → RegistroTaller.tsx     (protegida)
-/mi-perfil           → MiPerfil.tsx           (protegida)
-/mi-perfil/seguridad → Seguridad.tsx          (protegida)
-/usuario/:id         → PerfilPublico.tsx      (pública)
-/sobre-nosotros      → SobreNosotros.tsx      (pública)
-/blog                → Blog.tsx               (pública)
-/ayuda               → Ayuda.tsx              (pública)
-/terminos            → Terminos.tsx           (pública)
-/privacidad          → Privacidad.tsx         (pública)
+/                       → Home.tsx               (pública)
+/login                  → Login.tsx              (pública, redirige si hay token)
+/register               → Register.tsx           (pública, redirige si hay token)
+/talleres               → BuscarTalleres.tsx     (pública)
+/mapa                   → MapaPage.tsx           (pública) ← mapa full-screen
+/taller/:id             → TallerProfile.tsx      (pública)
+/taller/:id/resena      → ResenaForm.tsx         (protegida, requiere token)
+/taller/:id/editar      → EditarTaller.tsx       (protegida, requiere token + owner)
+/registro-taller        → RegistroTaller.tsx     (protegida)
+/mi-perfil              → MiPerfil.tsx           (protegida)
+/mi-perfil/seguridad    → Seguridad.tsx          (protegida)
+/usuario/:id            → PerfilPublico.tsx      (pública)
+/olvide-contrasena      → OlvideContrasena.tsx   (pública)
+/restablecer-contrasena → RestablecerContrasena.tsx (pública, requiere ?token en query)
+/sobre-nosotros         → SobreNosotros.tsx      (pública)
+/blog                   → Blog.tsx               (pública)
+/ayuda                  → Ayuda.tsx              (pública)
+/terminos               → Terminos.tsx           (pública)
+/privacidad             → Privacidad.tsx         (pública)
+*                       → NotFound.tsx           (404 catch-all)
 ```
 
 ---
@@ -176,8 +180,8 @@
 | `<Icon>`          | `components/Icon.tsx`           | Props: `name` (string), `size` (number)                        |
 | `<UserAvatar>`    | `components/UserAvatar.tsx`     | Avatar con fallback a iniciales de color                       |
 | `<ScrollToTop>`   | `components/ScrollToTop.tsx`    | Utility: scrollea al top en cambio de ruta                     |
-| `<MapaTalleres>`  | `components/MapaTalleres.tsx`   | Mapa MapLibre GL JS. Props: `providers`, `onMarkerClick?`, `fullScreen?`, `selectedId?`. Pines SVG con emoji por tipo (canvas 2x). Popup con badge abierto/cerrado. |
-| `<SelectorUbicacion>` | `components/SelectorUbicacion.tsx` | Selector de ubicación con mapa + geocoding. Prop: `onLocationChange(LocationData)`. **Lazy-load obligatorio** (ver nota abajo) |
+| `<MapaTalleres>`  | `components/MapaTalleres.tsx`   | Mapa **Leaflet**. Props: `providers`, `onMarkerClick?`, `fullScreen?`, `selectedId?`. Marcadores `L.divIcon` SVG por tipo con emoji. Clustering via `leaflet.markercluster`. Popup con badge abierto/cerrado. **Siempre lazy-loaded**. |
+| `<SelectorUbicacion>` | `components/SelectorUbicacion.tsx` | Selector de ubicación con mapa **Leaflet** + pin draggable + Nominatim. Prop: `onLocationChange(LocationData)`. **Lazy-load obligatorio**. |
 
 ---
 
@@ -191,21 +195,15 @@ TypeScript 5.9    │ Lenguaje
 React Router 6.22 │ Navegación SPA
 TailwindCSS 3.4   │ Estilos (darkMode: 'class')
 Axios 1.6         │ HTTP client
-maplibre-gl 4.7   │ Mapa interactivo (reemplaza Leaflet — lazy loaded en /mapa y /registro-taller)
+leaflet ^1.9               │ Mapa interactivo (reemplazó MapLibre — lazy loaded)
+leaflet.markercluster ^1.5 │ Clustering de marcadores en el mapa
 @react-oauth/google 0.13 │ Google OAuth
 @tailwindcss/forms 0.5   │ Plugin forms
 Material Symbols  │ Iconografía (via CDN en index.html)
 ```
 
-> **REGLA CRÍTICA — maplibre-gl**: Siempre importar componentes que usen maplibre-gl con
-> `React.lazy()` + `<Suspense>`. El motivo es **code splitting** (el chunk pesa ~800KB), NO
-> compatibilidad con Web Workers.
->
-> **⚠️ NO usar `optimizeDeps: { exclude: ['maplibre-gl'] }`**: maplibre-gl v4 distribuye
-> un bundle **UMD** (`dist/maplibre-gl.js`). Sin pre-bundling, Vite lo sirve raw y el browser
-> falla con `SyntaxError: does not provide an export named 'default'`. Dejar que Vite
-> pre-bundlee (esbuild convierte UMD→ESM automáticamente, el worker viene inline en el bundle).
-> El `vite.config.ts` solo necesita `build.rollupOptions.manualChunks` para producción.
+> **REGLA — leaflet**: Siempre importar `MapaTalleres` y `SelectorUbicacion` con `React.lazy()` +
+> `<Suspense>`. Bundle de producción: chunk leaflet ~149KB (43KB gzip) vs ~801KB de MapLibre.
 >
 > **Patrón correcto**:
 > ```tsx
@@ -217,14 +215,20 @@ Material Symbols  │ Iconografía (via CDN en index.html)
 > </Suspense>
 > ```
 >
-> Chunks en producción: `maplibre-gl` (~800KB), `MapaTalleres` (~7KB), `SelectorUbicacion` (~6KB).
-> Bundle principal: ~370KB min / ~103KB gzip.
+> **Tiles**: Light → Carto Positron raster | Dark → Carto Dark Matter raster
+> (ambos vía `https://{s}.basemaps.cartocdn.com/`)
+>
+> **Dark mode**: `MutationObserver` en `<html>` class → `tileLayer.setUrl()` para cambiar tiles
+> sin recrear el mapa. `darkEffectFirst` ref evita doble ejecución en el mount inicial.
+>
+> **`vite.config.ts`**: Sin `build.rollupOptions.manualChunks` ni `optimizeDeps` especiales.
+> Leaflet es ESM nativo — Vite lo maneja sin configuración extra.
 
 ### Backend (`server/`)
 ```
 Express 4.18      │ Framework web (puerto 5001)
 Sequelize 6.37    │ ORM
-MySQL2 3.16       │ Driver (TiDB Cloud compatibe)
+MySQL2 3.16       │ Driver (TiDB Cloud compatible)
 bcryptjs 2.4      │ Hash de contraseñas
 jsonwebtoken 9.0  │ Auth JWT
 helmet 8.1        │ Security headers
@@ -232,7 +236,23 @@ cors 2.8          │ CORS middleware
 express-rate-limit│ Rate limiting en auth (v8 — NO usar keyGenerator: req.ip manual, ver §14)
 express-validator │ Validación de inputs
 google-auth-lib   │ Verificación OAuth
+resend            │ Email transaccional vía HTTP (reemplazó nodemailer SMTP)
+node-cache        │ Caché en memoria para GET /providers
 ```
+
+### Variables de entorno requeridas — Backend (Render)
+```
+DB_HOST, DB_PORT, DB_USER, DB_PASS, DB_NAME  → TiDB Cloud
+JWT_SECRET, JWT_EXPIRES_IN                    → Auth JWT
+GOOGLE_CLIENT_ID                             → OAuth
+RESEND_API_KEY                               → Email transaccional (resend.com)
+RESEND_FROM    (opcional)                    → "MotoFIX <noreply@motofix.ar>" (requiere dominio verificado)
+CLIENT_URL                                   → URL del frontend (para links en emails, ej: https://motofix.ar)
+```
+
+> **⚠️ Resend y dominios**: El from `onboarding@resend.dev` solo envía a la cuenta dueña del API key.
+> Para enviar a cualquier email en producción, verificar el dominio `motofix.ar` en resend.com/domains
+> y configurar `RESEND_FROM=MotoFIX <noreply@motofix.ar>`.
 
 ### Base de Datos
 ```
@@ -246,8 +266,10 @@ Pool:     max 10, min 0
 ### Deploy
 ```
 Frontend: Vercel  (vercel.json presente)
-Backend:  Render  (variables de entorno en platform)
+Backend:  Render  (variables de entorno en platform — branch: main)
 ```
+
+> **⚠️ Branch de deploy en Render**: Render despliega desde `main`. Todo hotfix debe estar en `main`.
 
 ---
 
@@ -258,34 +280,42 @@ Backend:  Render  (variables de entorno en platform)
 
 ### Auth (`/api/auth`)
 ```
-POST /auth/register          → Registrar usuario
-POST /auth/login             → Login email+password
-POST /auth/google            → Google OAuth login
-POST /auth/google/link       → Vincular cuenta Google
-GET  /auth/users/:id         → Perfil público de usuario
-GET  /auth/perfil            → Mi perfil [token]
-PUT  /auth/perfil            → Actualizar mi perfil [token]
-PUT  /auth/cambiar-contrasena→ Cambiar contraseña [token]
+POST /auth/register              → Registrar usuario
+POST /auth/login                 → Login email+password
+POST /auth/google                → Google OAuth login
+POST /auth/google/link           → Vincular cuenta Google
+GET  /auth/users/:id             → Perfil público de usuario
+GET  /auth/perfil                → Mi perfil [token]
+PUT  /auth/perfil                → Actualizar mi perfil [token]
+PUT  /auth/cambiar-contrasena    → Cambiar contraseña [token]
+POST /auth/forgot-password       → Enviar link de restablecimiento (respuesta genérica siempre)
+POST /auth/reset-password        → Restablecer contraseña con token JWT (expira en 1h)
 ```
 
 ### Providers/Talleres (`/api/providers`)
 ```
-GET  /providers              → Listar/buscar (query: type, city, search, is_verified)
-GET  /providers/tags         → Listar todos los tags
-GET  /providers/mine         → Mis talleres [token]
-GET  /providers/:id          → Detalle de taller
-POST /providers              → Crear taller [token]
-PUT  /providers/:id          → Editar taller [token, owner]
-DELETE /providers/:id        → Eliminar taller [token, owner]
-POST /providers/:id/reviews  → Crear reseña [token]
-POST /providers/:id/tags     → Agregar tags [token]
-DELETE /providers/:id/tags/:tagId → Quitar tag [token]
+GET  /providers                  → Listar/buscar (query: type, city, search, is_verified, page, limit)
+GET  /providers/tags             → Listar todos los tags
+GET  /providers/mine             → Mis talleres [token]
+GET  /providers/:id              → Detalle de taller
+POST /providers                  → Crear taller [token]
+PUT  /providers/:id              → Editar taller [token, owner]
+PUT  /providers/:id/verify       → Verificar taller [admin]
+DELETE /providers/:id            → Eliminar taller [token, owner]
+POST /providers/:id/reviews      → Crear reseña [token]
+POST /providers/:id/tags         → Agregar tags [token]
+DELETE /providers/:id/tags/:tagId→ Quitar tag [token]
 ```
+
+> **Paginación en `GET /providers`**: parámetros `page` (default 1) y `limit` (default 20).
+> Respuesta incluye `{ total, page, totalPages, data: [...] }`.
+> La respuesta se cachea en memoria con `node-cache` (TTL configurable). Antes de guardar en
+> caché, los modelos Sequelize se serializan con `.toJSON()` para evitar errores de clonación.
 
 ### Health
 ```
-GET  /api                    → Info de la API
-GET  /api/health             → Estado del servidor y BD
+GET  /api                        → Info de la API
+GET  /api/health                 → Estado del servidor y BD
 ```
 
 ---
@@ -307,7 +337,7 @@ type: 'shop' | 'mechanic' | 'parts_store',
 name, description, phone, email, website, photo_url,
 is_verified: boolean, is_active: boolean,
 average_rating: float, total_reviews: int,
-horarios: JSON | null   // ← NUEVO (migrado 2026-03-01)
+horarios: JSON | null   // (migrado 2026-03-01)
 ```
 
 **Formato `horarios`:**
@@ -356,6 +386,18 @@ ProviderTag: { provider_id, tag_id }  // pivot many-to-many
 5. Frontend: `getStoredUser()` / `getStoredToken()` desde `services/api.ts`
 6. Logout: `logout()` elimina localStorage y reload
 
+### Forgot Password — flujo
+1. Usuario va a `/olvide-contrasena` → ingresa su email
+2. Frontend: `POST /api/auth/forgot-password { email }`
+3. Backend: busca el usuario. Si existe y no es cuenta Google, genera un JWT firmado
+   con `{ id, email, type: 'password-reset' }` y expiración de 1 hora
+4. Envía email via Resend con link a `${CLIENT_URL}/restablecer-contrasena?token=<jwt>`
+5. Respuesta: siempre `{ success: true, message: "..." }` (no revela si el email existe)
+6. Usuario hace clic → `RestablecerContrasena.tsx` → extrae `?token` del query
+7. Frontend: `POST /api/auth/reset-password { token, newPassword }`
+8. Backend: verifica JWT, verifica `type === 'password-reset'`, actualiza `password_hash`
+   (el hook `beforeUpdate` de Sequelize lo hashea automáticamente)
+
 ---
 
 ## 11. DARK MODE — IMPLEMENTACIÓN
@@ -370,27 +412,33 @@ ProviderTag: { provider_id, tag_id }  // pivot many-to-many
 
 ## 12. ESTADO DEL PROYECTO
 
-| Feature                          | Estado      |
-|----------------------------------|-------------|
-| Autenticación (local + Google)   | ✅ Completo |
-| Búsqueda de talleres con filtros | ✅ Completo |
-| Perfil de taller con reseñas     | ✅ Completo |
-| Perfil de usuario                | ✅ Completo |
-| Seguridad (contraseña, datos)    | ✅ Completo |
-| Dark mode                        | ✅ Completo |
-| Responsive design                | ✅ Completo |
-| Mapa interactivo (MapLibre)      | ✅ Completo |
-| Pines SVG diferenciados por tipo | ✅ Completo (canvas 2x retina, emoji 🛠️🔧⚙️, clustering intacto) |
-| Badge "Abierto ahora / Cerrado"  | ✅ Completo (MapaPage, BuscarTalleres, TallerProfile, popup mapa) |
-| Horarios en perfil de taller     | ✅ Completo (tarjeta en sidebar derecho de TallerProfile) |
-| Registro de taller (formulario)  | ✅ Completo (form controlado + submit → POST /providers) |
-| Campo `horarios` en DB           | ✅ Migrado (columna JSON en providers) |
-| Selector lat/lng en RegistroTaller | ✅ Completo (SelectorUbicacion con MapLibre + Nominatim) |
-| Rediseño mobile MapaPage (FAB)   | ⏳ Próximo |
-| Upload de fotos de taller        | ❌ Pendiente |
-| Notificaciones                   | ❌ Pendiente |
-| Chat / mensajería                | ❌ Pendiente |
-| Analytics / estadísticas         | ❌ Pendiente |
+| Feature                            | Estado      |
+|------------------------------------|-------------|
+| Autenticación (local + Google)     | ✅ Completo |
+| Búsqueda de talleres con filtros   | ✅ Completo |
+| Perfil de taller con reseñas       | ✅ Completo |
+| Perfil de usuario                  | ✅ Completo |
+| Seguridad (contraseña, datos)      | ✅ Completo |
+| Dark mode                          | ✅ Completo |
+| Responsive design                  | ✅ Completo |
+| Mapa interactivo (Leaflet)         | ✅ Completo (reemplazó MapLibre — 82% menos bundle) |
+| Marcadores diferenciados por tipo  | ✅ Completo (L.divIcon SVG con emoji 🛠️🔧⚙️, clustering) |
+| Badge "Abierto ahora / Cerrado"    | ✅ Completo (MapaPage, BuscarTalleres, TallerProfile, popup mapa) |
+| Horarios en perfil de taller       | ✅ Completo (tarjeta en sidebar derecho de TallerProfile) |
+| Registro de taller (formulario)    | ✅ Completo (form controlado + submit → POST /providers) |
+| Campo `horarios` en DB             | ✅ Migrado (columna JSON en providers) |
+| Selector lat/lng en RegistroTaller | ✅ Completo (SelectorUbicacion con Leaflet + Nominatim) |
+| Paginación GET /providers          | ✅ Completo (page, limit, total, totalPages) |
+| Caché en memoria (node-cache)      | ✅ Completo (GET /providers, invalidación en writes) |
+| Tags de talleres                   | ✅ Completo (GET /providers/tags, gestión por owner) |
+| Forgot password / Reset password   | ✅ Completo (JWT 1h + Resend email) |
+| Verificación de talleres (admin)   | ✅ Completo (PUT /providers/:id/verify) |
+| Editar taller (owner)              | ⏳ UI en progreso (EditarTaller.tsx creado) |
+| Rediseño mobile MapaPage (FAB)     | ⏳ Próximo |
+| Upload de fotos de taller          | ❌ Pendiente |
+| Notificaciones                     | ❌ Pendiente |
+| Chat / mensajería                  | ❌ Pendiente |
+| Analytics / estadísticas           | ❌ Pendiente |
 
 ---
 
@@ -405,48 +453,108 @@ client/
 ├── src/components/
 │   ├── Navbar.tsx              ← Dark mode toggle, navegación, auth state
 │   ├── Footer.tsx              ← Links, redes sociales
-│   ├── MapaTalleres.tsx        ← Mapa de talleres (lazy, clustering, pines SVG, popup con horarios)
-│   └── SelectorUbicacion.tsx   ← Selector lat/lng con pin draggable (lazy — ver nota maplibre)
+│   ├── MapaTalleres.tsx        ← Mapa Leaflet (lazy, clustering, divIcon SVG, popup con horarios)
+│   └── SelectorUbicacion.tsx   ← Selector lat/lng con pin draggable (lazy — ver nota leaflet)
 └── src/pages/
     ├── Home.tsx                ← Landing page principal
     ├── BuscarTalleres.tsx      ← Búsqueda + filtros + lista (badge abierto/cerrado en cards)
     ├── TallerProfile.tsx       ← Detalle + reseñas + tarjeta horarios en sidebar
     ├── MapaPage.tsx            ← Mapa full-screen con sidebar/drawer
     ├── RegistroTaller.tsx      ← Formulario registro completo (conectado al backend)
+    ├── EditarTaller.tsx        ← Editar taller existente (owner) ← NUEVO
+    ├── OlvideContrasena.tsx    ← Formulario "olvidé mi contraseña" ← NUEVO
+    ├── RestablecerContrasena.tsx ← Formulario reset con token ← NUEVO
     ├── MiPerfil.tsx            ← Perfil del user logueado
     └── Seguridad.tsx           ← Cambio contraseña/datos
 
 server/
 ├── src/index.js                ← Entry point Express
+├── src/config/
+│   ├── cache.js                ← Instancia de node-cache (TTL configurado aquí)
+│   └── constants.js            ← RESET_PASSWORD_TOKEN_EXPIRES y otras constantes
 ├── src/routes/
 │   ├── authRoutes.js           ← /api/auth/* (rate limiters sin keyGenerator manual)
 │   └── tallerRoutes.js         ← /api/providers/*
 ├── src/controllers/
-│   ├── authController.js       ← Lógica auth
-│   └── tallerController.js     ← Lógica talleres/reseñas
+│   ├── authController.js       ← Lógica auth + forgot/reset password
+│   └── tallerController.js     ← Lógica talleres/reseñas (.toJSON() antes de cache.set())
+├── src/utils/
+│   └── mailer.js               ← Resend HTTP API (reemplazó nodemailer SMTP)
 └── src/models/                 ← Sequelize models (Provider tiene campo horarios JSON)
 
 client/src/utils/
 └── horarios.ts                 ← isOpenNow(), getHorariosSemana(), getDiaArgentina(), tipos Horarios/HorarioDia
 ```
 
-### Pines del mapa — implementación (MapaTalleres.tsx)
+### Marcadores del mapa — implementación (MapaTalleres.tsx — Leaflet)
 
-| Tipo          | Color     | Emoji | imagen MapLibre |
-|---------------|-----------|-------|-----------------|
-| `shop`        | `#FFB800` | 🛠️   | `pin-shop`      |
-| `mechanic`    | `#3B82F6` | 🔧   | `pin-mechanic`  |
-| `parts_store` | `#8B5CF6` | ⚙️   | `pin-parts_store`|
+| Tipo          | Color     | Emoji | Implementación                     |
+|---------------|-----------|-------|------------------------------------|
+| `shop`        | `#FFB800` | 🛠️   | `L.divIcon` con SVG inline amarillo|
+| `mechanic`    | `#3B82F6` | 🔧   | `L.divIcon` con SVG inline azul    |
+| `parts_store` | `#8B5CF6` | ⚙️   | `L.divIcon` con SVG inline violeta |
 
-- Pines dibujados en `<canvas>` a **2× (retina)** con `createPinCanvas(color, emoji)` → `ImageData`
-- Registrados en cada `style.load` via `map.addImage(id, imageData, { pixelRatio: 2 })`
-- Layer `unclustered-point`: tipo `symbol` con `icon-image` match por `type`
-- Clusters siguen siendo `circle` layer amarillo (no se rompe el clustering nativo de MapLibre)
-- Popup (solo en modo embebido sin `onMarkerClick`): parsea `_data` → badge abierto/cerrado via `isOpenNow()`
+- Marcadores: `L.divIcon({ html: svgString, iconAnchor: [12, 36] })`
+- Clustering: `L.markerClusterGroup()` de `leaflet.markercluster`
+- Popup: `L.popup()` con badge abierto/cerrado via `isOpenNow()`
+- Dark mode: `MutationObserver` en `<html>` → `tileLayer.setUrl(cartoDarkUrl)`
+- Tiles light: `https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png`
+- Tiles dark: `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png`
 
 ---
 
 ## 14. CHANGELOG DE SESIONES
+
+### 2026-03-06 — Sesión 7: Leaflet migration + Email fix + Backend QA + Security audit
+
+**Migración MapLibre → Leaflet:**
+- **Por qué**: MapLibre GL JS pesa ~800KB gzip; Leaflet pesa ~43KB gzip (82% menos)
+- `MapaTalleres.tsx`: reescrito completamente con Leaflet + leaflet.markercluster
+  - Pines: `L.divIcon` con SVG inline (amarillo/azul/violeta según tipo)
+  - Tiles: Carto Positron (light) / Carto Dark Matter (dark) vía HTTPS raster
+  - Dark mode: MutationObserver → `tileLayer.setUrl()` (sin recrear el mapa)
+  - Clustering: `L.markerClusterGroup()` nativo
+- `SelectorUbicacion.tsx`: reescrito con Leaflet. Pin draggable, reverse geocoding con Nominatim
+- `client/vite.config.ts`: eliminado `build.rollupOptions.manualChunks` (no necesario para Leaflet)
+- `vercel.json` CSP: eliminado `tiles.openfreemap.org` y `worker-src blob:`; agregado `https://vercel.live` a `script-src` y `frame-src`
+
+**Fix backend — caché + Sequelize:**
+- **Síntoma**: `GET /providers` retornaba 500 con `TypeError: Cannot assign to read only property 'writeQueueSize'`
+- **Causa**: `node-cache` hace deep-clone de los valores; las instancias Sequelize tienen referencias a sockets TCP con propiedades de solo lectura
+- **Fix**: `providers.map(p => p.toJSON())` antes de `cache.set()` en `tallerController.js`
+
+**Fix email — SMTP bloqueado en Render:**
+- **Síntoma**: `forgot-password` retornaba 500 por timeout en `smtp.gmail.com:587`
+- **Causa 1**: Render free tier bloquea TODOS los puertos SMTP salientes (25, 465, 587)
+- **Causa 2**: el error de `sendMail` se propagaba al `catch` externo → respuesta 500
+- **Fix 1**: migrado de nodemailer a **Resend** (HTTP API, funciona en Render)
+  - `server/src/utils/mailer.js` reescrito: `import { Resend } from 'resend'`
+  - Env vars requeridas: `RESEND_API_KEY`, `RESEND_FROM`, `CLIENT_URL`
+- **Fix 2**: `sendMail` envuelto en inner `try/catch` para que errores de mail loggeen sin romper la respuesta
+
+**Fix git — merge commit no deseado:**
+- `git reset --soft <sha-previo>` + `git commit` → historia lineal restaurada
+
+**CSP fixes (vercel.json):**
+- Agregado `https://vercel.live` a `script-src` (feedback widget de Vercel)
+- Agregado `https://vercel.live` a `frame-src` (iframe del widget)
+
+**Sincronización de branches:**
+- Render despliega desde `main`. Todos los commits estaban en `pages`.
+- Fix: `git checkout main` → `git merge origin/pages` → `git push origin main`
+- `main` ahora tiene toda la historia de `pages` (ambas están en sync)
+
+**Archivos modificados:**
+- `client/src/components/MapaTalleres.tsx` — reescritura completa (Leaflet)
+- `client/src/components/SelectorUbicacion.tsx` — reescritura completa (Leaflet)
+- `client/vite.config.ts` — eliminado manualChunks
+- `vercel.json` — CSP actualizado
+- `server/src/controllers/tallerController.js` — `.toJSON()` antes de cache.set()
+- `server/src/controllers/authController.js` — inner try/catch + debug logs
+- `server/src/utils/mailer.js` — reescrito con Resend
+- `server/package.json` — agregado `resend`
+
+---
 
 ### 2026-03-01 — Sesión 6: Fix maplibre-gl UMD + UI/UX MapaPage + horarios en BuscarTalleres
 
@@ -463,7 +571,6 @@ client/src/utils/
 **BuscarTalleres.tsx:**
 - Badge "Verificado" → `bg-green-500 text-white` (mismo estilo que MapaPage)
 - Agregado badge "Abierto ahora / Cerrado" en cards usando `isOpenNow()` de `utils/horarios`
-- Import: `isOpenNow` desde `../utils/horarios`
 
 **Archivos modificados:**
 - `client/vite.config.ts` — eliminado `optimizeDeps.exclude`
@@ -484,43 +591,10 @@ client/src/utils/
 
 ---
 
-**`SelectorUbicacion.tsx` — detalles técnicos:**
-- MapLibre GL con mismos tiles que `MapaTalleres` (OpenFreeMap positron / Carto Dark Matter)
-- Nominatim geocoding con `addressdetails=1` → extrae `city` y `province` del objeto estructurado
-- Debounce 500ms en el input → `GET nominatim/search?countrycodes=ar` → `flyTo` + pin
-- Pin SVG amarillo (`#FFB800`) draggable con `anchor: 'bottom'`
-- Al soltar el pin → `nominatim/reverse` → actualiza el input de texto automáticamente
-- Centrado en Córdoba `[-64.181, -31.4135]` por defecto
-- Exporta `LocationData { lat, lng, address, displayAddress, city, province }`
-- `address` = dirección compacta para DB (ej: "Av. Colón 1234, General Paz, Córdoba")
-- `displayAddress` = `display_name` completo de Nominatim (para mostrar en el input)
-- Alturas: `h-64` (256px mobile) / `md:h-80` (320px desktop)
-- Dark mode: MutationObserver + `darkEffectFirst` ref (mismo patrón que MapaTalleres)
-
-**`RegistroTaller.tsx` — form controlado:**
-- Estado: `formType`, `name`, `phone`, `email`, `description`, `sabOpen`, `location`, `terms`
-- `handleSubmit`: valida cliente → llama `createProvider()` → redirect a `/taller/:id`
-- Banner de advertencia si el usuario no está logueado
-- Error banner muestra detalles del middleware `express-validator` del backend
-- Botón con spinner `progress_activity` durante loading
-- `SelectorUbicacion` importado con `React.lazy()` + `<Suspense>` con skeleton animado
-
-**`api.ts` — `createProvider()`:**
-- Envía: `type`, `name`, `phone`, `email`, `description`, `address`, `city`, `province`, `latitude`, `longitude`
-- Responde con el `Provider` completo (incluye `id` para el redirect)
-
 **Fix backend — `express-rate-limit` v8:**
 - **Síntoma**: backend crasheaba al iniciar con `ERR_ERL_KEY_GEN_IPV6`
 - **Causa**: v8 prohíbe `keyGenerator: (req) => req.ip` sin el helper `ipKeyGenerator`
 - **Fix**: eliminado `keyGenerator` de los 3 rate limiters en `authRoutes.js`
-  (el comportamiento por defecto de v8 ya usa `req.ip` con soporte IPv6 correcto)
-
-**Fix frontend — maplibre-gl en bundle principal:**
-- **Síntoma**: app se congelaba al cargar porque maplibre-gl sin pre-bundling
-  genera cientos de requests HTTP individuales en dev mode
-- **Causa**: `optimizeDeps.exclude: ['maplibre-gl']` en vite.config.ts + import eager
-- **Fix**: `SelectorUbicacion` importado con `React.lazy()` en `RegistroTaller`
-- Bundle principal volvió a ~103KB gzip (vs 324KB con import directo)
 
 ---
 
