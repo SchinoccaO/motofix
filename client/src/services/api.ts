@@ -358,6 +358,10 @@ export async function adminSetProviderActive(id: number, is_active: boolean): Pr
   await api.put(`/providers/${id}/active`, { is_active });
 }
 
+export async function adminHardDeleteProvider(id: number): Promise<void> {
+  await api.delete(`/providers/${id}/hard`);
+}
+
 // ─── ADMIN — USUARIOS ─────────────────────────────────────────────────────────
 
 export interface AdminUser {

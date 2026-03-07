@@ -937,6 +937,51 @@ export const adminGetProviders = async (req, res) => {
 };
 
 /**
+ * Admin: eliminar un provider definitivamente (hard delete).
+ * Borra en orden: ReviewReplies → Reviews → ProviderTags → Location → Provider.
+ * Todo dentro de una transacción — si algo falla, se hace rollback completo.
+ */
+export const adminHardDeleteProvider = async (req, res) => {
+    const t = await sequelize.transaction();
+    try {
+        const { id } = req.params;
+
+        const provider = await Provider.findByPk(id, {
+            include: [{ model: Review, as: 'reviews', attributes: ['id'] }]
+        });
+
+        if (!provider) {
+            await t.rollback();
+            return res.status(404).json({ success: false, error: 'Provider no encontrado' });
+        }
+
+        const reviewIds = (provider.reviews || []).map(r => r.id);
+
+        if (reviewIds.length > 0) {
+            await ReviewReply.destroy({ where: { review_id: reviewIds }, transaction: t });
+        }
+        await Review.destroy({ where: { provider_id: id }, transaction: t });
+        await ProviderTag.destroy({ where: { provider_id: id }, transaction: t });
+        await Location.destroy({ where: { provider_id: id }, transaction: t });
+
+        const name = provider.name;
+        await provider.destroy({ transaction: t });
+
+        await t.commit();
+        cache.flushAll();
+
+        return res.json({
+            success: true,
+            message: `"${name}" eliminado definitivamente de la base de datos.`,
+        });
+    } catch (error) {
+        await t.rollback();
+        console.error('Error adminHardDeleteProvider:', error);
+        res.status(500).json({ success: false, error: 'Error al eliminar el provider' });
+    }
+};
+
+/**
  * Admin: activar o desactivar un provider.
  * Body: { is_active: true | false }
  * Solo admin puede llamar esta ruta.
